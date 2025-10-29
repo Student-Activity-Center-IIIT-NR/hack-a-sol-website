@@ -1,0 +1,277 @@
+/* ============================================
+   HACK-A-SOL DESIGN SYSTEM - DESIGN TOKENS
+   F1 Racing Inspired Design Language
+   ============================================ */
+
+:root {
+  /* ===== COLOR PALETTE ===== */
+  /* Primary F1 Racing Colors */
+  --color-racing-red: #ff0000;
+  --color-racing-red-dark: #cc0000;
+  --color-racing-red-light: #ff3333;
+  --color-racing-red-alpha: rgba(255, 0, 0, 0.1);
+  
+  --color-carbon-black: #000000;
+  --color-carbon-dark: #0a0a0a;
+  --color-carbon-medium: #1a1a1a;
+  --color-carbon-light: #2a2a2a;
+  
+  --color-pure-white: #ffffff;
+  --color-off-white: #f8f9fa;
+  --color-silver: #e9ecef;
+  --color-platinum: #dee2e6;
+  
+  /* Accent Colors */
+  --color-gold: #ffd700;
+  --color-chrome: #c0c0c0;
+  --color-warning: #ffc107;
+  --color-success: #28a745;
+  --color-danger: var(--color-racing-red);
+  
+  /* Semantic Colors */
+  --color-text-primary: var(--color-carbon-black);
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
+  --color-text-inverse: var(--color-pure-white);
+  
+  --color-background-primary: var(--color-pure-white);
+  --color-background-secondary: var(--color-off-white);
+  --color-background-dark: var(--color-carbon-black);
+  --color-background-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* ===== TYPOGRAPHY SCALE ===== */
+  /* Modular Scale: 1.25 (Major Third) */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --font-size-5xl: 3rem;        /* 48px */
+  --font-size-6xl: 3.75rem;     /* 60px */
+  --font-size-7xl: 4.5rem;      /* 72px */
+  --font-size-8xl: 6rem;        /* 96px */
+  --font-size-9xl: 8rem;        /* 128px */
+  
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+  --line-height-loose: 1.8;
+  
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-black: 900;
+  
+  /* Font Families */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-racing: 'Orbitron', 'Arial Black', 'Impact', 'Franklin Gothic Bold', sans-serif;
+  --font-family-mono: 'Fira Code', 'Consolas', 'Monaco', monospace;
+  
+  /* ===== SPACING SCALE ===== */
+  /* Based on 4px grid system */
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  --space-32: 8rem;      /* 128px */
+  --space-40: 10rem;     /* 160px */
+  --space-48: 12rem;     /* 192px */
+  --space-56: 14rem;     /* 224px */
+  --space-64: 16rem;     /* 256px */
+  
+  /* ===== BORDER RADIUS ===== */
+  --radius-none: 0;
+  --radius-xs: 0.125rem;   /* 2px */
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-3xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;
+  
+  /* ===== SHADOWS ===== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-racing: 0 0 20px var(--color-racing-red-alpha);
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  
+  /* ===== ANIMATION TOKENS ===== */
+  /* Duration */
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 750ms;
+  --duration-slowest: 1000ms;
+  
+  /* Easing Functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-racing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* ===== LAYOUT TOKENS ===== */
+  /* Container Widths */
+  --container-xs: 20rem;      /* 320px */
+  --container-sm: 24rem;      /* 384px */
+  --container-md: 28rem;      /* 448px */
+  --container-lg: 32rem;      /* 512px */
+  --container-xl: 36rem;      /* 576px */
+  --container-2xl: 42rem;     /* 672px */
+  --container-3xl: 48rem;     /* 768px */
+  --container-4xl: 56rem;     /* 896px */
+  --container-5xl: 64rem;     /* 1024px */
+  --container-6xl: 72rem;     /* 1152px */
+  --container-7xl: 80rem;     /* 1280px */
+  --container-full: 90rem;    /* 1440px */
+  
+  /* Z-Index Scale */
+  --z-hide: -1;
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-popover: 1050;
+  --z-tooltip: 1060;
+  --z-top: 9999;
+  
+  /* ===== BREAKPOINTS ===== */
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /* ===== F1 SPECIFIC DESIGN TOKENS ===== */
+  /* Racing Stripes */
+  --stripe-width: 4px;
+  --stripe-pattern: repeating-linear-gradient(
+    45deg,
+    var(--color-carbon-black),
+    var(--color-carbon-black) var(--stripe-width),
+    var(--color-pure-white) var(--stripe-width),
+    var(--color-pure-white) calc(var(--stripe-width) * 2)
+  );
+  
+  /* Circuit Board Pattern */
+  --circuit-pattern: radial-gradient(
+    circle at 25% 25%, 
+    var(--color-racing-red-alpha) 0%, 
+    transparent 30%
+  );
+  
+  /* Speed Lines Effect */
+  --speed-lines: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-racing-red) 50%,
+    transparent 100%
+  );
+  
+  /* Checkered Flag Pattern */
+  --checkered-flag: 
+    conic-gradient(
+      var(--color-carbon-black) 90deg,
+      var(--color-pure-white) 90deg 180deg,
+      var(--color-carbon-black) 180deg 270deg,
+      var(--color-pure-white) 270deg
+    );
+}
+
+/* ===== COMPONENT TOKENS ===== */
+:root {
+  /* Button Tokens */
+  --btn-height-sm: 2rem;
+  --btn-height-md: 2.5rem;
+  --btn-height-lg: 3rem;
+  --btn-padding-sm: var(--space-2) var(--space-4);
+  --btn-padding-md: var(--space-3) var(--space-6);
+  --btn-padding-lg: var(--space-4) var(--space-8);
+  
+  /* Card Tokens */
+  --card-padding: var(--space-6);
+  --card-radius: var(--radius-xl);
+  --card-shadow: var(--shadow-lg);
+  
+  /* Navigation Tokens */
+  --nav-height: 4rem;
+  --nav-padding: var(--space-4) var(--space-6);
+  --nav-shadow: var(--shadow-sm);
+  
+  /* Section Tokens */
+  --section-padding-y: var(--space-24);
+  --section-padding-x: var(--space-6);
+  --section-max-width: var(--container-7xl);
+}
+
+/* ===== RESPONSIVE DESIGN TOKENS ===== */
+@media (max-width: 768px) {
+  :root {
+    /* Reduce spacing on mobile */
+    --section-padding-y: var(--space-16);
+    --section-padding-x: var(--space-4);
+    
+    /* Adjust typography scale for mobile */
+    --font-size-5xl: 2.5rem;
+    --font-size-6xl: 3rem;
+    --font-size-7xl: 3.5rem;
+    --font-size-8xl: 4rem;
+    --font-size-9xl: 5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    /* Further reduce spacing on small mobile */
+    --section-padding-y: var(--space-12);
+    --section-padding-x: var(--space-3);
+    
+    /* Compact typography for small screens */
+    --font-size-5xl: 2rem;
+    --font-size-6xl: 2.5rem;
+    --font-size-7xl: 3rem;
+    --font-size-8xl: 3.5rem;
+    --font-size-9xl: 4rem;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+/* Typography utilities */
+.text-racing { font-family: var(--font-family-racing); }
+.text-mono { font-family: var(--font-family-mono); }
+
+/* Color utilities */
+.text-racing-red { color: var(--color-racing-red); }
+.text-carbon { color: var(--color-carbon-black); }
+.bg-racing-red { background-color: var(--color-racing-red); }
+.bg-carbon { background-color: var(--color-carbon-black); }
+
+/* Animation utilities */
+.transition-racing { transition: all var(--duration-normal) var(--ease-racing); }
+.transition-bounce { transition: all var(--duration-normal) var(--ease-bounce); }

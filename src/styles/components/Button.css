@@ -1,0 +1,317 @@
+/* ============================================
+   BUTTON COMPONENT STYLES
+   Using Design System Tokens
+   ============================================ */
+
+.btn {
+  /* Base Button Styles */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: all var(--duration-normal) var(--ease-racing);
+  outline: none;
+  overflow: hidden;
+
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* ===== BUTTON SIZES ===== */
+.btn--sm {
+  height: var(--btn-height-sm);
+  padding: var(--btn-padding-sm);
+  font-size: var(--font-size-sm);
+  min-width: 4rem;
+}
+
+.btn--md {
+  height: var(--btn-height-md);
+  padding: var(--btn-padding-md);
+  font-size: var(--font-size-base);
+  min-width: 5rem;
+}
+
+.btn--lg {
+  height: var(--btn-height-lg);
+  padding: var(--btn-padding-lg);
+  font-size: var(--font-size-lg);
+  min-width: 6rem;
+}
+
+/* ===== BUTTON VARIANTS ===== */
+
+/* Primary - Racing Red */
+.btn--primary {
+  background: linear-gradient(135deg, var(--color-racing-red), var(--color-racing-red-dark));
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--primary:hover:not(.btn--disabled):not(.btn--loading) {
+  background: linear-gradient(135deg, var(--color-racing-red-light), var(--color-racing-red));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.btn--primary:active:not(.btn--disabled):not(.btn--loading) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-md);
+}
+
+/* Secondary - Outline */
+.btn--secondary {
+  background: transparent;
+  color: var(--color-racing-red);
+  border: 2px solid var(--color-racing-red);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn--secondary:hover:not(.btn--disabled):not(.btn--loading) {
+  background: var(--color-racing-red);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+}
+
+/* Tertiary - Ghost */
+.btn--tertiary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 2px solid transparent;
+}
+
+.btn--tertiary:hover:not(.btn--disabled):not(.btn--loading) {
+  background: var(--color-racing-red-alpha);
+  color: var(--color-racing-red);
+  border-color: var(--color-racing-red);
+}
+
+/* Inverse - For dark backgrounds */
+.btn--inverse {
+  background: var(--color-pure-white);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--inverse:hover:not(.btn--disabled):not(.btn--loading) {
+  background: var(--color-off-white);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+/* Danger */
+.btn--danger {
+  background: linear-gradient(135deg, var(--color-danger), #dc3545);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--danger:hover:not(.btn--disabled):not(.btn--loading) {
+  background: linear-gradient(135deg, #dc3545, var(--color-danger));
+  box-shadow: var(--shadow-lg);
+}
+
+/* Success */
+.btn--success {
+  background: linear-gradient(135deg, var(--color-success), #1e7e34);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+}
+
+.btn--success:hover:not(.btn--disabled):not(.btn--loading) {
+  background: linear-gradient(135deg, #1e7e34, var(--color-success));
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== BUTTON STATES ===== */
+
+/* Disabled State */
+.btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Loading State */
+.btn--loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.btn--loading .btn__text {
+  opacity: 0.7;
+}
+
+/* Focus State */
+.btn:focus-visible {
+  outline: 2px solid var(--color-racing-red);
+  outline-offset: var(--space-1);
+}
+
+/* ===== BUTTON ELEMENTS ===== */
+
+/* Button Text */
+.btn__text {
+  display: flex;
+  align-items: center;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Button Icons */
+.btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.btn__icon--left {
+  margin-left: calc(var(--space-1) * -1);
+}
+
+.btn__icon--right {
+  margin-right: calc(var(--space-1) * -1);
+}
+
+.btn:hover .btn__icon {
+  transform: scale(1.1);
+}
+
+/* Loading Spinner */
+.btn__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===== SPECIAL EFFECTS ===== */
+
+/* Racing Button - Special F1 themed button */
+.btn--racing {
+  position: relative;
+  background: linear-gradient(135deg, var(--color-carbon-black), var(--color-carbon-light));
+  color: var(--color-racing-red);
+  border: 2px solid var(--color-racing-red);
+  font-family: var(--font-family-racing);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  overflow: hidden;
+}
+
+.btn--racing::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--speed-lines);
+  transition: left var(--duration-slow) var(--ease-racing);
+}
+
+.btn--racing:hover::before {
+  left: 100%;
+}
+
+.btn--racing:hover {
+  background: linear-gradient(135deg, var(--color-racing-red), var(--color-racing-red-dark));
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-racing);
+}
+
+/* Checkered Button - Victory themed */
+.btn--checkered {
+  background: var(--checkered-flag);
+  background-size: 20px 20px;
+  color: var(--color-carbon-black);
+  font-weight: var(--font-weight-bold);
+  border: 2px solid var(--color-carbon-black);
+}
+
+.btn--checkered:hover {
+  background: var(--color-racing-red);
+  color: var(--color-text-inverse);
+  border-color: var(--color-racing-red);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .btn--lg {
+    height: var(--btn-height-md);
+    padding: var(--btn-padding-md);
+    font-size: var(--font-size-base);
+  }
+  
+  .btn--md {
+    height: var(--btn-height-sm);
+    padding: var(--btn-padding-sm);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    min-width: auto;
+  }
+  
+  .btn__text {
+    font-size: inherit;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn__icon,
+  .btn__text,
+  .spinner {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .btn {
+    border-width: 2px;
+    border-style: solid;
+  }
+  
+  .btn--primary {
+    background: var(--color-racing-red);
+    border-color: var(--color-text-inverse);
+  }
+  
+  .btn--secondary {
+    background: transparent;
+    border-color: var(--color-racing-red);
+  }
+}

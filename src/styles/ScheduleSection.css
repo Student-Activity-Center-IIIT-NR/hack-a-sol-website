@@ -1,0 +1,277 @@
+.schedule-section {
+  background: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header with menu */
+.schedule-header {
+  padding: 2rem 4rem;
+  background: #1a1a1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.menu-label {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+/* Main circular design */
+.schedule-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  position: relative;
+}
+
+.japan-circle {
+  width: 450px;
+  height: 450px;
+  border: 8px solid #ff0000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: transparent;
+}
+
+.circle-text {
+  text-align: center;
+  color: #ffffff;
+}
+
+.japan-text {
+  font-size: 2.8rem;
+  font-weight: 900;
+  display: block;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+}
+
+.gp-text {
+  font-size: 5rem;
+  font-weight: 900;
+  display: block;
+  font-style: italic;
+  margin-top: -0.5rem;
+  color: #ff0000;
+}
+
+/* Participants layout */
+.participants-grid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 3rem;
+}
+
+.participants-left,
+.participants-right {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  width: 280px;
+}
+
+.participants-left {
+  align-items: flex-start;
+}
+
+.participants-right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.participant-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'Arial', sans-serif;
+}
+
+.participants-right .participant-row {
+  flex-direction: row-reverse;
+}
+
+.participant-position {
+  color: #ff0000;
+  font-size: 1.8rem;
+  font-weight: 900;
+  min-width: 50px;
+  font-style: italic;
+}
+
+.participant-name {
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.participant-time {
+  color: #888888;
+  font-size: 1rem;
+  font-weight: 500;
+  font-style: italic;
+  min-width: 100px;
+}
+
+/* Red accent lines */
+.participants-left::before {
+  content: '';
+  position: absolute;
+  left: -2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 2px;
+  background: #ff0000;
+}
+
+.participants-right::after {
+  content: '';
+  position: absolute;
+  right: -2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  height: 2px;
+  background: #ff0000;
+}
+
+@media (max-width: 1200px) {
+  .schedule-content {
+    padding: 3rem 1rem;
+  }
+  
+  .japan-circle {
+    width: 350px;
+    height: 350px;
+  }
+  
+  .japan-text {
+    font-size: 2.2rem;
+  }
+  
+  .gp-text {
+    font-size: 4rem;
+  }
+  
+  .participants-left,
+  .participants-right {
+    width: 220px;
+    gap: 2rem;
+  }
+  
+  .participants-grid {
+    padding: 0 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .schedule-header {
+    padding: 1.5rem 2rem;
+  }
+  
+  .schedule-content {
+    flex-direction: column;
+    padding: 2rem 1rem;
+  }
+  
+  .participants-grid {
+    position: static;
+    flex-direction: column;
+    gap: 3rem;
+    margin-top: 3rem;
+    padding: 0;
+  }
+  
+  .participants-left,
+  .participants-right {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .participants-right {
+    text-align: center;
+  }
+  
+  .participants-right .participant-row {
+    flex-direction: row;
+  }
+  
+  .participants-left::before,
+  .participants-right::after {
+    display: none;
+  }
+  
+  .japan-circle {
+    width: 280px;
+    height: 280px;
+  }
+  
+  .japan-text {
+    font-size: 1.8rem;
+  }
+  
+  .gp-text {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-header {
+    padding: 1rem;
+  }
+  
+  .japan-circle {
+    width: 220px;
+    height: 220px;
+    border-width: 5px;
+  }
+  
+  .japan-text {
+    font-size: 1.4rem;
+  }
+  
+  .gp-text {
+    font-size: 2.2rem;
+  }
+  
+  .participant-row {
+    gap: 0.5rem;
+  }
+  
+  .participant-position {
+    font-size: 1.4rem;
+    min-width: 40px;
+  }
+  
+  .participant-name {
+    font-size: 1rem;
+  }
+  
+  .participant-time {
+    font-size: 0.9rem;
+    min-width: 80px;
+  }
+  
+  .participants-left,
+  .participants-right {
+    gap: 1.5rem;
+  }
+}
