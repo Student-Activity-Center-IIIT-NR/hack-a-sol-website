@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import HeroSection from './components/HeroSection';
 import AboutSection from './components/AboutSection';
 import ThemesSection from './components/ThemesSection';
+import TeamSection from './components/TeamSection';
 import ScheduleSection from './components/ScheduleSection';
 import SponsorsSection from './components/SponsorsSection';
 import Footer from './components/Footer';
@@ -37,6 +38,9 @@ function App() {
         </section>
         <section id="themes">
           <ThemesSection />
+        </section>
+        <section id="team">
+          <TeamSection />
         </section>
         <section id="schedule">
           <ScheduleSection />

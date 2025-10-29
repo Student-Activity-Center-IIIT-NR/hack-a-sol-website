@@ -15,8 +15,9 @@
 .footer-content {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
-  gap: 3rem;
-  margin-bottom: 3rem;
+  gap: var(--space-12);
+  margin-bottom: var(--space-12);
+  align-items: start;
 }
 
 .footer-brand {
@@ -30,15 +31,37 @@
 }
 
 .brand-name {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #ffffff;
-  margin: 0 0 0.25rem 0;
+  font-family: var(--font-family-brand);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-black);
+  color: var(--color-text-inverse);
+  margin: 0 0 var(--space-1) 0;
   letter-spacing: 0.1em;
-  background: linear-gradient(135deg, #ffffff, #ff0000, #ffffff);
+  background: linear-gradient(135deg, #ffffff, var(--color-racing-red), #ffffff);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+}
+
+.brand-word {
+  transition: all var(--duration-normal) var(--ease-racing);
+}
+
+.brand-word--accent {
+  color: var(--color-racing-red) !important;
+  -webkit-text-fill-color: var(--color-racing-red) !important;
+  text-shadow: 0 0 10px var(--color-racing-red-alpha);
+  font-weight: var(--font-weight-black);
+}
+
+.brand-separator {
+  color: rgba(255, 255, 255, 0.6) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.6) !important;
+  margin: 0 2px;
+  font-weight: var(--font-weight-normal);
 }
 
 .brand-tagline {
@@ -61,20 +84,29 @@
 .event-info {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .info-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-2) 0;
+  transition: all var(--duration-fast) var(--ease-racing);
+}
+
+.info-item:hover {
+  color: var(--color-text-inverse);
+  transform: translateX(var(--space-1));
 }
 
 .info-item svg {
-  color: #ff0000;
+  color: var(--color-racing-red);
+  flex-shrink: 0;
 }
 
 .footer-links {
@@ -253,7 +285,6 @@
 }
 
 .footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 2rem 0;
 }
 

@@ -13,6 +13,7 @@ const Footer = () => {
   const quickLinks = [
     { name: 'About', href: '#about' },
     { name: 'Themes', href: '#themes' },
+    { name: 'Team', href: '#team' },
     { name: 'Schedule', href: '#schedule' },
     { name: 'Sponsors', href: '#sponsors' }
   ];
@@ -21,7 +22,7 @@ const Footer = () => {
     { name: 'Code of Conduct', href: '#', external: true },
     { name: 'Privacy Policy', href: '#', external: true },
     { name: 'Terms of Service', href: '#', external: true },
-    { name: 'MLH Guidelines', href: 'https://mlh.io/code-of-conduct', external: true }
+    { name: 'Contact Us', href: '#', external: true }
   ];
 
   return (
@@ -36,7 +37,13 @@ const Footer = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="brand-logo">
-              <h2 className="brand-name">HACK-A-SOL</h2>
+              <h2 className="brand-name">
+                <span className="brand-word">HACK</span>
+                <span className="brand-separator">-</span>
+                <span className="brand-word brand-word--accent">A</span>
+                <span className="brand-separator">-</span>
+                <span className="brand-word">SOL</span>
+              </h2>
               <p className="brand-tagline">Formula 1 Innovation Challenge</p>
             </div>
             <p className="brand-description">
@@ -141,27 +148,6 @@ const Footer = () => {
           </motion.div>
         </div>
 
-        <motion.div 
-          className="footer-mlh"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <div className="mlh-badge">
-            <img 
-              src="https://static.mlh.io/brand-assets/logo/official/mlh-logomark-color.png" 
-              alt="MLH Official Event"
-              className="mlh-logo"
-            />
-            <div className="mlh-text">
-              <span className="mlh-label">Official MLH Event</span>
-              <span className="mlh-description">
-                This event is organized in partnership with Major League Hacking
-              </span>
-            </div>
-          </div>
-        </motion.div>
 
         <motion.div 
           className="footer-bottom"

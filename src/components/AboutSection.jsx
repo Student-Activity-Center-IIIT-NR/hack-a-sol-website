@@ -1,35 +1,37 @@
 import { motion } from 'framer-motion';
+import ScrollBaseAnimation from './ui/ScrollBaseAnimation';
 import '../styles/AboutSection.css';
 
 const AboutSection = () => {
   return (
     <section id="about" className="about-section">
-      {/* Top section with race results style */}
-      <div className="race-results-header">
-        <div className="race-info">
-          <span className="race-label">RACE RESULTS</span>
-          <span className="position-number">P2</span>
-        </div>
-        <div className="driver-helmet">
-          <img 
-            src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop"
-            alt="F1 Driver Helmet"
-            className="helmet-image"
-          />
-        </div>
+      {/* Full width hero image */}
+      <div className="about-hero-image">
+        <img 
+          src="/images/GnYsQtxWMAEXOJk.jpg"
+          alt="Hack-a-Sol Event"
+          className="hero-image"
+        />
       </div>
 
-      {/* Main content section with bold typography */}
+      {/* Main content section with scrolling text animation */}
       <div className="main-content">
-        <div className="driver-stats">
-          <div className="driver-info">
-            <span className="driver-name">HACK-A-SOL PARTICIPANTS</span>
-            <span className="driver-time">02:46:37</span>
-          </div>
-          <div className="driver-info">  
-            <span className="driver-name">DEVELOPMENT TEAMS</span>
-            <span className="driver-time">48 HOURS</span>
-          </div>
+        {/* Scrolling Text Animation */}
+        <div className="scrolling-text-content">
+          <ScrollBaseAnimation
+            delay={500}
+            baseVelocity={-5}
+            clasname='text-black'
+          >
+            HACK-A-SOL PARTICIPANTS&nbsp;&nbsp;&nbsp;
+          </ScrollBaseAnimation>
+          <ScrollBaseAnimation
+            delay={500}
+            baseVelocity={3}
+            clasname='text-black'
+          >
+            DEVELOPMENT TEAMS&nbsp;&nbsp;&nbsp;
+          </ScrollBaseAnimation>
         </div>
 
         <motion.div 

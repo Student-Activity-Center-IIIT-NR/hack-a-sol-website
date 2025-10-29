@@ -1,5 +1,5 @@
 .themes-section {
-  background: #f5f5f5;
+  background: var(--color-background-secondary);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -9,33 +9,36 @@
 
 /* Navigation */
 .themes-nav {
-  padding: 2rem 4rem;
-  background: rgba(245, 245, 245, 0.95);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: var(--space-8) var(--space-16);
+  background: rgba(248, 249, 250, 0.95);
+  backdrop-filter: blur(10px);
 }
 
 .nav-items {
   display: flex;
-  gap: 3rem;
+  gap: var(--space-12);
 }
 
 .nav-item {
-  color: #666666;
-  font-size: 1rem;
-  font-weight: 700;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--duration-normal) var(--ease-racing);
   position: relative;
-  padding: 0.5rem 0;
+  padding: var(--space-2) 0;
+  font-family: var(--font-family-racing);
+  text-transform: uppercase;
 }
 
 .nav-item:hover {
-  color: #ff0000;
+  color: var(--color-racing-red);
+  transform: translateY(-2px);
 }
 
 .nav-item.active {
-  color: #ff0000;
+  color: var(--color-racing-red);
 }
 
 .nav-item.active::after {
@@ -45,8 +48,9 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background: #ff0000;
-  animation: slideIn 0.3s ease;
+  background: var(--color-racing-red);
+  animation: slideIn var(--duration-normal) var(--ease-racing);
+  box-shadow: 0 0 10px var(--color-racing-red-alpha);
 }
 
 @keyframes slideIn {
@@ -68,8 +72,8 @@
 
 /* Left content */
 .content-left {
-  background: #f5f5f5;
-  padding: 4rem;
+  background: var(--color-background-secondary);
+  padding: var(--space-16);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -78,29 +82,31 @@
 
 .ferrari-logo {
   position: absolute;
-  top: 4rem;
-  right: 4rem;
+  top: var(--space-16);
+  right: var(--space-16);
   width: 80px;
   height: 80px;
-  background: #ff0000;
-  border-radius: 50%;
+  background: var(--color-racing-red);
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-racing);
 }
 
 .prancing-horse {
-  font-size: 2rem;
-  color: #ffffff;
+  font-size: var(--font-size-3xl);
+  color: var(--color-text-inverse);
 }
 
 .driver-name {
-  font-size: clamp(3rem, 8vw, 8rem);
-  font-weight: 900;
-  line-height: 0.85;
-  margin: 0 0 2rem 0;
+  font-size: clamp(var(--font-size-5xl), 8vw, var(--font-size-9xl));
+  font-weight: var(--font-weight-black);
+  line-height: var(--line-height-tight);
+  margin: 0 0 var(--space-8) 0;
   text-transform: uppercase;
-  color: #000000;
+  color: var(--color-text-primary);
+  font-family: var(--font-family-racing);
 }
 
 .name-charles {
@@ -113,32 +119,34 @@
 
 .driver-number {
   position: absolute;
-  bottom: 4rem;
-  left: 4rem;
-  font-size: 3rem;
-  font-weight: 900;
+  bottom: var(--space-16);
+  left: var(--space-16);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-black);
   color: rgba(0, 0, 0, 0.1);
   font-style: italic;
+  font-family: var(--font-family-racing);
 }
 
 .driver-story {
   max-width: 400px;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 
 .driver-story p {
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: #333333;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
   margin: 0;
   font-style: italic;
+  font-family: var(--font-family-primary);
 }
 
 /* Progress indicators */
 .progress-indicators {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
 }
 
 .progress-dot {

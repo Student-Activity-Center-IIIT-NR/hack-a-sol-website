@@ -1,23 +1,24 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/all";
 import { TiLocationArrow } from "react-icons/ti";
 import { useEffect, useRef, useState } from "react";
 import Button from './ui/Button';
 import '../styles/HeroSection.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const HeroSection = () => {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef(null);
   const containerRef = useRef(null);
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
-
-  // Transform scroll progress for parallax effects
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.8, 0.3]);
+  const heroVideoRef = useRef(null);
+  const titleRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const actionsRef = useRef(null);
+  const infoRef = useRef(null);
+  const racingElementsRef = useRef(null);
 
   const videos = [
     { src: "/video/loading.mp4", label: "Formula 1 Racing" },
@@ -44,12 +45,88 @@ const HeroSection = () => {
     });
   };
 
+  // GSAP Animations
+  useGSAP(() => {
+    // Video container parallax effect
+    gsap.to(heroVideoRef.current, {
+      y: "50%",
+      opacity: 0.3,
+      ease: "none",
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "bottom top",
+        scrub: true,
+      },
+    });
+
+    // Clip path animation for video frame
+    gsap.set(heroVideoRef.current, {
+      clipPath: "polygon(14% 0, 72% 0, 88% 90%, 0 95%)",
+      borderRadius: "0% 0% 40% 10%",
+    });
+
+    gsap.from(heroVideoRef.current, {
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+      borderRadius: "0% 0% 0% 0%",
+      ease: "power1.inOut",
+      scrollTrigger: {
+        trigger: heroVideoRef.current,
+        start: "center center",
+        end: "bottom center",
+        scrub: true,
+      },
+    });
+  });
+
+  // Initial animations on load
+  useGSAP(() => {
+    const tl = gsap.timeline();
+
+    tl.from(titleRef.current, {
+      opacity: 0,
+      y: 100,
+      duration: 1,
+      ease: "power2.out",
+    })
+    .from(descriptionRef.current, {
+      opacity: 0,
+      y: 50,
+      duration: 0.8,
+    }, "-=0.2")
+    .from(actionsRef.current, {
+      opacity: 0,
+      y: 30,
+      duration: 0.6,
+    }, "-=0.2")
+    .from(infoRef.current, {
+      opacity: 0,
+      duration: 0.6,
+    }, "-=0.2")
+    .from(racingElementsRef.current?.children, {
+      opacity: 0,
+      scale: 0,
+      duration: 0.8,
+      stagger: 0.2,
+    }, "-=0.4");
+
+    // Speed lines animation
+    gsap.to(".speed-lines", {
+      x: "200%",
+      opacity: 0,
+      duration: 2,
+      repeat: -1,
+      repeatDelay: 3,
+      ease: "power2.inOut",
+    });
+  });
+
   return (
     <div ref={containerRef} className="hero-section">
       {/* Video Background */}
-      <motion.div 
+      <div 
+        ref={heroVideoRef}
         className="hero-video-container"
-        style={{ y, opacity }}
       >
         <video
           ref={videoRef}
@@ -75,18 +152,16 @@ const HeroSection = () => {
             </div>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Hero Content */}
       <div className="hero-content">
         <div className="hero-container">
           
           {/* Main Title */}
-          <motion.div 
+          <div 
+            ref={titleRef}
             className="hero-title-container"
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
           >
             <h1 className="hero-title">
               <span className="title-line">
@@ -100,14 +175,12 @@ const HeroSection = () => {
                 <span className="title-subtext">F1 HACKATHON</span>
               </span>
             </h1>
-          </motion.div>
+          </div>
 
           {/* Subtitle and Description */}
-          <motion.div 
+          <div 
+            ref={descriptionRef}
             className="hero-description"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
           >
             <p className="hero-subtitle">
               48 Hours of Pure Innovation
@@ -116,14 +189,12 @@ const HeroSection = () => {
               Where Formula 1 speed meets cutting-edge technology. 
               Build the future of racing, one line of code at a time.
             </p>
-          </motion.div>
+          </div>
 
           {/* CTA Buttons */}
-          <motion.div 
+          <div 
+            ref={actionsRef}
             className="hero-actions"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2 }}
           >
             <Button 
               variant="racing" 
@@ -141,14 +212,12 @@ const HeroSection = () => {
             >
               Learn More
             </Button>
-          </motion.div>
+          </div>
 
           {/* Event Info */}
-          <motion.div 
+          <div 
+            ref={infoRef}
             className="hero-info"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.5 }}
           >
             <div className="info-item">
               <span className="info-label">Date</span>
@@ -164,75 +233,22 @@ const HeroSection = () => {
               <span className="info-label">Prizes</span>
               <span className="info-value">$100K+</span>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Racing Elements */}
-        <div className="hero-racing-elements">
+        <div ref={racingElementsRef} className="hero-racing-elements">
           {/* Speed Lines */}
-          <motion.div 
-            className="speed-lines"
-            animate={{ 
-              x: ["-100%", "100%"],
-              opacity: [0, 1, 0] 
-            }}
-            transition={{ 
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 3,
-              ease: "easeInOut"
-            }}
-          />
+          <div className="speed-lines" />
           
           {/* Racing Numbers */}
-          <motion.div 
-            className="racing-number"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 2 }}
-          >
+          <div className="racing-number">
             <span>01</span>
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      {/* Video Indicators */}
-      <motion.div 
-        className="video-indicators"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 1.8 }}
-      >
-        {videos.map((video, index) => (
-          <button
-            key={index}
-            className={`video-indicator ${index === currentVideoIndex ? 'active' : ''}`}
-            onClick={() => setCurrentVideoIndex(index)}
-            title={video.label}
-          >
-            <div className="indicator-line"></div>
-            <span className="indicator-label">{video.label}</span>
-          </button>
-        ))}
-      </motion.div>
 
-      {/* Scroll Indicator */}
-      <motion.div 
-        className="scroll-indicator"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 2.5 }}
-        onClick={scrollToNextSection}
-      >
-        <motion.div
-          className="scroll-arrow"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          ↓
-        </motion.div>
-        <span>Scroll to explore</span>
-      </motion.div>
     </div>
   );
 };

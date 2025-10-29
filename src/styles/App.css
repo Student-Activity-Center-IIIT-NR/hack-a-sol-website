@@ -33,7 +33,6 @@ body {
 /* Section spacing for fixed navigation */
 main section:not(#hero) {
   scroll-margin-top: var(--nav-height);
-  padding-top: var(--space-8);
 }
 
 #hero {
@@ -201,14 +200,6 @@ a:focus {
   body {
     background: #000000;
     color: #ffffff;
-  }
-  
-  .hero-section,
-  .about-section,
-  .themes-section,
-  .schedule-section,
-  .sponsors-section {
-    border: 1px solid #ffffff;
   }
 }
 
