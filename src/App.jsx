@@ -11,10 +11,9 @@ import './styles/App.css';
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [heroReady, setHeroReady] = useState(false);
 
   useEffect(() => {
-    // Reduce initial loading time to 3 seconds for better UX (keeps LoadingScreen visible)
+    // Reduce loading time to 3 seconds for better UX
     const timer = setTimeout(() => {
       setLoading(false);
     }, 3000);
@@ -22,22 +21,18 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <div className="App">
       <Navigation />
       <main>
         <section id="hero">
-          {/* Mount the lazy HeroSection so it begins loading immediately, but keep showing LoadingScreen
-              until the HeroSection signals it's fully ready (via onReady). We use Suspense with no
-              visual fallback because we render LoadingScreen here while waiting. */}
-          <Suspense fallback={null}>
-            <div style={{ display: heroReady ? 'block' : 'none' }}>
-              <HeroSection onReady={() => setHeroReady(true)} />
-            </div>
+          <Suspense fallback={<div style={{height:'100vh'}} />}> 
+            <HeroSection /> 
           </Suspense>
-
-          {/* Always show LoadingScreen until both the initial app loading is done and hero is ready */}
-          {(!heroReady || loading) && <LoadingScreen />}
         </section>
         <section id="about">
           <AboutSection />

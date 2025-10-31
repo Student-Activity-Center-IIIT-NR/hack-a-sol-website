@@ -16,7 +16,6 @@ const Navigation = () => {
   const sections = [
     { id: 'hero', label: 'Home', href: '#hero' },
     { id: 'about', label: 'About', href: '#about' },
-    { id: 'themes', label: 'Themes', href: '#themes' },
     { id: 'schedule', label: 'Schedule', href: '#schedule' },
     { id: 'sponsors', label: 'Sponsors', href: '#sponsors' }
   ];
@@ -109,6 +108,13 @@ const Navigation = () => {
 
           {/* CTA Button */}
           <div className="nav-cta">
+          <a 
+              href="https://hackasol-4.devfolio.co/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+              onClick={toggleMenu}
+            >
             <Button 
               variant="racing" 
               size="md"
@@ -117,6 +123,24 @@ const Navigation = () => {
             >
               Register Now
             </Button>
+            </a>
+          </div>         <div className="nav-cta">
+          <a 
+              href="/Marketing_Brochure.pdf" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+              onClick={toggleMenu}
+            >
+            <Button 
+              variant="racing" 
+              size="md"
+              icon={<ChevronRight size={16} />}
+              iconPosition="right"
+            >
+              Download Brochure
+            </Button>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -191,15 +215,22 @@ const Navigation = () => {
           </div>
 
           <div className="mobile-menu-cta">
-            <Button 
-              variant="primary" 
-              size="lg"
-              icon={<ChevronRight size={20} />}
-              iconPosition="right"
+            <a 
+              href="https://hackasol-4.devfolio.co/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
               onClick={toggleMenu}
             >
-              Register Now
-            </Button>
+              <Button 
+                variant="primary" 
+                size="lg"
+                icon={<ChevronRight size={20} />}
+                iconPosition="right"
+              >
+                Register Now
+              </Button>
+            </a>
           </div>
         </div>
       </motion.div>

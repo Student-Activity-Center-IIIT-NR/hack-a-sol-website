@@ -2,6 +2,29 @@
 import { Github, Twitter, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 
 const Footer = () => {
+<<<<<<< HEAD
+=======
+  const socialLinks = [
+    { icon: <Twitter />, url: '#', label: 'Twitter' },
+    { icon: <Instagram />, url: '#', label: 'Instagram' },
+    { icon: <Linkedin />, url: '#', label: 'LinkedIn' },
+    { icon: <Github />, url: '#', label: 'GitHub' }
+  ];
+
+  const quickLinks = [
+    { name: 'About', href: '#about' },
+    { name: 'Schedule', href: '#schedule' },
+    { name: 'Sponsors', href: '#sponsors' }
+  ];
+
+  const importantLinks = [
+    { name: 'Code of Conduct', href: '#', external: true },
+    { name: 'Privacy Policy', href: '#', external: true },
+    { name: 'Terms of Service', href: '#', external: true },
+    { name: 'MLH Guidelines', href: 'https://mlh.io/code-of-conduct', external: true }
+  ];
+
+>>>>>>> 0a3c350997067fd7a3d49316fcbc6efc3dd3bb27
   return (
     console.log("Rendering Footer"),
     <footer className="relative border-t border-border bg-card/30 backdrop-blur">

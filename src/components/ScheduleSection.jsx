@@ -3,23 +3,15 @@ import '../styles/ScheduleSection.css';
 
 const ScheduleSection = () => {
   const participants = [
-    { name: 'FRONTEND TEAMS', position: '01', time: '1:30:55.026' },
-    { name: 'BACKEND SQUADS', position: '02', time: '2:31:18' },
-    { name: 'FULLSTACK CREW', position: '03', time: '3:22:62' },
-    { name: 'MOBILE DEVS', position: '04', time: '4:9:748' },
-    { name: 'AI/ML EXPERTS', position: '05', time: '5:11:096' },
-    { name: 'BLOCKCHAIN BUILDERS', position: '06', time: '6:6:536' },
-    { name: 'DESIGN SPECIALISTS', position: '07', time: '7:70:20' },
-    { name: 'DATA SCIENTISTS', position: '08', time: '8:1:115' },
+    { name: 'NO. OF COLLEGES', position: '250+', },
+    { name: 'TOTAL PARTICIPANTS', position: '2800+', },
+    { name: 'TEAMS', position: '75+', },
+    { name: 'TRACKS', position: '5', },
+    { name: 'HACKERS', position: '300+', },
   ];
 
   return (
     <section id="schedule" className="schedule-section">
-      {/* Header with menu */}
-      <div className="schedule-header">
-        <div className="menu-label">MENU</div>
-      </div>
-
       {/* Main circular design */}
       <div className="schedule-content">
         <motion.div 
@@ -30,8 +22,8 @@ const ScheduleSection = () => {
           transition={{ duration: 1, ease: "easeOut" }}
         >
           <div className="circle-text">
-            <span className="japan-text">HACK-A-SOL</span>
-            <span className="gp-text">GP.</span>
+            <span className="japan-text">$946</span>
+            <span className="gp-text text-s text-white" style={{ fontSize: '0.95em' }}>Prize Pool</span>
           </div>
         </motion.div>
 
@@ -53,9 +45,8 @@ const ScheduleSection = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.1 * index }}
               >
-                <span className="participant-position">{participant.position}.</span>
+                <span className="participant-position">{participant.position}</span>
                 <span className="participant-name">{participant.name}</span>
-                <span className="participant-time">-{participant.time}</span>
               </motion.div>
             ))}
           </div>
@@ -72,7 +63,6 @@ const ScheduleSection = () => {
               >
                 <span className="participant-position">{participant.position}.</span>
                 <span className="participant-name">{participant.name}</span>
-                <span className="participant-time">-{participant.time}</span>
               </motion.div>
             ))}
           </div>
