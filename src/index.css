@@ -1,20 +1,43 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+@import "tailwindcss/preflight" layer(base);
+@import "tailwindcss/utilities" layer(utilities);
 
 :root {
+  /* 🌈 Existing global styles */
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: dark;
   color: #ffffff;
   background-color: #000000;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* 🎨 Tailwind + shadcn color variables (light defaults) */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 100%;
+  --border: 240 5.9% 20%;
+  --muted-foreground: 240 5.9% 70%;
+  --primary: 0 0% 98%;
+  --secondary: 240 4.8% 30%;
+  --accent: 0 0% 85%;
+  --destructive: 0 84.2% 60.2%;
+
+  /* Optional sidebar colors (for future) */
+  --sidebar-background: 240 4.8% 10%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 240 5.9% 90%;
+  --sidebar-primary-foreground: 240 10% 3.9%;
+  --sidebar-accent: 0 0% 40%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 240 3.8% 30%;
+  --sidebar-ring: 240 5% 64.9%;
+
+  --radius: 0.5rem;
 }
 
 body {
