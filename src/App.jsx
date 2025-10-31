@@ -1,7 +1,6 @@
 import { useState, useEffect, Suspense, lazy } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import Navigation from './components/Navigation';
-const HeroSection = lazy(() => import('./components/HeroSection'));
 import AboutSection from './components/AboutSection';
 import ThemesSection from './components/ThemesSection';
 import ScheduleSection from './components/ScheduleSection';
@@ -36,9 +35,6 @@ function App() {
         </section>
         <section id="about">
           <AboutSection />
-        </section>
-        <section id="themes">
-          <ThemesSection />
         </section>
         <section id="schedule">
           <ScheduleSection />

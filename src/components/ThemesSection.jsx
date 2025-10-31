@@ -72,7 +72,6 @@ const ThemesSection = () => {
         {/* Left side with text */}
         <div className="content-left">
           <div className="ferrari-logo">
-            <div className="prancing-horse">🏎️</div>
           </div>
 
           <motion.h1 

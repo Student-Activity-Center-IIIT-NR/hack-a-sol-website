@@ -92,6 +92,9 @@ const Carousel_003 = ({
   }
   
   .Carousal_003 .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-position: center;
     background-size: cover;
     // width: 300px;
@@ -156,13 +159,13 @@ const Carousel_003 = ({
 							  }
 							: false
 					}
-					className="Carousal_003"
+					className="Carousal_003 flex items-center justify-center"
 					modules={[EffectCoverflow, Autoplay, Pagination, Navigation]}
 				>
 					{images.map((image, index) => (
-						<SwiperSlide key={index} className="">
+						<SwiperSlide key={index} className="flex items-center justify-center">
 							<img
-								className="h-full w-full object-cover"
+								className="max-w-full max-h-full object-contain rounded-[320px]"
 								src={image.src}
 								alt={image.alt}
 							/>
