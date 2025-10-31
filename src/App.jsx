@@ -26,8 +26,8 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <Navigation />
+    <div className="App bg-red-500">
+      {/* <Navigation />
       <main>
         <section id="hero">
           <Suspense fallback={<div style={{height:'100vh'}} />}> 
@@ -47,7 +47,7 @@ function App() {
           <SponsorsSection />
         </section>
       </main>
-      <Footer />
+      <Footer /> */}
     </div>
   );
 }
