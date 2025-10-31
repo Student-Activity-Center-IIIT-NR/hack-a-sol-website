@@ -95,12 +95,12 @@
 }
 
 .driver-name {
-  font-size: clamp(3rem, 8vw, 8rem);
-  font-weight: 900;
+  font-size: clamp(1rem, 3vw, 8rem);
+  font-weight: 300;
   line-height: 0.85;
   margin: 0 0 2rem 0;
   text-transform: uppercase;
-  color: #000000;
+  color: #e7dddd;
 }
 
 .name-charles {
