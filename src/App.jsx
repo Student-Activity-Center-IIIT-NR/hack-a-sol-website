@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 import Navigation from './components/Navigation';
-import HeroSection from './components/HeroSection';
+const HeroSection = lazy(() => import('./components/HeroSection'));
 import AboutSection from './components/AboutSection';
 import ThemesSection from './components/ThemesSection';
 import ScheduleSection from './components/ScheduleSection';
@@ -30,7 +30,9 @@ function App() {
       <Navigation />
       <main>
         <section id="hero">
-          <HeroSection />
+          <Suspense fallback={<div style={{height:'100vh'}} />}> 
+            <HeroSection />
+          </Suspense>
         </section>
         <section id="about">
           <AboutSection />
