@@ -26,12 +26,12 @@ function App() {
   }
 
   return (
-    <div className="App bg-red-500">
-      {/* <Navigation />
+    <div className="App">
+      <Navigation />
       <main>
         <section id="hero">
           <Suspense fallback={<div style={{height:'100vh'}} />}> 
-            <HeroSection />
+            {/* <HeroSection /> */}
           </Suspense>
         </section>
         <section id="about">
@@ -47,7 +47,7 @@ function App() {
           <SponsorsSection />
         </section>
       </main>
-      <Footer /> */}
+      <Footer />
     </div>
   );
 }
