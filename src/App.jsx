@@ -47,7 +47,7 @@ function App() {
           <SponsorsSection />
         </section>
       </main>
-      <Footer />
+      //<Footer />
     </div>
   );
 }

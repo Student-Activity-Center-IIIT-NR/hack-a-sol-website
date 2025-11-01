@@ -2,29 +2,7 @@
 import { Github, Twitter, Linkedin, Mail, MapPin, Phone } from "lucide-react";
 
 const Footer = () => {
-<<<<<<< HEAD
-=======
-  const socialLinks = [
-    { icon: <Twitter />, url: '#', label: 'Twitter' },
-    { icon: <Instagram />, url: '#', label: 'Instagram' },
-    { icon: <Linkedin />, url: '#', label: 'LinkedIn' },
-    { icon: <Github />, url: '#', label: 'GitHub' }
-  ];
 
-  const quickLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Schedule', href: '#schedule' },
-    { name: 'Sponsors', href: '#sponsors' }
-  ];
-
-  const importantLinks = [
-    { name: 'Code of Conduct', href: '#', external: true },
-    { name: 'Privacy Policy', href: '#', external: true },
-    { name: 'Terms of Service', href: '#', external: true },
-    { name: 'MLH Guidelines', href: 'https://mlh.io/code-of-conduct', external: true }
-  ];
-
->>>>>>> 0a3c350997067fd7a3d49316fcbc6efc3dd3bb27
   return (
     console.log("Rendering Footer"),
     <footer className="relative border-t border-border bg-card/30 backdrop-blur">
@@ -82,11 +60,11 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2 text-muted-foreground">
                 <Mail className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>hackathon@college.edu</span>
+                <span>hackasol@iiitnr.ac.in</span>
               </li>
               <li className="flex items-start gap-2 text-muted-foreground">
                 <Phone className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>+1 (555) 123-4567</span>
+                <span>8109082272,6264883082</span>
               </li>
               <li className="flex items-start gap-2 text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -96,13 +74,6 @@ const Footer = () => {
           </div>
 
           {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Stay Updated</h3>
-            <p className="text-muted-foreground text-sm mb-4">
-              Subscribe to get the latest updates about the hackathon.
-            </p>
-            
-          </div>
         </div>
 
         <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
