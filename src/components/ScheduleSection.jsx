@@ -22,7 +22,7 @@ const ScheduleSection = () => {
           transition={{ duration: 1, ease: "easeOut" }}
         >
           <div className="circle-text">
-            <span className="japan-text">$946</span>
+            <span className="japan-text">$945+</span>
             <span className="gp-text text-s text-white" style={{ fontSize: '0.95em' }}>Prize Pool</span>
           </div>
         </motion.div>

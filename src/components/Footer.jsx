@@ -1,88 +1,133 @@
+import { Github, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
 
-import { Github, Twitter, Linkedin, Mail, MapPin, Phone } from "lucide-react";
-
-const Footer = () => {
-
+export default function Footer() {
   return (
-    console.log("Rendering Footer"),
-    <footer className="relative border-t border-border bg-card/30 backdrop-blur">
-      <div className="container px-4 py-12">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* About */}
-          <div>
-            <h3 className="text-xl font-bold mb-4 text-primary">Hack-A-Sol</h3>
-            <p className="text-muted-foreground text-sm mb-4">
+    <footer className="bg-black text-white">
+      <div className="max-w-7xl mx-auto px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+          {/* Left Column - Branding */}
+          <div className="space-y-4">
+            <h3 className="text-3xl font-bold text-red-500">Hack-A-Sol</h3>
+            <p className="text-neutral-400 leading-relaxed">
               Rev up your coding skills in the ultimate college hackathon. Speed, innovation, and competition combined.
             </p>
-            <div className="flex gap-3">
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Github className="w-5 h-5" />
+            {/* Social Icons */}
+            <div className="flex justify-center gap-4 pt-2">
+              <a
+                href="#"
+                className="text-neutral-400 hover:text-red-500 transition-colors"
+                aria-label="GitHub"
+              >
+                <Github size={24} />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Twitter className="w-5 h-5" />
+              <a
+                href="#"
+                className="text-neutral-400 hover:text-red-500 transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter size={24} />
               </a>
-              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                <Linkedin className="w-5 h-5" />
+              <a
+                href="#"
+                className="text-neutral-400 hover:text-red-500 transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin size={24} />
               </a>
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+          {/* Middle Column - Quick Links */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-white">Quick Links</h3>
+            <ul className="space-y-3">
               <li>
-                <a href="#about" className="text-muted-foreground hover:text-primary transition-colors">
+                <a
+                  href="#about"
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                >
                   About
                 </a>
               </li>
               <li>
-                <a href="#schedule" className="text-muted-foreground hover:text-primary transition-colors">
+                <a
+                  href="#schedule"
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                >
                   Schedule
                 </a>
               </li>
               <li>
-                <a href="#prizes" className="text-muted-foreground hover:text-primary transition-colors">
-                  Prizes
+                <a
+                  href="#themes"
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                >
+                  Themes
                 </a>
               </li>
               <li>
-                <a href="#faq" className="text-muted-foreground hover:text-primary transition-colors">
-                  FAQ
+                <a
+                  href="#sponsors"
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                >
+                  Sponsors
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h3 className="text-lg font-bold mb-4">Contact Us</h3>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-2 text-muted-foreground">
-                <Mail className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>hackasol@iiitnr.ac.in</span>
-              </li>
-              <li className="flex items-start gap-2 text-muted-foreground">
-                <Phone className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>8109082272,6264883082</span>
-              </li>
-              <li className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <span>College Campus<br />Main Auditorium</span>
-              </li>
-            </ul>
+          {/* Right Column - Contact */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-white">Contact Us</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 justify-center">
+                <Mail className="text-red-500 flex-shrink-0 mt-1" size={20} />
+                <a
+                  href="mailto:hackasol@iiitnr.ac.in"
+                  className="text-neutral-400 hover:text-red-500 transition-colors"
+                >
+                  hackasol@iiitnr.ac.in
+                </a>
+              </div>
+              <div className="flex items-start gap-3 justify-center">
+                <Phone className="text-red-500 flex-shrink-0 mt-1" size={20} />
+                <div className="space-y-2">
+                  <a
+                    href="tel:8109082272"
+                    className="block text-neutral-400 hover:text-red-500 transition-colors"
+                  >
+                    +91 8109082272
+                  </a>
+                  <a
+                    href="tel:6264883082"
+                    className="block text-neutral-400 hover:text-red-500 transition-colors"
+                  >
+                    +91 6264883082
+                  </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 justify-center">
+                <MapPin className="text-red-500 flex-shrink-0 mt-1" size={20} />
+                <div className="text-neutral-400">
+                  <p>College Campus</p>
+                  <p>Main Auditorium</p>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Newsletter */}
         </div>
 
-        <div className="border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>© 2025 Hack-A-Sol. All rights reserved. Built with passion and code.</p>
+        {/* Bottom Section - Copyright */}
+        <div className="border-t border-neutral-800 mt-12 pt-8 flex justify-center items-center">
+          <div className="flex flex-col items-center gap-4 text-sm text-neutral-500 text-center">
+            <div className="flex items-center gap-2">
+              <span>Made with</span>
+              <span className="text-red-500">❤️</span>
+              <span>from Web-Dev Team & Manas</span>
+            </div>
+          </div>
         </div>
       </div>
-      
     </footer>
-  );
-};
-
-export default Footer;
+  )
+}

@@ -3,7 +3,6 @@ import LoadingScreen from './components/LoadingScreen';
 import Navigation from './components/Navigation';
 const HeroSection = lazy(() => import('./components/HeroSection'));
 import AboutSection from './components/AboutSection';
-import ThemesSection from './components/ThemesSection';
 import ScheduleSection from './components/ScheduleSection';
 import SponsorsSection from './components/SponsorsSection';
 import Footer from './components/Footer';
@@ -37,9 +36,6 @@ function App() {
         <section id="about">
           <AboutSection />
         </section>
-        <section id="themes">
-          <ThemesSection />
-        </section>
         <section id="schedule">
           <ScheduleSection />
         </section>
@@ -47,7 +43,7 @@ function App() {
           <SponsorsSection />
         </section>
       </main>
-      //<Footer />
+      <Footer />
     </div>
   );
 }
