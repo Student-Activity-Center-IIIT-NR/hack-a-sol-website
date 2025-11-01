@@ -33,7 +33,7 @@ export default function SponsorsSection() {
 
 	return (
 		<>
-		<h1 className="text-4xl font-bold text-center p-10">Sponsors</h1>
+		<h1 className="text-4xl font-bold text-center p-10">Past Sponsors</h1>
 		<div className="justify-center flex items-center w-full h-full">
 			<Carousel_003
 				className={`flex justify-center w-full h-full items-center`}
