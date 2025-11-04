@@ -126,19 +126,6 @@ export default function Footer() {
             <p className="newsletter-description">
               Subscribe to get the latest updates about the hackathon.
             </p>
-            <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
-              <div className="input-wrapper">
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="newsletter-input"
-                  aria-label="Email for newsletter"
-                />
-                <button type="submit" className="newsletter-button" aria-label="Subscribe">
-                  <Send size={18} />
-                </button>
-              </div>
-            </form>
 
             <div className="social-section">
               <h5 className="social-title">FOLLOW US</h5>
