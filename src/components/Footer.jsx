@@ -1,129 +1,172 @@
-import { Github, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
+import { Github, Twitter, Linkedin, Mail, Phone, MapPin, Calendar, Send, ChevronRight } from "lucide-react"
+import "../styles/Footer.css"
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-white">
-      <div className="max-w-7xl mx-auto px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-          {/* Left Column - Branding */}
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold text-red-500">Hack-A-Sol</h3>
-            <p className="text-neutral-400 leading-relaxed">
-              Rev up your coding skills in the ultimate college hackathon. Speed, innovation, and competition combined.
+    <footer className="footer">
+      {/* Racing Stripe Top Border */}
+      <div className="racing-stripe-top"></div>
+      
+      {/* Decorative Background Elements */}
+      <div className="footer-decoration">
+        <div className="checkered-pattern"></div>
+        <div className="speed-lines"></div>
+        <div className="grid-overlay"></div>
+      </div>
+
+      <div className="footer-container">
+        {/* Main Footer Grid - 4 Columns */}
+        <div className="footer-grid">
+          
+          {/* Column 1 - Brand & Description */}
+          <div className="footer-column footer-brand">
+            <div className="brand-header">
+              <h3 className="brand-title">HACK-A-SOL</h3>
+              <div className="brand-accent-line"></div>
+              <p className="brand-tagline">REV UP YOUR CODE</p>
+            </div>
+            <p className="brand-description">
+              The ultimate college hackathon where speed meets innovation. 
+              Race against time, compete with the best, and accelerate your coding journey.
             </p>
-            {/* Social Icons */}
-            <div className="flex justify-center gap-4 pt-2">
-              <a
-                href="#"
-                className="text-neutral-400 hover:text-red-500 transition-colors"
-                aria-label="GitHub"
-              >
-                <Github size={24} />
-              </a>
-              <a
-                href="#"
-                className="text-neutral-400 hover:text-red-500 transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter size={24} />
-              </a>
-              <a
-                href="#"
-                className="text-neutral-400 hover:text-red-500 transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin size={24} />
-              </a>
+            <div className="event-details">
+              <div className="event-detail-item">
+                <Calendar size={16} className="detail-icon" />
+                <span>24-Hour Coding Sprint</span>
+              </div>
+              <div className="event-detail-item">
+                <MapPin size={16} className="detail-icon" />
+                <span>IIIT Naya Raipur</span>
+              </div>
             </div>
           </div>
 
-          {/* Middle Column - Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-white">Quick Links</h3>
-            <ul className="space-y-3">
+          {/* Column 2 - Quick Links */}
+          <div className="footer-column footer-links">
+            <h4 className="column-title">QUICK LINKS</h4>
+            <div className="title-underline"></div>
+            <ul className="links-list">
               <li>
-                <a
-                  href="#about"
-                  className="text-neutral-400 hover:text-red-500 transition-colors"
-                >
-                  About
+                <a href="#about" className="footer-link">
+                  <ChevronRight size={16} className="link-icon" />
+                  <span>About Event</span>
                 </a>
               </li>
               <li>
-                <a
-                  href="#schedule"
-                  className="text-neutral-400 hover:text-red-500 transition-colors"
-                >
-                  Schedule
+                <a href="#schedule" className="footer-link">
+                  <ChevronRight size={16} className="link-icon" />
+                  <span>Schedule</span>
                 </a>
               </li>
               <li>
-                <a
-                  href="#themes"
-                  className="text-neutral-400 hover:text-red-500 transition-colors"
-                >
-                  Themes
+                <a href="#themes" className="footer-link">
+                  <ChevronRight size={16} className="link-icon" />
+                  <span>Themes</span>
                 </a>
               </li>
               <li>
-                <a
-                  href="#sponsors"
-                  className="text-neutral-400 hover:text-red-500 transition-colors"
-                >
-                  Sponsors
+                <a href="#sponsors" className="footer-link">
+                  <ChevronRight size={16} className="link-icon" />
+                  <span>Sponsors</span>
+                </a>
+              </li>
+              <li>
+                <a href="#faq" className="footer-link">
+                  <ChevronRight size={16} className="link-icon" />
+                  <span>FAQ</span>
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Right Column - Contact */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-white">Contact Us</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 justify-center">
-                <Mail className="text-red-500 flex-shrink-0 mt-1" size={20} />
-                <a
-                  href="mailto:hackasol@iiitnr.ac.in"
-                  className="text-neutral-400 hover:text-red-500 transition-colors"
-                >
-                  hackasol@iiitnr.ac.in
+          {/* Column 3 - Contact Info */}
+          <div className="footer-column footer-contact">
+            <h4 className="column-title">GET IN TOUCH</h4>
+            <div className="title-underline"></div>
+            <div className="contact-list">
+              <a href="mailto:hackasol@iiitnr.ac.in" className="contact-item">
+                <div className="contact-icon-wrapper">
+                  <Mail size={18} />
+                </div>
+                <div className="contact-details">
+                  <span className="contact-label">Email Us</span>
+                  <span className="contact-value">hackasol@iiitnr.ac.in</span>
+                </div>
+              </a>
+              
+              <div className="contact-item">
+                <div className="contact-icon-wrapper">
+                  <Phone size={18} />
+                </div>
+                <div className="contact-details">
+                  <span className="contact-label">Call Us</span>
+                  <div className="phone-numbers">
+                    <a href="tel:8109082272" className="phone-link">+91 8109082272</a>
+                    <a href="tel:6264883082" className="phone-link">+91 6264883082</a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="contact-item">
+                <div className="contact-icon-wrapper">
+                  <MapPin size={18} />
+                </div>
+                <div className="contact-details">
+                  <span className="contact-label">Location</span>
+                  <span className="contact-value">College Campus<br />Main Auditorium</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 4 - Newsletter & Social */}
+          <div className="footer-column footer-newsletter">
+            <h4 className="column-title">STAY UPDATED</h4>
+            <div className="title-underline"></div>
+            <p className="newsletter-description">
+              Subscribe to get the latest updates about the hackathon.
+            </p>
+            <form className="newsletter-form" onSubmit={(e) => e.preventDefault()}>
+              <div className="input-wrapper">
+                <input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  className="newsletter-input"
+                  aria-label="Email for newsletter"
+                />
+                <button type="submit" className="newsletter-button" aria-label="Subscribe">
+                  <Send size={18} />
+                </button>
+              </div>
+            </form>
+
+            <div className="social-section">
+              <h5 className="social-title">FOLLOW US</h5>
+              <div className="social-links">
+                <a href="#" className="social-link" aria-label="GitHub">
+                  <Github size={20} />
                 </a>
-              </div>
-              <div className="flex items-start gap-3 justify-center">
-                <Phone className="text-red-500 flex-shrink-0 mt-1" size={20} />
-                <div className="space-y-2">
-                  <a
-                    href="tel:8109082272"
-                    className="block text-neutral-400 hover:text-red-500 transition-colors"
-                  >
-                    +91 8109082272
-                  </a>
-                  <a
-                    href="tel:6264883082"
-                    className="block text-neutral-400 hover:text-red-500 transition-colors"
-                  >
-                    +91 6264883082
-                  </a>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 justify-center">
-                <MapPin className="text-red-500 flex-shrink-0 mt-1" size={20} />
-                <div className="text-neutral-400">
-                  <p>College Campus</p>
-                  <p>Main Auditorium</p>
-                </div>
+                <a href="#" className="social-link" aria-label="Twitter">
+                  <Twitter size={20} />
+                </a>
+                <a href="#" className="social-link" aria-label="LinkedIn">
+                  <Linkedin size={20} />
+                </a>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section - Copyright */}
-        <div className="border-t border-neutral-800 mt-12 pt-8 flex justify-center items-center">
-          <div className="flex flex-col items-center gap-4 text-sm text-neutral-500 text-center">
-            <div className="flex items-center gap-2">
+        {/* Footer Bottom Bar */}
+        <div className="footer-bottom">
+          <div className="bottom-content">
+            <div className="copyright">
+              <p>© 2025 Hack-A-Sol. All rights reserved.</p>
+            </div>
+            <div className="made-with">
               <span>Made with</span>
-              <span className="text-red-500">❤️</span>
-              <span>from Web-Dev Team & Manas</span>
+              <span className="heart-icon">❤️</span>
+              <span>by Web-Dev Team & Manas</span>
             </div>
           </div>
         </div>

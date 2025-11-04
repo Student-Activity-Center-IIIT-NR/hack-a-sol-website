@@ -170,7 +170,7 @@
   
   /* ===== F1 SPECIFIC DESIGN TOKENS ===== */
   /* Racing Stripes */
-  --stripe-width: 4px;
+  --stripe-width: 1px;
   --stripe-pattern: repeating-linear-gradient(
     45deg,
     var(--color-carbon-black),

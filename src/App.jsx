@@ -3,6 +3,7 @@ import LoadingScreen from './components/LoadingScreen';
 import Navigation from './components/Navigation';
 const HeroSection = lazy(() => import('./components/HeroSection'));
 import AboutSection from './components/AboutSection';
+import TracksSection from './components/TracksSection';
 import ScheduleSection from './components/ScheduleSection';
 import SponsorsSection from './components/SponsorsSection';
 import Footer from './components/Footer';
@@ -35,6 +36,9 @@ function App() {
         </section>
         <section id="about">
           <AboutSection />
+        </section>
+        <section id="tracks">
+          <TracksSection />
         </section>
         <section id="schedule">
           <ScheduleSection />
