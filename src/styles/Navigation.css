@@ -75,6 +75,17 @@
   outline: none;
 }
 
+/* Remove default focus ring on mouse click; keep clear keyboard focus using :focus-visible */
+.nav-link:focus {
+  outline: none;
+  box-shadow: none;
+}
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.45);
+  border-radius: var(--radius-md);
+}
+
 .nav-link:hover {
   color: var(--color-racing-red);
 }
@@ -211,6 +222,15 @@
   cursor: pointer;
 }
 
+.mobile-menu-link:focus {
+  outline: none;
+  box-shadow: none;
+}
+.mobile-menu-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.4);
+}
+
 .mobile-menu-link:hover {
   background: var(--color-carbon-light);
   color: var(--color-racing-red);
@@ -300,6 +320,15 @@
   padding: var(--space-2);
   transition: all var(--duration-normal) var(--ease-racing);
   outline: none;
+  border-radius: var(--radius-full);
+}
+
+.section-indicator:focus {
+  outline: none;
+  box-shadow: none;
+}
+.section-indicator:focus-visible .indicator-dot {
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.4);
 }
 
 .indicator-dot {

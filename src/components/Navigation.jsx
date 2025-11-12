@@ -16,23 +16,43 @@ const Navigation = () => {
   const sections = [
     { id: 'hero', label: 'Home', href: '#hero' },
     { id: 'about', label: 'About', href: '#about' },
+    { id: 'tracks', label: 'Tracks', href: '#tracks' },
     { id: 'schedule', label: 'Schedule', href: '#schedule' },
     { id: 'sponsors', label: 'Sponsors', href: '#sponsors' }
   ];
 
   // Track active section based on scroll position
   useEffect(() => {
+    const navEl = document.querySelector('.navigation');
+    const navHeight = navEl ? navEl.getBoundingClientRect().height : 0;
     const observerOptions = {
-      threshold: 0.3,
-      rootMargin: '-100px 0px -50% 0px'
+      // Multiple thresholds for smoother transitions
+      threshold: [0.1, 0.25, 0.5, 0.75, 0.9],
+      // Offset top by nav height so the active section corresponds to content below the fixed nav
+      rootMargin: `-${Math.ceil(navHeight + 8)}px 0px -45% 0px`,
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
+      // Prefer the intersecting entry with the highest intersection ratio
+      const visible = entries.filter((e) => e.isIntersecting);
+      if (visible.length > 0) {
+        const best = visible.reduce((prev, curr) =>
+          curr.intersectionRatio > prev.intersectionRatio ? curr : prev
+        );
+        if (best && best.target && typeof best.target.id === 'string') {
+          setActiveSection(best.target.id);
+          return;
         }
-      });
+      }
+      // Fallback: choose the entry whose top is closest to the viewport top
+      const bestByTop = entries.reduce((prev, curr) => {
+        const prevTop = Math.abs(prev.boundingClientRect.top);
+        const currTop = Math.abs(curr.boundingClientRect.top);
+        return currTop < prevTop ? curr : prev;
+      }, entries[0]);
+      if (bestByTop && bestByTop.target && typeof bestByTop.target.id === 'string') {
+        setActiveSection(bestByTop.target.id);
+      }
     }, observerOptions);
 
     // Observe all sections
@@ -65,7 +85,7 @@ const Navigation = () => {
     <>
       {/* Main Navigation */}
       <motion.nav 
-        className="navigation"
+        className="navigation bg-black/70 backdrop-blur-md"
         style={{
           backgroundColor: `rgba(0, 0, 0, ${navBg})`,
           backdropFilter: `blur(${navBlur}px)`,

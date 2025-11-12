@@ -1,0 +1,849 @@
+/* ============================================
+   TRACKS SECTION STYLES
+   F1 Racing Theme - Symmetrical & Aesthetic
+   ============================================ */
+
+.tracks-section {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    var(--color-carbon-black) 0%,
+    var(--color-carbon-dark) 50%,
+    var(--color-carbon-black) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--section-padding-y) 0;
+}
+
+/* ===== RACING STRIPE TOP BORDER ===== */
+.tracks-section .racing-stripe-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  z-index: var(--z-raised);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tracks-section .racing-stripe-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 20px,
+    var(--color-racing-red) 20px,
+    var(--color-racing-red) 40px,
+    transparent 40px,
+    transparent 60px
+  );
+  opacity: 0.4;
+}
+
+.tracks-section .racing-stripe-border::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    var(--color-racing-red) 0%,
+    transparent 30%,
+    transparent 70%,
+    var(--color-racing-red) 100%
+  );
+  animation: pulse-line 3s ease-in-out infinite;
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* ===== DECORATIVE BACKGROUND ===== */
+.tracks-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: var(--z-base);
+  opacity: 0.3;
+}
+
+/* Circuit-style corner decorations */
+.tracks-decoration::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 80px;
+  height: 80px;
+  border: 2px solid transparent;
+  border-top-color: rgba(255, 0, 0, 0.4);
+  border-left-color: rgba(255, 0, 0, 0.4);
+  border-radius: 50% 0 0 0;
+  box-shadow: -2px -2px 10px rgba(255, 0, 0, 0.1);
+}
+
+.tracks-decoration::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 80px;
+  height: 80px;
+  border: 2px solid transparent;
+  border-top-color: rgba(255, 0, 0, 0.4);
+  border-right-color: rgba(255, 0, 0, 0.4);
+  border-radius: 0 50% 0 0;
+  box-shadow: 2px -2px 10px rgba(255, 0, 0, 0.1);
+}
+
+.checkered-pattern {
+  position: absolute;
+  bottom: 10%;
+  left: 5%;
+  width: 400px;
+  height: 400px;
+  background-image: 
+    linear-gradient(45deg, rgba(255, 0, 0, 0.03) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 0, 0, 0.03) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 0, 0, 0.03) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 0, 0, 0.03) 75%);
+  background-size: 50px 50px;
+  background-position: 0 0, 0 25px, 25px -25px, -25px 0;
+  opacity: 0.5;
+  animation: pattern-slide 20s linear infinite reverse;
+}
+
+@keyframes pattern-slide {
+  0% { transform: translateX(0) translateY(0); }
+  100% { transform: translateX(50px) translateY(50px); }
+}
+
+.speed-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 0, 0, 0.02) 2px,
+    rgba(255, 0, 0, 0.02) 4px
+  );
+  animation: speed-lines-move 3s linear infinite;
+}
+
+@keyframes speed-lines-move {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(50px); }
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.4;
+}
+
+.racing-number-bg {
+  position: absolute;
+  top: 10%;
+  right: 5%;
+  font-family: var(--font-family-racing);
+  font-size: 20rem;
+  font-weight: var(--font-weight-black);
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 0, 0, 0.1);
+  opacity: 0.3;
+  user-select: none;
+  line-height: 1;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.tracks-container {
+  max-width: var(--container-7xl);
+  margin: 0 auto;
+  padding: 0 var(--section-padding-x);
+  position: relative;
+  z-index: var(--z-raised);
+  width: 100%;
+}
+
+/* ===== SECTION HEADER ===== */
+.tracks-header {
+  text-align: center;
+  margin-bottom: var(--space-16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.section-label {
+  font-family: var(--font-family-racing);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-racing-red);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: var(--space-2) var(--space-6);
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(10px);
+}
+
+.section-title {
+  font-family: var(--font-family-racing);
+  font-weight: var(--font-weight-black);
+  color: var(--color-pure-white);
+  margin: 0;
+  line-height: var(--line-height-tight);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.title-word {
+  font-size: var(--font-size-6xl);
+  text-shadow: 
+    2px 2px 0 var(--color-carbon-black),
+    4px 4px 0 rgba(255, 255, 255, 0.1),
+    0 0 30px rgba(255, 0, 0, 0.3);
+  transition: all var(--duration-normal) var(--ease-racing);
+  letter-spacing: 0.05em;
+}
+
+.title-word.accent {
+  color: var(--color-racing-red);
+  text-shadow: 
+    2px 2px 0 var(--color-carbon-black),
+    4px 4px 0 var(--color-racing-red-dark),
+    0 0 40px var(--color-racing-red),
+    0 0 60px var(--color-racing-red-alpha);
+}
+
+.section-subtitle {
+  font-size: var(--font-size-lg);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  max-width: var(--container-md);
+  line-height: var(--line-height-relaxed);
+}
+
+.title-underline {
+  width: 120px;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-racing-red),
+    transparent
+  );
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 20px var(--color-racing-red-alpha);
+}
+
+/* ===== TRACKS GRID ===== */
+.tracks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+  max-width: var(--container-6xl);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.track-card {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10) var(--space-8);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: all var(--duration-normal) var(--ease-racing);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  cursor: pointer;
+}
+
+.track-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--track-color, var(--color-racing-red)),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-racing);
+}
+
+.track-card:hover::before {
+  opacity: 1;
+  box-shadow: 0 0 20px var(--track-color, var(--color-racing-red));
+}
+
+.track-card:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.08) 0%,
+    rgba(255, 0, 0, 0.02) 100%
+  );
+  border-color: rgba(255, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.track-number {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  font-family: var(--font-family-racing);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-black);
+  color: rgba(255, 0, 0, 0.1);
+  line-height: 1;
+  transition: all var(--duration-normal) var(--ease-racing);
+}
+
+.track-card:hover .track-number {
+  color: rgba(255, 0, 0, 0.3);
+  transform: scale(1.2);
+}
+
+.track-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-2xl);
+  background: rgba(255, 0, 0, 0.1);
+  border: 2px solid rgba(255, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all var(--duration-normal) var(--ease-racing);
+  margin-bottom: var(--space-2);
+}
+
+.track-card:hover .track-icon-wrapper {
+  background: linear-gradient(135deg, var(--color-racing-red), var(--color-racing-red-dark));
+  border-color: var(--color-racing-red);
+  box-shadow: 0 0 30px var(--color-racing-red-alpha);
+  transform: scale(1.05) rotate(-5deg);
+}
+
+.icon-glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-2xl);
+  background: radial-gradient(circle, var(--color-racing-red-alpha) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-racing);
+}
+
+.track-card:hover .icon-glow {
+  opacity: 1;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+.track-icon {
+  color: var(--color-racing-red);
+  transition: all var(--duration-normal) var(--ease-racing);
+  position: relative;
+  z-index: 1;
+}
+
+.track-card:hover .track-icon {
+  color: var(--color-pure-white);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.track-title {
+  font-family: var(--font-family-racing);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-pure-white);
+  margin: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.track-description {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  flex: 1;
+}
+
+.track-footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.track-accent-line {
+  width: 60px;
+  height: 3px;
+  background: var(--color-racing-red);
+  border-radius: var(--radius-full);
+  transition: all var(--duration-normal) var(--ease-racing);
+}
+
+.track-card:hover .track-accent-line {
+  width: 100px;
+  box-shadow: 0 0 15px var(--color-racing-red);
+}
+
+/* ===== SPECIAL RECOGNITION BANNER ===== */
+.special-recognition {
+  max-width: var(--container-4xl);
+  margin: 0 auto var(--space-16);
+  padding: var(--space-10) var(--space-8);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 0, 0, 0.15) 0%,
+    rgba(255, 0, 0, 0.05) 100%
+  );
+  border: 2px solid rgba(255, 0, 0, 0.3);
+  border-radius: var(--radius-3xl);
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.special-recognition::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+.recognition-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-2xl);
+  background: linear-gradient(135deg, var(--color-racing-red), var(--color-racing-red-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-pure-white);
+  flex-shrink: 0;
+  box-shadow: 0 0 30px var(--color-racing-red-alpha);
+  animation: icon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.recognition-content {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.recognition-title {
+  font-family: var(--font-family-racing);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-pure-white);
+  margin: 0 0 var(--space-2) 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.recognition-description {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.highlight {
+  color: var(--color-racing-red);
+  font-weight: var(--font-weight-bold);
+  text-shadow: 0 0 10px var(--color-racing-red-alpha);
+}
+
+.recognition-decoration {
+  position: absolute;
+  top: 50%;
+  right: var(--space-8);
+  transform: translateY(-50%);
+  width: 80px;
+  height: 80px;
+  pointer-events: none;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--color-racing-red);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+.pulse-ring:nth-child(2) {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ===== STATS BANNER ===== */
+.tracks-stats {
+  max-width: var(--container-5xl);
+  margin: 0 auto;
+  padding: var(--space-8);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-2xl);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.tracks-stat-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  transition: transform var(--duration-fast) var(--ease-racing);
+}
+
+.tracks-stat-item:hover {
+  transform: translateY(-3px);
+}
+
+.stat-icon {
+  font-size: var(--font-size-4xl);
+  filter: grayscale(0);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stat-value {
+  font-family: var(--font-family-racing);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-black);
+  color: var(--color-pure-white);
+  line-height: 1;
+  background: linear-gradient(135deg, var(--color-pure-white), var(--color-racing-red));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 50px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 0, 0, 0.5),
+    transparent
+  );
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Large Tablets & Small Desktops (1024px) */
+@media (max-width: 1024px) {
+  .racing-number-bg {
+    font-size: 15rem;
+  }
+
+  .title-word {
+    font-size: var(--font-size-5xl);
+  }
+
+  .tracks-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+/* Tablets (768px) */
+@media (max-width: 768px) {
+  .tracks-section {
+    padding: var(--space-16) 0;
+  }
+
+  .tracks-header {
+    margin-bottom: var(--space-12);
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+  }
+
+  .title-word {
+    font-size: var(--font-size-4xl);
+  }
+
+  .section-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .tracks-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+
+  .racing-number-bg {
+    font-size: 10rem;
+  }
+
+  .special-recognition {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .recognition-decoration {
+    display: none;
+  }
+
+  .tracks-stats {
+    padding: var(--space-6);
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .tracks-stat-item {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+}
+
+/* Mobile (480px) */
+@media (max-width: 480px) {
+  .tracks-section {
+    padding: var(--space-12) 0;
+  }
+
+  .tracks-container {
+    padding: 0 var(--space-4);
+  }
+
+  .tracks-header {
+    margin-bottom: var(--space-10);
+  }
+
+  .section-label {
+    font-size: 0.625rem;
+    padding: var(--space-1) var(--space-4);
+  }
+
+  .title-word {
+    font-size: var(--font-size-3xl);
+  }
+
+  .section-subtitle {
+    font-size: var(--font-size-sm);
+  }
+
+  .title-underline {
+    width: 80px;
+    height: 3px;
+  }
+
+  .track-card {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .track-icon-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .track-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .track-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .track-description {
+    font-size: var(--font-size-sm);
+  }
+
+  .track-number {
+    font-size: var(--font-size-2xl);
+    top: var(--space-4);
+    right: var(--space-4);
+  }
+
+  .racing-number-bg {
+    font-size: 8rem;
+  }
+
+  .special-recognition {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .recognition-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .recognition-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .recognition-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .recognition-description {
+    font-size: var(--font-size-sm);
+  }
+
+  .tracks-stats {
+    padding: var(--space-5) var(--space-4);
+    gap: var(--space-4);
+  }
+
+  .tracks-stat-item {
+    padding: var(--space-2);
+  }
+
+  .stat-icon {
+    font-size: var(--font-size-3xl);
+  }
+
+  .stat-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .tracks-section *,
+  .tracks-section *::before,
+  .tracks-section *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .tracks-section {
+    background: var(--color-carbon-black);
+  }
+
+  .racing-stripe-border {
+    height: 6px;
+  }
+
+  .track-card,
+  .special-recognition,
+  .tracks-stats {
+    border: 2px solid var(--color-racing-red);
+  }
+
+  .track-card:hover {
+    background: rgba(255, 0, 0, 0.2);
+  }
+}
