@@ -110,42 +110,45 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
           </button>
         </div>
 
-        {/* ═══════ LEFT 55 % — model shows through + HTML overlays ══════ */}
+        {/* ═══════ DESKTOP: CHARACTER OVERLAYS IN EMPTY HALF (55%) ═══════ */}
+        {/* Even tracks (0,2,4): character on RIGHT. Odd tracks (1,3): character on LEFT */}
         <div
-          className="absolute inset-y-0 left-0 hidden md:flex flex-col items-center justify-center pointer-events-none"
+          className={`absolute inset-y-0 hidden md:flex flex-col items-center justify-center pointer-events-none transition-all duration-700 ${
+            activeTrackIndex % 2 === 0 ? 'right-0' : 'left-0'
+          }`}
           style={{ width: '55%' }}
         >
           {/* Soft glow disc */}
           <div
-            className="absolute w-[40vw] h-[40vw] rounded-full transition-all duration-1000 pointer-events-none"
+            className="absolute w-[36vw] h-[36vw] rounded-full transition-all duration-1000 pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${active?.accentColor ?? '#E23636'}20 0%, transparent 70%)`,
-              filter: 'blur(60px)',
+              background: `radial-gradient(circle, ${active?.accentColor ?? '#E23636'}25 0%, transparent 70%)`,
+              filter: 'blur(50px)',
             }}
           />
 
           {/* Outlined character-name watermark */}
           <p
             aria-hidden="true"
-            className="absolute font-heading select-none text-center leading-none"
+            className="absolute font-heading select-none text-center leading-none pointer-events-none"
             style={{
-              fontSize: 'clamp(3rem, 10vw, 8rem)',
+              fontSize: 'clamp(3rem, 9vw, 7.5rem)',
               color: 'transparent',
               WebkitTextStroke: `1px ${active?.accentColor ?? '#E23636'}25`,
               letterSpacing: '0.12em',
-              transition: 'color 0.7s, -webkit-text-stroke-color 0.7s',
+              transition: 'all 0.7s',
               userSelect: 'none',
             }}
           >
             {active?.character.toUpperCase()}
           </p>
 
-          {/* Character chip — sits below the model (~70 % down the left column) */}
+          {/* Character chip — sits below the model */}
           <div
-            className="absolute bottom-24 flex items-center gap-2 px-4 py-1.5 rounded-sm border transition-all duration-700"
+            className="absolute bottom-20 flex items-center gap-2 px-4 py-1.5 rounded-sm border transition-all duration-700 pointer-events-auto"
             style={{
               borderColor:    `${active?.accentColor ?? '#E23636'}50`,
-              background:     'rgba(5,5,8,0.65)',
+              background:     'rgba(5,5,8,0.7)',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -156,19 +159,20 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
             >
               {active?.character.toUpperCase()}
             </span>
-            <span className="font-mono text-[10px] text-white/30 pl-2 border-l border-white/10">
+            <span className="font-mono text-[10px] text-white/40 pl-2 border-l border-white/10">
               TRACK {String(activeTrackIndex + 1).padStart(2, '0')}
             </span>
           </div>
         </div>
 
-        {/* ═══════ MOBILE — 45 vh spacer (model visible above fold) ═════ */}
+        {/* ═══════ MOBILE: TOP 45vh SPACER + CHIP ═══════ */}
         <div className="md:hidden h-[45vh] flex items-end justify-center pb-4 pointer-events-none">
           <div
             className="flex items-center gap-2 px-4 py-1.5 rounded-sm border pointer-events-auto"
             style={{
               borderColor: `${active?.accentColor ?? '#E23636'}50`,
-              background:  'rgba(5,5,8,0.7)',
+              background:  'rgba(5,5,8,0.75)',
+              backdropFilter: 'blur(8px)',
             }}
           >
             <span className="text-sm">{active?.icon}</span>
@@ -181,31 +185,32 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
           </div>
         </div>
 
-        {/* ═══════ RIGHT 45 % — text with opaque dark backing ════════════ */}
+        {/* ═══════ TEXT COLUMN (~45% WIDTH) WITH TEXT-SIDE ONLY SCRIM ═══════ */}
+        {/* Even tracks (0,2,4): text on LEFT. Odd tracks (1,3): text on RIGHT. */}
         <div
-          className="absolute inset-y-0 right-0 flex items-center"
-          style={{
-            width: '100%',
-            // On desktop: right 45 %, gradient from transparent to dark
-            // On mobile: full width below the 45vh spacer (handled by flex-col layout)
-          }}
+          className={`absolute inset-y-0 flex items-center transition-all duration-700 ${
+            activeTrackIndex % 2 === 0
+              ? 'left-0 md:w-[48%] md:pl-20 md:pr-8'
+              : 'right-0 md:w-[48%] md:pr-20 md:pl-8'
+          } w-full`}
         >
-          {/* Dark backing gradient so text is always legible over 3D canvas */}
+          {/* Soft gradient scrim ONLY behind the text column — model side stays 100% transparent */}
           <div
-            className="absolute inset-0 hidden md:block"
+            className="absolute inset-0 hidden md:block pointer-events-none transition-all duration-700"
             style={{
-              background: 'linear-gradient(to right, transparent 0%, rgba(5,5,8,0.92) 12%, rgba(5,5,8,0.97) 100%)',
+              background: activeTrackIndex % 2 === 0
+                ? 'linear-gradient(to right, rgba(5,5,8,0.92) 0%, rgba(5,5,8,0.75) 75%, transparent 100%)'
+                : 'linear-gradient(to left, rgba(5,5,8,0.92) 0%, rgba(5,5,8,0.75) 75%, transparent 100%)',
             }}
           />
+          {/* Mobile bottom scrim */}
           <div
-            className="absolute inset-0 block md:hidden"
-            style={{ background: 'rgba(5,5,8,0.88)' }}
+            className="absolute inset-0 block md:hidden pointer-events-none"
+            style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(5,5,8,0.92) 20%, rgba(5,5,8,0.98) 100%)' }}
           />
 
           {/* Text content */}
-          <div
-            className="relative z-10 w-full md:w-[45%] ml-auto px-8 md:pr-14 md:pl-6 mt-[45vh] md:mt-0"
-          >
+          <div className="relative z-10 w-full px-6 md:px-0 mt-[45vh] md:mt-0">
             {/* Track type badge */}
             <p
               className="font-body text-xs tracking-[0.5em] uppercase mb-4 transition-colors duration-700"
@@ -233,7 +238,7 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
             </p>
 
             {/* Description */}
-            <p className="font-body text-white/50 text-base leading-relaxed max-w-md mb-8">
+            <p className="font-body text-white/60 text-base leading-relaxed max-w-md mb-8">
               {active?.description}
             </p>
 

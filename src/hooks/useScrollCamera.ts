@@ -22,35 +22,35 @@ import { CatmullRomCurve3, Vector3 } from 'three'
 // World anchor positions (where track 3D objects are placed)
 // ---------------------------------------------------------------------------
 export const TRACK_WORLD_POSITIONS: [number, number, number][] = [
-  [ 3.5, 0, -8  ],   // 0: Iron Man
-  [-3.5, 0, -20 ],   // 1: Cap America
-  [ 3.5, 0, -32 ],   // 2: Black Panther
-  [-3.5, 0, -44 ],   // 3: Ultron
-  [  0,  0, -56 ],   // 4: Doctor Strange
+  [ 3.0, 0, -8  ],   // 0: Iron Man       (RIGHT)
+  [-3.0, 0, -20 ],   // 1: Cap America    (LEFT)
+  [ 3.0, 0, -32 ],   // 2: Black Panther  (RIGHT)
+  [-3.0, 0, -44 ],   // 3: Ultron         (LEFT)
+  [ 3.0, 0, -56 ],   // 4: Doctor Strange (RIGHT)
 ]
 
 // ---------------------------------------------------------------------------
 // Camera keyframes: [scroll_t, camX, camY, camZ, lookX, lookY, lookZ]
-// Scroll thresholds match useScrollProgress:  tracks span ~0.15 → 0.70
-// Each track ≈ 0.11 of total scroll.  Center of each track:
-//   Iron Man   : 0.205   Cap: 0.315   BP: 0.425   Ultron: 0.535   Strange: 0.645
+// Scroll thresholds match useScrollProgress: tracks span ~0.15 → 0.70
+// Camera travels forward along center X=0, so X=+3.0 sits cleanly in the
+// RIGHT half and X=-3.0 sits cleanly in the LEFT half.
 // ---------------------------------------------------------------------------
 const KF: Array<{ t: number; pos: [number,number,number]; look: [number,number,number] }> = [
-  { t: 0.00, pos: [0,  0,  8  ], look: [0,    0,  0   ] },  // Hero
-  { t: 0.09, pos: [0,  0,  4  ], look: [0,    0,  0   ] },  // About
-  { t: 0.15, pos: [0,  0,  1  ], look: [5.0,  0,  -8  ] },  // Approaching Iron Man (look right of model → model left-of-center)
-  { t: 0.21, pos: [0,  0, -5  ], look: [5.0,  0,  -8  ] },  // AT Iron Man
-  { t: 0.27, pos: [-1, 0, -13 ], look: [-2.0, 0,  -20 ] },  // Leaving → Cap
-  { t: 0.32, pos: [0,  0, -18 ], look: [-2.0, 0,  -20 ] },  // AT Cap
-  { t: 0.38, pos: [1,  0, -25 ], look: [5.0,  0,  -32 ] },  // Leaving → Black Panther
-  { t: 0.43, pos: [0,  0, -30 ], look: [5.0,  0,  -32 ] },  // AT Black Panther
-  { t: 0.49, pos: [-1, 0, -37 ], look: [-2.0, 0,  -44 ] },  // Leaving → Ultron
-  { t: 0.54, pos: [0,  0, -42 ], look: [-2.0, 0,  -44 ] },  // AT Ultron
-  { t: 0.60, pos: [0,  0, -49 ], look: [1.5,  0,  -56 ] },  // Leaving → Strange
-  { t: 0.65, pos: [0,  0, -54 ], look: [1.5,  0,  -56 ] },  // AT Strange
-  { t: 0.72, pos: [0, 0.5,-62 ], look: [0,    0,  -65 ] },  // Post-tracks / Sponsors
-  { t: 0.85, pos: [0,  0, -70 ], look: [0,    0,  -72 ] },  // FAQ / Contact
-  { t: 1.00, pos: [0,  0, -78 ], look: [0,    0,  -80 ] },  // Footer
+  { t: 0.00, pos: [0, 0,   8  ], look: [0, 0,   0  ] },  // Hero
+  { t: 0.09, pos: [0, 0,   4  ], look: [0, 0,   0  ] },  // About
+  { t: 0.15, pos: [0, 0,   0  ], look: [0, 0,  -8  ] },  // Approaching Iron Man (RIGHT)
+  { t: 0.21, pos: [0, 0,  -4.5], look: [0, 0, -11  ] },  // AT Iron Man
+  { t: 0.27, pos: [0, 0, -12  ], look: [0, 0, -20  ] },  // Transitioning to Cap (LEFT)
+  { t: 0.32, pos: [0, 0, -16.5], look: [0, 0, -23  ] },  // AT Cap
+  { t: 0.38, pos: [0, 0, -24  ], look: [0, 0, -32  ] },  // Transitioning to Black Panther (RIGHT)
+  { t: 0.43, pos: [0, 0, -28.5], look: [0, 0, -35  ] },  // AT Black Panther
+  { t: 0.49, pos: [0, 0, -36  ], look: [0, 0, -44  ] },  // Transitioning to Ultron (LEFT)
+  { t: 0.54, pos: [0, 0, -40.5], look: [0, 0, -47  ] },  // AT Ultron
+  { t: 0.60, pos: [0, 0, -48  ], look: [0, 0, -56  ] },  // Transitioning to Strange (RIGHT)
+  { t: 0.65, pos: [0, 0, -52.5], look: [0, 0, -59  ] },  // AT Strange
+  { t: 0.72, pos: [0, 0.5,-62 ], look: [0, 0, -66  ] },  // Post-tracks / Sponsors
+  { t: 0.85, pos: [0, 0,  -70 ], look: [0, 0, -73  ] },  // FAQ / Contact
+  { t: 1.00, pos: [0, 0,  -78 ], look: [0, 0, -81  ] },  // Footer
 ]
 
 // Build CatmullRomCurve3 for both position and lookAt

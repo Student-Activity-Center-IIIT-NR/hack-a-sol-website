@@ -48,7 +48,7 @@ for (const id of available) {
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
-const TARGET_HEIGHT  = 2.4          // scene units for auto-fit
+const TARGET_HEIGHT  = 3.2          // ~65% viewport height auto-fit
 const DEFAULT_ROT_Y  = Math.PI / 8  // 22.5° — default 3/4 turn
 const SCROLL_ROT_AMP = Math.PI / 7.2  // ±25° oscillation around rest
 
@@ -74,10 +74,16 @@ function patchMaterials(scene: THREE.Group): void {
 
     const fixMat = (mat: THREE.Material) => {
       if (!(mat instanceof THREE.MeshStandardMaterial)) return
-      // Ensure env map intensity on high-metalness materials
-      if (mat.metalness > 0.7) mat.envMapIntensity = Math.max(mat.envMapIntensity, 1.0)
+      // Three.js PBR: metalness=1 has 0 diffuse reflection. When roughness is high
+      // or envMap is dark, models render pure pitch-black. Clamping metalness to
+      // <= 0.4 allows direct lights (key/fill/rim) to illuminate the diffuse textures!
+      if (mat.metalness > 0.5) {
+        mat.metalness = Math.min(mat.metalness, 0.35)
+      }
+      mat.roughness = Math.min(mat.roughness, 0.7)
+      mat.envMapIntensity = 1.4
       // Prevent fully transparent surfaces from disappearing
-      if (mat.opacity < 0.05) mat.opacity = 0.05
+      if (mat.opacity < 0.1 && mat.transparent) mat.opacity = 0.85
       mat.needsUpdate = true
     }
 

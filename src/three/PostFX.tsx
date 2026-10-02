@@ -25,12 +25,12 @@ interface PostFXProps {
 // Track transition boundaries
 const TRANSITION_BOUNDARIES = [0.15, 0.26, 0.37, 0.48, 0.59, 0.70]
 
-// Minimum aberration at rest (barely perceptible)
-const ABERRATION_BASE    = 0.0003
+// Minimum aberration at rest (zero at rest per requirement 6)
+const ABERRATION_BASE    = 0.0
 // Maximum aberration peak during fast scroll
-const ABERRATION_MAX     = 0.007
-// Velocity time-constant (seconds) for exponential decay
-const VELOCITY_DECAY_TAU = 0.15
+const ABERRATION_MAX     = 0.006
+// Velocity time-constant (seconds) for exponential decay (~300ms)
+const VELOCITY_DECAY_TAU = 0.09
 
 export function PostFX({ scrollProgress = 0 }: PostFXProps) {
   const aberrationOffset = useRef(new THREE.Vector2(ABERRATION_BASE, ABERRATION_BASE))
@@ -111,10 +111,10 @@ export function PostFX({ scrollProgress = 0 }: PostFXProps) {
         opacity={0.022}
       />
 
-      {/* Cinematic vignette */}
+      {/* Cinematic vignette — subtle so side character areas stay bright */}
       <Vignette
-        offset={0.35}
-        darkness={0.65}
+        offset={0.45}
+        darkness={0.4}
         blendFunction={BlendFunction.NORMAL}
       />
     </EffectComposer>

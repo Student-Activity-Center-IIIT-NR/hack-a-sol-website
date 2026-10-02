@@ -47,8 +47,8 @@ export function Scene({ scrollProgress, activeTrackIndex }: SceneProps) {
   const mouseRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
-    // ── Fog (lighter — models visible at 3x the previous density)
-    scene.fog = new THREE.FogExp2('#0A0A0F', 0.003)
+    // ── Fog (reduced so models are never swallowed in darkness)
+    scene.fog = new THREE.FogExp2('#0A0A0F', 0.0012)
     scene.background = new THREE.Color('#050508')
 
     // ── Mouse parallax
@@ -97,15 +97,15 @@ export function Scene({ scrollProgress, activeTrackIndex }: SceneProps) {
 
   return (
     <>
-      {/* Global illumination — slightly brighter so dark models show up */}
-      <ambientLight intensity={0.22} />
-      <directionalLight position={[8, 12, 6]} intensity={0.7} />
+      {/* Global illumination */}
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[6, 12, 8]} intensity={1.2} />
 
       {/* Deep-space starfield */}
       <Stars radius={100} depth={100} count={5000} factor={4} saturation={0.1} fade speed={0.3} />
 
-      {/* PBR environment — warehouse gives brighter, more even reflections for metallic materials */}
-      <Environment preset="warehouse" />
+      {/* PBR environment — preset "city" with low intensity */}
+      <Environment preset="city" environmentIntensity={0.45} />
 
       {/* All 5 track worlds — positioned in 3D space */}
       <TrackWorlds
