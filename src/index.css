@@ -1,0 +1,94 @@
+/* src/index.css ─────────────────────────────────────────────────────────── */
+/* Tailwind base layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design Tokens ───────────────────────────────────────────────────────── */
+:root {
+  --color-dark:    #0A0A0F;
+  --color-darker:  #050508;
+  --color-red:     #E23636;
+  --color-gold:    #F5A623;
+  --font-heading:  'Bebas Neue', 'Anton', sans-serif;
+  --font-body:     'Inter', sans-serif;
+}
+
+/* ── Global reset ────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--color-darker);
+  color: #fff;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Fixed Canvas wrapper ────────────────────────────────────────────────── */
+#canvas-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Scrollable content layer ────────────────────────────────────────────── */
+#scroll-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Halftone comic texture utility ─────────────────────────────────────── */
+.halftone {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ── Glitch animation for loading logo ──────────────────────────────────── */
+@keyframes glitch {
+  0%, 100% { text-shadow: none; transform: none; }
+  20%       { text-shadow: -2px 0 #E23636; transform: translateX(2px); }
+  40%       { text-shadow:  2px 0 #60A5FA; transform: translateX(-2px); }
+  60%       { text-shadow: none; transform: none; }
+  80%       { text-shadow: -1px 0 #E23636; transform: translateX(1px); }
+}
+
+.loading-glitch {
+  animation: glitch 3s infinite;
+}
+
+/* ── Glow text utility ───────────────────────────────────────────────────── */
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(226,54,54,0.8), 0 0 40px rgba(226,54,54,0.4);
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: var(--color-darker); }
+::-webkit-scrollbar-thumb  { background: var(--color-red); border-radius: 2px; }
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(226,54,54,0.3);
+  color: #fff;
+}
+
+/* ── Reduced motion fallback ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
