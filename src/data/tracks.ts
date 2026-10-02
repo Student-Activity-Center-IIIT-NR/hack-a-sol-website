@@ -1,11 +1,16 @@
 /**
- * src/data/tracks.ts
+ * src/data/tracks.ts  (Phase 3b — modelTransform overrides added)
  * ─────────────────────────────────────────────────────────────────────────────
  * Single source of truth for all hackathon tracks.
  * Components MUST consume this array — never hardcode track data in JSX.
  *
- * modelPath: placeholder string. Replace with real .glb path when assets are ready.
- * type:      the placeholder primitive to render until GLB is loaded.
+ * modelTransform: optional per-model overrides applied AFTER auto-fit.
+ *   scale    — multiplier on top of auto-fit scale (1 = keep auto-fit result)
+ *   position — [x,y,z] offset in scene units after centering
+ *   rotation — [x,y,z] Euler angles in radians; default pose is [0, π/8, 0]
+ *
+ * Tune these live in-browser with ?debug=1 — the Leva panel shows a per-track
+ * tuning UI with a "Copy modelTransform" button that prints to the console.
  */
 
 export type TrackPrimitiveType =
@@ -14,6 +19,19 @@ export type TrackPrimitiveType =
   | 'octahedron'
   | 'dodecahedron'
   | 'torusKnot'
+
+/** Optional per-model transform overrides applied after auto-fit centering. */
+export interface ModelTransform {
+  /** Uniform scale multiplier applied on top of the auto-fit scale (default 1). */
+  scale?: number
+  /** World-space position offset [x, y, z] in scene units (default [0, 0, 0]). */
+  position?: [number, number, number]
+  /**
+   * Euler rotation [x, y, z] in radians for the resting pose.
+   * Default: [0, π/8, 0] — slight 3/4 turn toward camera.
+   */
+  rotation?: [number, number, number]
+}
 
 export interface Track {
   id: string
@@ -30,7 +48,6 @@ export interface Track {
   /**
    * Path to the Draco GLB model (relative to /public).
    * Automatically wired from models.json manifest when the file exists.
-   * Placeholder path until optimised GLB is present.
    */
   modelPath: string
   /**
@@ -42,6 +59,11 @@ export interface Track {
   primitive: TrackPrimitiveType
   /** Short icon emoji for badges */
   icon: string
+  /**
+   * Optional per-model transform overrides. Tune live with ?debug=1
+   * then copy the printed JSON here.
+   */
+  modelTransform?: ModelTransform
 }
 
 export const TRACKS: Track[] = [
@@ -53,7 +75,7 @@ export const TRACKS: Track[] = [
     description:
       'Harness machine learning, computer vision, and generative AI to solve real-world problems. Think like Tony Stark — iterate fast, build smarter.',
     accentColor: '#60A5FA',   // blue-400
-    modelPath: '/models/iron-man.glb',
+    modelPath: '/models/aiml.glb',
     primitive: 'icosahedron',
     icon: '🤖',
   },
@@ -65,7 +87,7 @@ export const TRACKS: Track[] = [
     description:
       'From reverse engineering to ethical hacking and secure system design — defend the digital frontier with the resolve of a super-soldier.',
     accentColor: '#EF4444',   // red-500
-    modelPath: '/models/cap-shield.glb',
+    modelPath: '/models/cybersec.glb',
     primitive: 'torus',
     icon: '🛡️',
   },
@@ -77,7 +99,7 @@ export const TRACKS: Track[] = [
     description:
       'Build decentralised applications, green-tech solutions, and blockchain-powered systems. Wakanda showed us — technology and nature can coexist.',
     accentColor: '#A855F7',   // purple-500
-    modelPath: '/models/black-panther.glb',
+    modelPath: '/models/web3.glb',
     primitive: 'octahedron',
     icon: '🌿',
   },
@@ -89,7 +111,7 @@ export const TRACKS: Track[] = [
     description:
       'The buildathon track — design, prototype, and program autonomous systems, drones, or robotic platforms. Show us what machines can become.',
     accentColor: '#F87171',   // red wireframe
-    modelPath: '/models/ultron.glb',
+    modelPath: '/models/robonyx.glb',
     primitive: 'dodecahedron',
     icon: '⚙️',
   },
@@ -101,7 +123,7 @@ export const TRACKS: Track[] = [
     description:
       'A high-octane DSA and competitive programming contest. Bend time, bend logic — solve what others cannot.',
     accentColor: '#F59E0B',   // amber-500 / gold
-    modelPath: '/models/strange.glb',
+    modelPath: '/models/coderun.glb',
     primitive: 'torusKnot',
     icon: '✨',
   },

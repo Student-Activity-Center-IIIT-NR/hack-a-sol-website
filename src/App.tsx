@@ -9,8 +9,9 @@
  *   [z-9990 devHUD]      — Only visible with ?debug=1 in URL
  */
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { Leva } from 'leva'
 import * as THREE from 'three'
 
 import { useLenis }                    from './hooks/useLenis'
@@ -44,12 +45,21 @@ export default function App() {
   const scrollProgress    = useScrollProgress()
   const activeTrackIndex  = useActiveTrackIndex(TRACKS.length)
 
+  // Show Leva tuning panel only with ?debug=1
+  const debugMode = useMemo(() =>
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1'
+  , [])
+
   // Dim the 3D canvas behind non-track sections (sponsor / faq / footer)
   // Track zone: 0.05 – 0.72. Hero/About are fine at full opacity.
   const canvasDimmed = scrollProgress > 0.72
 
   return (
     <>
+      {/* ── Leva debug panel (only with ?debug=1) ─────────────────────── */}
+      <Leva hidden={!debugMode} collapsed />
+
       {/* ── Loading Screen ─────────────────────────────────────────────── */}
       {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 

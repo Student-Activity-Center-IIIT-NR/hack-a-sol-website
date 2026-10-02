@@ -36,21 +36,21 @@ export const TRACK_WORLD_POSITIONS: [number, number, number][] = [
 //   Iron Man   : 0.205   Cap: 0.315   BP: 0.425   Ultron: 0.535   Strange: 0.645
 // ---------------------------------------------------------------------------
 const KF: Array<{ t: number; pos: [number,number,number]; look: [number,number,number] }> = [
-  { t: 0.00, pos: [0,  0,  8  ], look: [0, 0,  0  ] },  // Hero
-  { t: 0.09, pos: [0,  0,  4  ], look: [0, 0,  0  ] },  // About
-  { t: 0.15, pos: [0,  0,  1  ], look: [3.5, 0, -8 ] }, // Approaching Iron Man
-  { t: 0.21, pos: [0,  0, -5  ], look: [3.5, 0, -8 ] }, // AT Iron Man
-  { t: 0.27, pos: [-1, 0, -13 ], look: [-3.5,0,-20 ] }, // Leaving → Cap
-  { t: 0.32, pos: [0,  0, -18 ], look: [-3.5,0,-20 ] }, // AT Cap
-  { t: 0.38, pos: [1,  0, -25 ], look: [3.5, 0,-32 ] }, // Leaving → BP
-  { t: 0.43, pos: [0,  0, -30 ], look: [3.5, 0,-32 ] }, // AT Black Panther
-  { t: 0.49, pos: [-1, 0, -37 ], look: [-3.5,0,-44 ] }, // Leaving → Ultron
-  { t: 0.54, pos: [0,  0, -42 ], look: [-3.5,0,-44 ] }, // AT Ultron
-  { t: 0.60, pos: [0,  0, -49 ], look: [0,   0,-56 ] }, // Leaving → Strange
-  { t: 0.65, pos: [0,  0, -54 ], look: [0,   0,-56 ] }, // AT Strange
-  { t: 0.72, pos: [0, 0.5,-62 ], look: [0,   0,-65 ] }, // Post-tracks / Sponsors
-  { t: 0.85, pos: [0,  0, -70 ], look: [0,   0,-72 ] }, // FAQ / Contact
-  { t: 1.00, pos: [0,  0, -78 ], look: [0,   0,-80 ] }, // Footer
+  { t: 0.00, pos: [0,  0,  8  ], look: [0,    0,  0   ] },  // Hero
+  { t: 0.09, pos: [0,  0,  4  ], look: [0,    0,  0   ] },  // About
+  { t: 0.15, pos: [0,  0,  1  ], look: [5.0,  0,  -8  ] },  // Approaching Iron Man (look right of model → model left-of-center)
+  { t: 0.21, pos: [0,  0, -5  ], look: [5.0,  0,  -8  ] },  // AT Iron Man
+  { t: 0.27, pos: [-1, 0, -13 ], look: [-2.0, 0,  -20 ] },  // Leaving → Cap
+  { t: 0.32, pos: [0,  0, -18 ], look: [-2.0, 0,  -20 ] },  // AT Cap
+  { t: 0.38, pos: [1,  0, -25 ], look: [5.0,  0,  -32 ] },  // Leaving → Black Panther
+  { t: 0.43, pos: [0,  0, -30 ], look: [5.0,  0,  -32 ] },  // AT Black Panther
+  { t: 0.49, pos: [-1, 0, -37 ], look: [-2.0, 0,  -44 ] },  // Leaving → Ultron
+  { t: 0.54, pos: [0,  0, -42 ], look: [-2.0, 0,  -44 ] },  // AT Ultron
+  { t: 0.60, pos: [0,  0, -49 ], look: [1.5,  0,  -56 ] },  // Leaving → Strange
+  { t: 0.65, pos: [0,  0, -54 ], look: [1.5,  0,  -56 ] },  // AT Strange
+  { t: 0.72, pos: [0, 0.5,-62 ], look: [0,    0,  -65 ] },  // Post-tracks / Sponsors
+  { t: 0.85, pos: [0,  0, -70 ], look: [0,    0,  -72 ] },  // FAQ / Contact
+  { t: 1.00, pos: [0,  0, -78 ], look: [0,    0,  -80 ] },  // Footer
 ]
 
 // Build CatmullRomCurve3 for both position and lookAt

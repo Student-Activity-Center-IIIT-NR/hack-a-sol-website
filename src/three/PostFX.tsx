@@ -1,15 +1,14 @@
 /**
- * src/three/PostFX.tsx
+ * src/three/PostFX.tsx  (Phase 3b — velocity-based chromatic aberration)
  * ─────────────────────────────────────────────────────────────────────────────
- * Cinematic Multiverse Post-processing:
- *   • Bloom: Glow for emissive surfaces (arc reactor, vibranium crystals, Doctor Strange mandalas)
- *   • ChromaticAberration: Dynamic portal warp / chromatic pulse during track transitions
- *   • Noise: Subtle comic film grain
- *   • Vignette: Cinematic corner darkening
+ * Post-processing changes from Phase 3b:
+ *   • ChromaticAberration at rest = near-zero (0.0003 base)
+ *   • Aberration spikes only on fast scroll, decays back in ~300 ms
+ *   • Boundary-proximity warp kept for track transitions
+ *   • Noise and Vignette unchanged but grain reduced to 0.022
+ *   • Bloom luminance threshold raised to avoid washing models
  *
- * Performance guard:
- *   Disabled automatically on mobile (<768px), low-concurrency CPUs (<=4 cores),
- *   or prefers-reduced-motion.
+ * Performance guard: disabled on mobile, <=4 cores, prefers-reduced-motion.
  */
 
 import { useRef, useMemo } from 'react'
@@ -23,82 +22,99 @@ interface PostFXProps {
   activeTrackIndex?: number
 }
 
-// Track transition boundaries in scroll space (0→1)
+// Track transition boundaries
 const TRANSITION_BOUNDARIES = [0.15, 0.26, 0.37, 0.48, 0.59, 0.70]
 
+// Minimum aberration at rest (barely perceptible)
+const ABERRATION_BASE    = 0.0003
+// Maximum aberration peak during fast scroll
+const ABERRATION_MAX     = 0.007
+// Velocity time-constant (seconds) for exponential decay
+const VELOCITY_DECAY_TAU = 0.15
+
 export function PostFX({ scrollProgress = 0 }: PostFXProps) {
-  const aberrationOffset = useRef(new THREE.Vector2(0.0008, 0.0008))
-  const lastScroll = useRef(scrollProgress)
+  const aberrationOffset = useRef(new THREE.Vector2(ABERRATION_BASE, ABERRATION_BASE))
+  // Keep a mutable ref for scrollProgress so useFrame always sees current value
+  const scrollRef     = useRef(scrollProgress)
+  const prevScroll    = useRef(scrollProgress)
+  const velocityRef   = useRef(0)
+
+  // Sync scroll ref each render (this runs before useFrame)
+  scrollRef.current = scrollProgress
 
   const shouldRender = useMemo(() => {
     if (typeof window === 'undefined') return false
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const isMobile = window.innerWidth < 768
-    const isLowEnd = (navigator.hardwareConcurrency ?? 8) <= 4
+    const isMobile      = window.innerWidth < 768
+    const isLowEnd      = (navigator.hardwareConcurrency ?? 8) <= 4
     return !reducedMotion && !isMobile && !isLowEnd
   }, [])
 
   useFrame((_, delta) => {
     if (!shouldRender) return
 
-    // Calculate scroll speed
-    const scrollDelta = Math.abs(scrollProgress - lastScroll.current)
-    lastScroll.current = scrollProgress
+    const current = scrollRef.current
+    const scrollDelta = Math.abs(current - prevScroll.current)
+    prevScroll.current = current
 
-    // Calculate proximity to any track transition boundary
-    let minDistanceToBoundary = 1.0
+    // Instant velocity (scroll units per second)
+    const instantVelocity = scrollDelta / Math.max(delta, 0.001)
+
+    // velocityRef = max(instantVelocity, decay of previous)
+    velocityRef.current = Math.max(
+      instantVelocity,
+      velocityRef.current * Math.exp(-delta / VELOCITY_DECAY_TAU),
+    )
+
+    // Proximity to nearest transition boundary
+    let minDist = 1.0
     for (const b of TRANSITION_BOUNDARIES) {
-      const d = Math.abs(scrollProgress - b)
-      if (d < minDistanceToBoundary) minDistanceToBoundary = d
+      const d = Math.abs(current - b)
+      if (d < minDist) minDist = d
     }
+    const boundaryProximity = Math.max(0, 1 - minDist / 0.025)
 
-    // Portal warp peak when within 0.02 of boundary
-    const boundaryProximity = Math.max(0, 1 - minDistanceToBoundary / 0.02)
-    const warpIntensity = Math.min(0.008, 0.0006 + boundaryProximity * 0.005 + scrollDelta * 0.04)
+    // Target aberration strength: velocity-driven + boundary-proximity boost
+    const velocityContrib  = Math.min(ABERRATION_MAX * 0.7, velocityRef.current * 0.004)
+    const boundaryContrib  = boundaryProximity * ABERRATION_MAX * 0.5
+    const target = ABERRATION_BASE + velocityContrib + boundaryContrib
 
-    // Smooth lerp for aberration offset
-    aberrationOffset.current.x = THREE.MathUtils.lerp(
-      aberrationOffset.current.x,
-      warpIntensity,
-      Math.min(1, delta * 6)
-    )
-    aberrationOffset.current.y = THREE.MathUtils.lerp(
-      aberrationOffset.current.y,
-      warpIntensity,
-      Math.min(1, delta * 6)
-    )
+    // Smooth the value (fast attack, slow decay)
+    const lerpSpeed = target > aberrationOffset.current.x ? 12 : 5
+    const val = THREE.MathUtils.lerp(aberrationOffset.current.x, target, Math.min(1, delta * lerpSpeed))
+    aberrationOffset.current.set(val, val)
   })
 
   if (!shouldRender) return null
 
   return (
     <EffectComposer multisampling={0}>
-      {/* Bloom glow for energy cores, shields, runes */}
+      {/* Bloom — slightly tighter threshold so model bodies aren't washed out */}
       <Bloom
-        intensity={1.1}
-        luminanceThreshold={0.4}
-        luminanceSmoothing={0.85}
+        intensity={0.85}
+        luminanceThreshold={0.55}
+        luminanceSmoothing={0.9}
         mipmapBlur
       />
 
-      {/* Dynamic Chromatic Aberration portal transition pulse */}
+      {/* Chromatic Aberration — only spikes during fast scroll */}
       <ChromaticAberration
         offset={aberrationOffset.current}
         radialModulation={false}
         modulationOffset={0.15}
       />
 
-      {/* Subtle comic film grain */}
+      {/* Subtle film grain — reduced from 0.035 */}
       <Noise
         premultiply
         blendFunction={BlendFunction.ADD}
-        opacity={0.035}
+        opacity={0.022}
       />
 
-      {/* Cinematic Vignette */}
+      {/* Cinematic vignette */}
       <Vignette
         offset={0.35}
-        darkness={0.7}
+        darkness={0.65}
         blendFunction={BlendFunction.NORMAL}
       />
     </EffectComposer>
