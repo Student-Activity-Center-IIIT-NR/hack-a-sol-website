@@ -1,12 +1,12 @@
 /**
- * src/App.tsx  (Phase 2 — wires camera path, cursor, all new systems)
+ * src/App.tsx  (Phase 3 — character stage, canvas dimming, debug-only HUD)
  * ─────────────────────────────────────────────────────────────────────────────
  * Architecture:
- *   [fixed canvas z-0]   — ONE persistent R3F canvas (camera travels through scene)
+ *   [fixed canvas z-0]   — ONE persistent R3F canvas, dims behind non-track sections
  *   [z-9999 loading]     — Marvel loading screen (fades out)
  *   [z-10 scroll HTML]   — All sections scroll over the canvas
  *   [z-99990 cursor]     — Custom dot+ring cursor (desktop only)
- *   [z-9990 devHUD]      — Dev-only overlay
+ *   [z-9990 devHUD]      — Only visible with ?debug=1 in URL
  */
 
 import { useState, Suspense } from 'react'
@@ -44,6 +44,10 @@ export default function App() {
   const scrollProgress    = useScrollProgress()
   const activeTrackIndex  = useActiveTrackIndex(TRACKS.length)
 
+  // Dim the 3D canvas behind non-track sections (sponsor / faq / footer)
+  // Track zone: 0.05 – 0.72. Hero/About are fine at full opacity.
+  const canvasDimmed = scrollProgress > 0.72
+
   return (
     <>
       {/* ── Loading Screen ─────────────────────────────────────────────── */}
@@ -56,7 +60,7 @@ export default function App() {
       <FloatingHUD scrollProgress={scrollProgress} activeTrackIndex={activeTrackIndex} />
 
       {/* ── Fixed 3D Canvas — ONE persistent canvas for the entire site ── */}
-      <div id="canvas-wrapper" aria-hidden="true">
+      <div id="canvas-wrapper" aria-hidden="true" className={canvasDimmed ? 'canvas-dimmed' : ''}>
         <Canvas
           dpr={[1, 1.5]}
           camera={{ position: [0, 0, 8], fov: 60, near: 0.1, far: 300 }}

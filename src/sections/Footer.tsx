@@ -1,10 +1,13 @@
 /**
  * src/sections/Footer.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Site footer with logo, nav links, copyright, and social links.
+ * Site footer: logo, nav links, contact, socials, credits link.
+ * Phase 3: added 3D model credits line driven by src/data/credits.ts.
+ * Extra bottom padding (pb-24) prevents overlap with corner HUD brackets.
  */
 
 import { EVENT, SPONSOR } from '../config'
+import { MODEL_CREDITS } from '../data/credits'
 
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: '#', icon: '📷' },
@@ -14,7 +17,7 @@ const SOCIAL_LINKS = [
 
 export function Footer() {
   return (
-    <footer id="footer" className="relative border-t border-white/5 px-6 py-16">
+    <footer id="footer" className="relative border-t border-white/5 px-6 pt-16 pb-24">
       {/* Top red line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-marvel-red/40 to-transparent" />
 
@@ -41,7 +44,7 @@ export function Footer() {
                     href={href}
                     className="font-body text-sm text-white/50 hover:text-white transition-colors capitalize"
                   >
-                    {href.replace('#', '').replace('-', ' ')}
+                    {href.replace('#', '').replace(/-/g, ' ')}
                   </a>
                 </li>
               ))}
@@ -72,7 +75,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom */}
+        {/* Bottom bar */}
         <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-body text-xs text-white/20">
             © {new Date().getFullYear()} {EVENT.hostedBy}. All rights reserved.
@@ -81,6 +84,46 @@ export function Footer() {
             Made with ❤️ by the Hack-A-Sol Team
           </p>
         </div>
+
+        {/* 3D Model Credits — only rendered when credits exist */}
+        {MODEL_CREDITS.length > 0 && (
+          <div className="mt-6 border-t border-white/5 pt-6">
+            <p className="font-body text-[10px] text-white/20 tracking-widest uppercase mb-2">3D Model Credits</p>
+            <ul className="space-y-1">
+              {MODEL_CREDITS.map(credit => (
+                <li key={credit.trackId} className="font-mono text-[10px] text-white/20">
+                  <span className="text-white/30">{credit.modelName}</span>
+                  {' '}by{' '}
+                  <a
+                    href={credit.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-marvel-red/60 hover:text-marvel-red transition-colors"
+                  >
+                    {credit.author}
+                  </a>
+                  {' '}— {credit.license}
+                  {credit.notes && <span className="text-white/15"> ({credit.notes})</span>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Static credits note when no models are loaded */}
+        {MODEL_CREDITS.length === 0 && (
+          <p className="mt-6 font-mono text-[10px] text-white/15 text-center">
+            3D model credits will appear here once assets are sourced. See{' '}
+            <a
+              href="https://github.com/sandeepsidar1210-rgb/Hack-A-Sol-5.0/blob/main/CREDITS.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/25 hover:text-white/50 transition-colors underline"
+            >
+              CREDITS.md
+            </a>
+          </p>
+        )}
       </div>
     </footer>
   )

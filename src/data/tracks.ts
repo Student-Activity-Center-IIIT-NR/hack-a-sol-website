@@ -27,8 +27,17 @@ export interface Track {
   description: string
   /** Tailwind / hex accent colour for glow, gradient, text */
   accentColor: string
-  /** Path to the Draco GLB model (relative to /public). Placeholder for now. */
+  /**
+   * Path to the Draco GLB model (relative to /public).
+   * Automatically wired from models.json manifest when the file exists.
+   * Placeholder path until optimised GLB is present.
+   */
   modelPath: string
+  /**
+   * Optional: path to a transparent PNG/WebP image (relative to /public).
+   * Used by CharacterStage as a fallback when no GLB is available.
+   */
+  imagePath?: string
   /** Three.js placeholder primitive to render before GLB is available */
   primitive: TrackPrimitiveType
   /** Short icon emoji for badges */

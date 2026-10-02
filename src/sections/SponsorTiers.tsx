@@ -36,7 +36,7 @@ export function SponsorTiers() {
             return (
               <div
                 key={tier.id}
-                className={`relative border rounded-sm p-8 bg-white/[0.02] transition-all duration-500 hover:scale-[1.02] group ${
+                className={`relative border rounded-sm p-8 bg-white/[0.02] transition-all duration-500 hover:scale-[1.02] group flex flex-col ${
                   tier.id === 'title' ? 'md:-translate-y-4 border-2' : 'border'
                 }`}
                 style={{
@@ -91,7 +91,7 @@ export function SponsorTiers() {
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
                   }}
-                  className="mt-8 w-full block text-center py-3 font-heading tracking-widest text-sm border transition-all duration-300 rounded-sm hover:scale-105"
+                  className="mt-auto w-full block text-center py-3 font-heading tracking-widest text-sm border transition-all duration-300 rounded-sm hover:scale-105"
                   style={{
                     borderColor: style.accent + '60',
                     color: style.accent,

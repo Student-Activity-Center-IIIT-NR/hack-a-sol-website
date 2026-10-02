@@ -54,10 +54,28 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+/* Dim 3D canvas when behind non-track content sections */
+#canvas-wrapper.canvas-dimmed {
+  opacity: 0.25;
 }
 
 /* ── Scrollable content layer ────────────────────────────────────────────── */
 #scroll-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* Sponsor, FAQ, Contact, Footer sections get a backdrop so 3D doesn't bleed through */
+#why-sponsor,
+#sponsor-tiers,
+#faq,
+#contact,
+footer#footer {
+  background: linear-gradient(to bottom, transparent, rgba(5,5,8,0.92) 8%, rgba(5,5,8,0.96) 100%);
+  backdrop-filter: none; /* let the canvas dim handle depth */
   position: relative;
   z-index: 10;
 }

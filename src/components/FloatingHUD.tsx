@@ -1,11 +1,11 @@
 /**
  * src/components/FloatingHUD.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Cinematic Marvel HUD overlay:
- *   • Comic-issue metadata: "VOL. 5 // NO. 2026"
- *   • Campus coordinates: 21.1255° N, 81.7662° E (IIIT Naya Raipur)
- *   • Multiverse sector status & active track target telemetry
- *   • Corner reticle brackets and reactive mouse parallax
+ * Cinematic Marvel HUD overlay.
+ *
+ * FIX (Phase 3): bottom-right telemetry no longer overlaps the footer —
+ * it hides automatically when scrollProgress > 0.92 (footer zone).
+ * Bottom content raised from bottom-8 to bottom-16 to clear corner brackets.
  */
 
 import { useEffect, useState } from 'react'
@@ -20,14 +20,15 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
   const activeTrack = TRACKS[activeTrackIndex]
 
+  // Hide telemetry when near footer to avoid overlap
+  const nearFooter = scrollProgress > 0.92
+
   useEffect(() => {
-    // Subtle parallax response to mouse movements
     const onMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 8
+      const x = (e.clientX / window.innerWidth  - 0.5) * 8
       const y = (e.clientY / window.innerHeight - 0.5) * 8
       setMouseOffset({ x, y })
     }
-
     window.addEventListener('mousemove', onMouseMove, { passive: true })
     return () => window.removeEventListener('mousemove', onMouseMove)
   }, [])
@@ -44,8 +45,9 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
       {/* ── Screen Corner Brackets (JARVIS HUD) ── */}
       <div className="absolute top-20 left-8 w-4 h-4 border-t border-l border-white/20" />
       <div className="absolute top-20 right-8 w-4 h-4 border-t border-r border-white/20" />
-      <div className="absolute bottom-8 left-8 w-4 h-4 border-b border-l border-white/20" />
-      <div className="absolute bottom-8 right-8 w-4 h-4 border-b border-r border-white/20" />
+      {/* Bottom brackets raised so they don't clash with footer */}
+      <div className="absolute bottom-16 left-8 w-4 h-4 border-b border-l border-white/20" />
+      <div className="absolute bottom-16 right-8 w-4 h-4 border-b border-r border-white/20" />
 
       {/* ── Top-Left: Campus & Multiverse Coordinates ── */}
       <div className="absolute top-20 left-16 font-mono text-[10px] tracking-widest text-white/40 flex flex-col gap-0.5">
@@ -58,7 +60,9 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
       </div>
 
       {/* ── Bottom-Left: Comic Meta Data ── */}
-      <div className="absolute bottom-8 left-16 font-mono text-[10px] tracking-wider text-white/40">
+      <div
+        className={`absolute bottom-20 left-16 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${nearFooter ? 'opacity-0' : 'opacity-100'}`}
+      >
         <div className="text-white/70 font-heading tracking-widest text-xs mb-0.5">
           VOL. 5 // NO. 2026
         </div>
@@ -68,7 +72,9 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
       </div>
 
       {/* ── Bottom-Right: Active Track Telemetry ── */}
-      <div className="absolute bottom-8 right-16 font-mono text-[10px] tracking-wider text-right text-white/40">
+      <div
+        className={`absolute bottom-20 right-16 font-mono text-[10px] tracking-wider text-right text-white/40 transition-opacity duration-500 ${nearFooter ? 'opacity-0' : 'opacity-100'}`}
+      >
         <div className="flex items-center justify-end gap-2 mb-0.5">
           <span
             className="w-1.5 h-1.5 rounded-full"

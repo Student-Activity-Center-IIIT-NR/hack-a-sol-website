@@ -1,13 +1,11 @@
 /**
  * src/components/DevHUD.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Developer-only HUD (shown only in development mode via import.meta.env.DEV).
- * Displays:
- *   - Global scroll progress (0.0000 – 1.0000)
- *   - Active section name (inferred from scroll thresholds)
- *   - Active track index + track name
+ * Developer-only HUD: visible ONLY when URL contains ?debug=1.
+ * Shows scroll progress, active section, track index, and character name.
  *
- * Rendered in the top-right corner with a translucent backdrop.
+ * Phase 3 fix: previously visible in all DEV builds. Now requires ?debug=1
+ * so it doesn't appear on the live dev server or production previews.
  */
 
 import { TRACKS } from '../data/tracks'
@@ -31,7 +29,12 @@ function getSectionLabel(p: number): string {
 }
 
 export function DevHUD({ scrollProgress, activeTrackIndex }: DevHUDProps) {
-  if (!import.meta.env.DEV) return null
+  // Show only when ?debug=1 is in the URL — works in both dev and production
+  const debugMode =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('debug') === '1'
+
+  if (!debugMode) return null
 
   const section = getSectionLabel(scrollProgress)
   const track = TRACKS[activeTrackIndex]
@@ -39,10 +42,10 @@ export function DevHUD({ scrollProgress, activeTrackIndex }: DevHUDProps) {
   return (
     <div
       id="dev-hud"
-      className="fixed top-20 right-4 z-[9990] font-mono text-xs bg-black/70 border border-white/10 rounded p-3 min-w-[200px] pointer-events-none"
+      className="fixed top-20 right-4 z-[9990] font-mono text-xs bg-black/70 border border-white/10 rounded p-3 min-w-[220px] pointer-events-none"
       style={{ backdropFilter: 'blur(8px)' }}
     >
-      <div className="text-marvel-gold font-bold mb-2 text-[10px] tracking-widest">DEV HUD</div>
+      <div className="text-marvel-gold font-bold mb-2 text-[10px] tracking-widest">DEV HUD — ?debug=1</div>
       <div className="flex flex-col gap-1 text-white/70">
         <div className="flex justify-between gap-4">
           <span className="text-white/40">scroll</span>
@@ -50,7 +53,7 @@ export function DevHUD({ scrollProgress, activeTrackIndex }: DevHUDProps) {
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-white/40">section</span>
-          <span className="text-yellow-300 truncate max-w-[120px]">{section}</span>
+          <span className="text-yellow-300 truncate max-w-[130px]">{section}</span>
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-white/40">track idx</span>
