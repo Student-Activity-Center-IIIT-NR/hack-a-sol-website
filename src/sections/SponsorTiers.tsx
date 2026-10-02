@@ -6,6 +6,7 @@
  */
 
 import { TIERS, SPONSOR } from '../config'
+import { sound } from '../utils/audio'
 
 const TIER_STYLES: Record<string, { accent: string; glow: string; badge: string }> = {
   title:  { accent: '#F5A623', glow: 'rgba(245,166,35,0.25)', badge: '👑' },
@@ -81,16 +82,19 @@ export function SponsorTiers() {
                 <a
                   id={`tier-${tier.id}-cta`}
                   href={`mailto:${SPONSOR.email}?subject=Sponsorship Enquiry – ${tier.name}`}
+                  data-magnetic
+                  onMouseEnter={(e) => {
+                    sound.playHover()
+                    ;(e.currentTarget as HTMLElement).style.backgroundColor = style.accent + '15'
+                  }}
+                  onClick={() => sound.playClick()}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                  }}
                   className="mt-8 w-full block text-center py-3 font-heading tracking-widest text-sm border transition-all duration-300 rounded-sm hover:scale-105"
                   style={{
                     borderColor: style.accent + '60',
                     color: style.accent,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = style.accent + '15'
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
                   }}
                 >
                   ENQUIRE NOW

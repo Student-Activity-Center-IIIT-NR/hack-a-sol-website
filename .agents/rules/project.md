@@ -1,5 +1,7 @@
 # Project Rules — Hack-A-Sol 5.0
 
+> **Scope**: This is the FULL OFFICIAL website for Hack-A-Sol 5.0. Sponsors are one section among many. The site serves all audiences: participants, judges, press, mentors, and sponsors.
+
 ## Stack
 Vite + React 18 + TypeScript, Tailwind CSS v3, @react-three/fiber, @react-three/drei,
 three.js, GSAP + ScrollTrigger, Lenis smooth scroll. Deploy: Vercel.

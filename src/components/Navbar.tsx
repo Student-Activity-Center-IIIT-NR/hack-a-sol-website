@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from 'react'
 import { EVENT, SPONSOR } from '../config'
+import { sound } from '../utils/audio'
 
 const NAV_LINKS = [
   { label: 'Tracks',   href: '#tracks'   },
@@ -21,6 +22,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [audioOn, setAudioOn] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -61,14 +63,44 @@ export function Navbar() {
           ))}
         </ul>
 
-        {/* CTA */}
-        <a
-          id="nav-sponsor-cta"
-          href="#why-sponsor"
-          className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-sm font-heading tracking-widest text-sm bg-marvel-red hover:bg-red-700 text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(226,54,54,0.5)] hover:scale-105"
-        >
-          BECOME A SPONSOR
-        </a>
+        {/* Right action group: Sound Toggle + Sponsor CTA */}
+        <div className="hidden md:flex items-center gap-4">
+          <button
+            id="nav-sound-toggle"
+            type="button"
+            data-magnetic
+            onClick={() => {
+              const next = sound.toggle()
+              setAudioOn(next)
+            }}
+            onMouseEnter={() => sound.playHover()}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-sm border text-xs font-mono tracking-wider transition-all duration-300 ${
+              audioOn
+                ? 'border-marvel-red/80 bg-marvel-red/10 text-marvel-red shadow-[0_0_12px_rgba(226,54,54,0.3)]'
+                : 'border-white/10 bg-white/5 text-white/50 hover:text-white hover:border-white/30'
+            }`}
+            title="Toggle Multiverse Audio"
+          >
+            <span className="relative flex h-2 w-2">
+              {audioOn && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-marvel-red opacity-75"></span>
+              )}
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${audioOn ? 'bg-marvel-red' : 'bg-white/40'}`}></span>
+            </span>
+            <span>{audioOn ? 'AUDIO: ON' : 'AUDIO: MUTED'}</span>
+          </button>
+
+          <a
+            id="nav-sponsor-cta"
+            href="#why-sponsor"
+            data-magnetic
+            onMouseEnter={() => sound.playHover()}
+            onClick={() => sound.playClick()}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm font-heading tracking-widest text-sm bg-marvel-red hover:bg-red-700 text-white transition-all duration-300 hover:shadow-[0_0_20px_rgba(226,54,54,0.5)] hover:scale-105"
+          >
+            BECOME A SPONSOR
+          </a>
+        </div>
 
         {/* Mobile hamburger */}
         <button
@@ -96,14 +128,29 @@ export function Navbar() {
               {link.label}
             </a>
           ))}
+          <button
+            type="button"
+            onClick={() => {
+              const next = sound.toggle()
+              setAudioOn(next)
+            }}
+            className={`flex items-center justify-center gap-2 px-3 py-2 rounded-sm border text-xs font-mono tracking-wider transition-all duration-300 ${
+              audioOn
+                ? 'border-marvel-red/80 bg-marvel-red/10 text-marvel-red'
+                : 'border-white/10 bg-white/5 text-white/60'
+            }`}
+          >
+            <span className={`inline-block h-2 w-2 rounded-full ${audioOn ? 'bg-marvel-red' : 'bg-white/40'}`} />
+            <span>{audioOn ? 'MULTIVERSE AUDIO: ON' : 'MULTIVERSE AUDIO: MUTED'}</span>
+          </button>
           <a
             href="#why-sponsor"
             onClick={() => setMenuOpen(false)}
-            className="mt-2 px-5 py-2.5 text-center font-heading tracking-widest text-sm bg-marvel-red text-white rounded-sm"
+            className="mt-1 px-5 py-2.5 text-center font-heading tracking-widest text-sm bg-marvel-red text-white rounded-sm"
           >
             BECOME A SPONSOR
           </a>
-          <p className="text-white/30 text-xs">{SPONSOR.email}</p>
+          <p className="text-white/30 text-xs text-center">{SPONSOR.email}</p>
         </div>
       )}
     </nav>

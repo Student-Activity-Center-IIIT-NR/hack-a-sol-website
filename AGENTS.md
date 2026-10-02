@@ -1,5 +1,9 @@
 # Hack-A-Sol 5.0 — Agent Reference
 
+> **Scope**: This is the FULL OFFICIAL website for Hack-A-Sol 5.0.
+> Sponsors are **one section** among many. The site serves all audiences:
+> participants, judges, press, mentors, and sponsors.
+
 ## Stack
 - **Framework**: Vite + React 18 + TypeScript (strict)
 - **Styling**: Tailwind CSS v3

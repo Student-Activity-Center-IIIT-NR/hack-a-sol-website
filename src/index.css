@@ -33,7 +33,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Custom cursor — hide default on non-touch devices */
+  cursor: none;
 }
+
+/* Restore cursor on touch devices */
+@media (pointer: coarse) {
+  body { cursor: auto; }
+}
+
+/* Magnetic button hover */
+[data-magnetic] {
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 
 /* ── Fixed Canvas wrapper ────────────────────────────────────────────────── */
 #canvas-wrapper {

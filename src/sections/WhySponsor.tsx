@@ -5,8 +5,6 @@
  * Designed to impress potential sponsors browsing the site.
  */
 
-import { EVENT } from '../config'
-
 const REASONS = [
   {
     icon: '🎯',
@@ -51,15 +49,15 @@ export function WhySponsor() {
       <div className="max-w-6xl mx-auto w-full">
         <div className="text-center mb-16">
           <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase mb-4">
-            Partnership
+            Back The Multiverse // Partnership
           </p>
           <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-6">
-            WHY SPONSOR<br />
-            <span className="text-white/30">HACK-A-SOL?</span>
+            BACK THE MULTIVERSE<br />
+            <span className="text-white/30">PARTNER WITH HACK-A-SOL 5.0</span>
           </h2>
           <p className="font-body text-white/50 text-lg max-w-2xl mx-auto">
-            Hack-A-Sol 5.0 is more than a hackathon — it's a launchpad. Partnering with us means
-            putting your brand at the intersection of talent, technology, and tomorrow.
+            Hack-A-Sol 5.0 is the premier technological convergence at IIIT Naya Raipur. Partnering with us puts
+            your brand at the nexus of India's brightest engineers, disruptive projects, and the next generation of builders.
           </p>
         </div>
 
