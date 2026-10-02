@@ -5,15 +5,16 @@
  */
 
 import { EVENT } from '../config'
-
-const STATS = [
-  { label: 'Edition',       value: EVENT.edition },
-  { label: 'Participants',  value: EVENT.expectedParticipants },
-  { label: 'Tracks',        value: '5' },
-  { label: 'Prize Pool',    value: EVENT.prizePool },
-]
+import { TRACKS } from '../data/tracks'
 
 export function About() {
+  const stats = [
+    { label: 'Edition',       value: EVENT.edition },
+    { label: 'Participants',  value: EVENT.expectedParticipants },
+    { label: 'Tracks',        value: String(TRACKS.length) },
+    { label: 'Prize Pool',    value: EVENT.prizePool },
+  ]
+
   return (
     <section
       id="about"
@@ -36,12 +37,31 @@ export function About() {
             Hack-A-Sol is the flagship annual hackathon hosted by students of IIIT Naya Raipur.
             Now in its fifth edition and themed <span className="text-marvel-red font-medium">MARVEL</span>,
             it brings together the brightest minds across India to solve real-world challenges
-            across five specialised tracks.
+            across {TRACKS.length} specialised tracks.
           </p>
-          <p className="font-body text-white/40 text-base leading-relaxed">
-            From AI pipelines to vibranium-grade security exploits — if you can imagine it,
-            you can build it here.
+          <p className="font-body text-white/40 text-base leading-relaxed mb-6">
+            From neural architectures and cyber-fortresses to green Web3 protocols, autonomous robotics,
+            and competitive algorithmic problem-solving — if you can imagine it, you can build it here.
           </p>
+
+          {/* Dynamic Track Badges — all 5 tracks */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {TRACKS.map((t) => (
+              <a
+                key={t.id}
+                href="#tracks"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm border border-white/10 bg-white/[0.02] hover:border-white/30 hover:bg-white/5 transition-all text-xs font-mono"
+              >
+                <span>{t.icon}</span>
+                <span style={{ color: t.accentColor }} className="font-medium">
+                  {t.name}
+                </span>
+                <span className="text-white/30 text-[10px] hidden sm:inline">
+                  [{t.character}]
+                </span>
+              </a>
+            ))}
+          </div>
 
           <div className="mt-8 flex items-center gap-3">
             <span className="h-px flex-1 bg-white/10" />
@@ -52,7 +72,7 @@ export function About() {
 
         {/* Right: Stat grid */}
         <div className="grid grid-cols-2 gap-4">
-          {STATS.map(({ label, value }) => (
+          {stats.map(({ label, value }) => (
             <div
               key={label}
               className="border border-white/10 rounded-sm p-6 bg-white/[0.02] hover:border-marvel-red/40 hover:bg-white/[0.04] transition-all duration-300 group"

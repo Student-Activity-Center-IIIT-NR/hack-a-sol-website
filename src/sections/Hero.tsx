@@ -1,8 +1,6 @@
-/**
- * src/sections/Hero.tsx  (Phase 2 — ScrollReveal + improved layout)
- */
 import { ScrollReveal, FadeUp } from '../components/ScrollReveal'
 import { EVENT } from '../config'
+import { TRACKS } from '../data/tracks'
 
 export function Hero() {
   return (
@@ -49,8 +47,8 @@ export function Hero() {
 
         <FadeUp delay={0.5}>
           <p className="font-body text-lg text-white/60 max-w-2xl mx-auto mb-10">
-            The flagship hackathon of IIIT Naya Raipur returns. Five tracks.
-            Five Marvel champions. One universe to conquer.
+            The flagship hackathon of {EVENT.hostedBy} returns. {TRACKS.length} specialised tracks.
+            {TRACKS.length} Marvel champions. One multiverse to conquer.
           </p>
         </FadeUp>
 

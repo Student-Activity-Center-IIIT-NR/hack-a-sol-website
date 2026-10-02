@@ -83,7 +83,7 @@ export const TRACKS: Track[] = [
     id: 'cybersec',
     name: 'Cybersecurity',
     character: 'Captain America',
-    tagline: 'Shield the Digital World',
+    tagline: 'Shield the Digital Frontier',
     description:
       'From reverse engineering to ethical hacking and secure system design — defend the digital frontier with the resolve of a super-soldier.',
     accentColor: '#EF4444',   // red-500
@@ -105,11 +105,11 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'robonyx',
-    name: 'Robonyx',
+    name: 'Robonyx (Buildathon)',
     character: 'Ultron',
-    tagline: 'Evolution Has No Off Switch',
+    tagline: 'Forge the Autonomous Machines of Tomorrow',
     description:
-      'The buildathon track — design, prototype, and program autonomous systems, drones, or robotic platforms. Show us what machines can become.',
+      'The ultimate buildathon track — design, prototype, and program autonomous robotics, drones, and embedded hardware platforms. Forge what machines can become.',
     accentColor: '#F87171',   // red wireframe
     modelPath: '/models/robonyx.glb',
     primitive: 'dodecahedron',
@@ -117,11 +117,11 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'coderun',
-    name: 'CodeRun',
+    name: 'CodeRun (DSA / Competitive Programming contest)',
     character: 'Doctor Strange',
-    tagline: 'Master the Infinite Possibilities',
+    tagline: 'See Every Possible Solution',
     description:
-      'A high-octane DSA and competitive programming contest. Bend time, bend logic — solve what others cannot.',
+      'A high-octane DSA and competitive programming contest. Bend time, peer through infinite algorithmic timelines, and engineer the optimal solution.',
     accentColor: '#F59E0B',   // amber-500 / gold
     modelPath: '/models/coderun.glb',
     primitive: 'torusKnot',

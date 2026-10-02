@@ -12,7 +12,7 @@
  * Mobile layout: transparent 45 vh spacer on top (model visible) then text.
  */
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TRACKS } from '../data/tracks'
 import { sound } from '../utils/audio'
 
@@ -23,6 +23,7 @@ interface TracksProps {
 export function Tracks({ activeTrackIndex }: TracksProps) {
   const active    = TRACKS[activeTrackIndex]
   const lastIndex = useRef(activeTrackIndex)
+  const [gridOpen, setGridOpen] = useState(false)
 
   useEffect(() => {
     if (lastIndex.current !== activeTrackIndex) {
@@ -51,7 +52,7 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
           style={{ backgroundColor: (active?.accentColor ?? '#E23636') + '60' }}
         />
 
-        {/* ── Track nav dots ───────────────────────────────────────── */}
+        {/* ── Track nav dots (All 5 tracks derived from TRACKS) ─────── */}
         <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
           {TRACKS.map((track, i) => (
             <button
@@ -80,13 +81,13 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
                 }`}
                 style={i === activeTrackIndex ? { color: track.accentColor } : {}}
               >
-                0{i + 1} // {track.character.split(' ')[0]}
+                0{i + 1} // {track.character}
               </span>
             </button>
           ))}
         </div>
 
-        {/* ── Chapter counter (top-right) ──────────────────────────── */}
+        {/* ── Chapter counter & Overview trigger (top-right) ──────── */}
         <div className="absolute top-8 right-8 text-right z-20 hidden md:block">
           <p className="font-heading text-8xl text-white/5 leading-none select-none">
             0{activeTrackIndex + 1}
@@ -94,6 +95,19 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
           <p className="font-body text-xs tracking-[0.4em] text-white/30 uppercase">
             of {TRACKS.length} Tracks
           </p>
+          <button
+            type="button"
+            data-magnetic
+            onClick={() => {
+              sound.playClick()
+              setGridOpen(true)
+            }}
+            onMouseEnter={() => sound.playHover()}
+            className="mt-2 text-[10px] font-mono tracking-widest text-marvel-red/90 hover:text-white border border-marvel-red/40 hover:border-white/50 px-2.5 py-1 rounded-sm bg-marvel-red/10 hover:bg-marvel-red/20 backdrop-blur-sm transition-all flex items-center gap-1.5 ml-auto"
+          >
+            <span>⊞</span>
+            <span>ALL {TRACKS.length} TRACKS GRID</span>
+          </button>
         </div>
 
         {/* ═══════ LEFT 55 % — model shows through + HTML overlays ══════ */}
@@ -258,11 +272,136 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
                 <span>MISSION PROTOCOLS</span>
                 <span>→</span>
               </a>
+
+              {/* View All Tracks Grid Button */}
+              <button
+                type="button"
+                data-magnetic
+                onClick={() => {
+                  sound.playClick()
+                  setGridOpen(true)
+                }}
+                onMouseEnter={() => sound.playHover()}
+                className="inline-flex items-center gap-2 px-3 py-1.5 border border-white/20 rounded-sm font-mono text-xs tracking-wider uppercase text-white/70 hover:text-white hover:border-white/50 transition-all bg-white/5 hover:bg-white/10"
+              >
+                <span>⊞</span>
+                <span>ALL {TRACKS.length} TRACKS</span>
+              </button>
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* ═══════ ALL 5 TRACKS OVERVIEW MODAL / GRID ═══════ */}
+      {gridOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="All 5 Tracks Overview Grid"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex flex-col justify-center items-center p-4 sm:p-8 animate-fadeIn overflow-y-auto"
+        >
+          <div className="w-full max-w-7xl my-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+              <div>
+                <p className="font-body text-xs tracking-[0.4em] text-marvel-red uppercase">
+                  Multiverse Protocols // Directory
+                </p>
+                <h3 className="font-heading text-3xl sm:text-4xl text-white tracking-wide">
+                  ALL {TRACKS.length} MISSION TRACKS
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  sound.playClick()
+                  setGridOpen(false)
+                }}
+                className="px-4 py-2 border border-white/20 rounded-sm font-mono text-xs tracking-widest text-white/60 hover:text-white hover:border-marvel-red hover:bg-marvel-red/20 transition-all"
+              >
+                ✕ ESC / CLOSE
+              </button>
+            </div>
+
+            {/* 5-Card Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {TRACKS.map((track, i) => (
+                <div
+                  key={track.id}
+                  className="border rounded-sm p-5 bg-white/[0.03] hover:bg-white/[0.06] transition-all flex flex-col justify-between group"
+                  style={{
+                    borderColor: i === activeTrackIndex ? track.accentColor : 'rgba(255,255,255,0.1)',
+                    boxShadow: i === activeTrackIndex ? `0 0 20px ${track.accentColor}30` : 'none',
+                  }}
+                >
+                  <div>
+                    {/* Top Row: Icon & Track Number */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl">{track.icon}</span>
+                      <span className="font-mono text-xs text-white/40">
+                        0{i + 1} / 0{TRACKS.length}
+                      </span>
+                    </div>
+
+                    {/* Character Tag */}
+                    <p
+                      className="font-mono text-[10px] tracking-widest uppercase font-semibold mb-1"
+                      style={{ color: track.accentColor }}
+                    >
+                      {track.character}
+                    </p>
+
+                    {/* Track Name */}
+                    <h4 className="font-heading text-2xl text-white mb-2 leading-tight">
+                      {track.name}
+                    </h4>
+
+                    {/* Tagline */}
+                    <p
+                      className="font-body text-xs font-medium mb-3"
+                      style={{ color: track.accentColor }}
+                    >
+                      "{track.tagline}"
+                    </p>
+
+                    {/* Description */}
+                    <p className="font-body text-xs text-white/60 leading-relaxed mb-4">
+                      {track.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    {/* Primitive badge */}
+                    <div className="mb-4 inline-flex items-center gap-1.5 px-2 py-0.5 border border-white/10 rounded-sm font-mono text-[10px] text-white/40">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: track.accentColor }} />
+                      <span>{track.primitive}</span>
+                    </div>
+
+                    {/* Jump Button */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        scrollToTrack(i)
+                        setGridOpen(false)
+                      }}
+                      className="w-full py-2 border rounded-sm font-mono text-xs tracking-wider uppercase transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-1"
+                      style={{
+                        borderColor: `${track.accentColor}80`,
+                        color: track.accentColor,
+                        backgroundColor: `${track.accentColor}15`,
+                      }}
+                    >
+                      <span>GO TO CHAPTER</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

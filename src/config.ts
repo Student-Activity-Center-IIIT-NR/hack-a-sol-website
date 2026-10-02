@@ -6,6 +6,8 @@
  * Components MUST import from here — never hard-code in JSX.
  */
 
+import { TRACKS } from './data/tracks'
+
 export const EVENT = {
   name: 'Hack-A-Sol 5.0',
   edition: '5.0',
@@ -57,8 +59,8 @@ export const TIMELINE = [
   { label: 'Registration Opens',   date: 'TBA' },
   { label: 'Registration Closes',  date: 'TBA' },
   { label: 'Team Announcement',    date: 'TBA' },
-  { label: 'Hackathon Day 1',      date: 'TBA' },
-  { label: 'Hackathon Day 2 + Demo', date: 'TBA' },
+  { label: 'Hackathon Day 1 & Buildathon Setup', date: 'TBA' },
+  { label: 'Hackathon Day 2 + Project Demos', date: 'TBA' },
   { label: 'Prize Ceremony',       date: 'TBA' },
 ] as const
 
@@ -73,7 +75,7 @@ export const FAQ = [
   },
   {
     q: 'What tracks are available?',
-    a: 'AI/ML, Cybersecurity, Web3 & Sustainability, Robonyx (buildathon), and CodeRun (DSA/CP contest).',
+    a: `Hack-A-Sol 5.0 features ${TRACKS.length} specialised tracks: ${TRACKS.map(t => `${t.name} (${t.character})`).join(', ')}.`,
   },
   {
     q: 'Are travel and accommodation provided?',

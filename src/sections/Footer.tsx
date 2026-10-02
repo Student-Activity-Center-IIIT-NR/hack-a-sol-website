@@ -8,6 +8,7 @@
 
 import { EVENT, SPONSOR } from '../config'
 import { MODEL_CREDITS } from '../data/credits'
+import { TRACKS } from '../data/tracks'
 
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: '#', icon: '📷' },
@@ -22,7 +23,7 @@ export function Footer() {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-marvel-red/40 to-transparent" />
 
       <div className="max-w-6xl mx-auto">
-        <div className="grid sm:grid-cols-3 gap-12 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div>
             <p className="font-heading text-2xl tracking-widest text-white mb-2">
@@ -45,6 +46,26 @@ export function Footer() {
                     className="font-body text-sm text-white/50 hover:text-white transition-colors capitalize"
                   >
                     {href.replace('#', '').replace(/-/g, ' ')}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Tracks ({TRACKS.length}) */}
+          <div>
+            <p className="font-body text-xs tracking-[0.4em] text-white/30 uppercase mb-4">
+              Tracks ({TRACKS.length})
+            </p>
+            <ul className="space-y-2">
+              {TRACKS.map((t) => (
+                <li key={t.id}>
+                  <a
+                    href="#tracks"
+                    className="font-body text-sm text-white/50 hover:text-white transition-colors flex items-center gap-2 group"
+                  >
+                    <span className="text-xs transition-transform group-hover:scale-125">{t.icon}</span>
+                    <span className="group-hover:text-white transition-colors">{t.name}</span>
                   </a>
                 </li>
               ))}

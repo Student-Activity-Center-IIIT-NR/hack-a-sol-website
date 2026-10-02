@@ -5,6 +5,8 @@
  * Designed to impress potential sponsors browsing the site.
  */
 
+import { TRACKS } from '../data/tracks'
+
 const REASONS = [
   {
     icon: '🎯',
@@ -34,7 +36,7 @@ const REASONS = [
   {
     icon: '🏆',
     title: 'Innovation First',
-    body: 'Align your brand with cutting-edge AI, Web3, robotics, and cybersecurity innovation — the future, today.',
+    body: `Align your brand with cutting-edge talent across all ${TRACKS.length} tracks: ${TRACKS.map(t => t.name).join(', ')} — the future, today.`,
   },
 ]
 

@@ -53,7 +53,7 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
       <div className="absolute top-20 left-16 font-mono text-[10px] tracking-widest text-white/40 flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-marvel-red animate-pulse" />
-          <span className="text-white/70 font-semibold">MULTIVERSE SECTOR 05</span>
+          <span className="text-white/70 font-semibold">MULTIVERSE SECTOR {String(TRACKS.length).padStart(2, '0')}</span>
         </div>
         <span className="text-white/40">COORD: 21.1255° N, 81.7662° E [IIIT-NR]</span>
         <span className="text-white/30 text-[9px]">TIMELINE INTEGRITY: STABLE // EARTH-616</span>
