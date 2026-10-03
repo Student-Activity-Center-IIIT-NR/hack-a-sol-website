@@ -1,19 +1,19 @@
-/**
+ï»¿/**
  * src/three/CharacterStage.tsx  (Phase 3g)
  * -----------------------------------------------------------------------------
  * Renders the 3D character in the empty half of the track chapter viewport.
  *
  * Scroll-phase animation (chapterProgress c = 0..1):
- *   c 0.00-0.25  ENTER : model swings from ~-80° side + depth (z=-8), scale 0.7?1
- *   c 0.25-0.75  HOLD  : faces camera, orbits slowly, mouse tilt ±10°
- *   c 0.75-1.00  EXIT  : swings to +80° other side, scale 1?0.7, z recedes
+ *   c 0.00-0.22  ENTER : model swings from ~-80ï¿½ side + depth (z=-8), scale 0.7?1
+ *   c 0.22-0.78  HOLD  : faces camera, orbits slowly, mouse tilt ï¿½10ï¿½
+ *   c 0.78-1.00  EXIT  : swings to +80ï¿½ other side, scale 1?0.7, z recedes
  *
  * Performance:
- *   - GLBs outside the active±1 window are hidden (visible=false)
+ *   - GLBs outside the activeï¿½1 window are hidden (visible=false)
  *   - useGLTF.preload for next/prev only (managed by TrackWorlds)
  *
  * Dev assertion:
- *   When ?debug=1 — warns if the loaded filename doesn't match track.id.
+ *   When ?debug=1 ï¿½ warns if the loaded filename doesn't match track.id.
  *   Leva controls expose scale/yawOffset/pos per track.
  */
 
@@ -55,26 +55,26 @@ function norm(v: number, lo: number, hi: number): number {
 // -- Phase helpers (new spec 0.25/0.25/0.50) ------------------------------
 /** 3-phase target yaw for chapterProgress c */
 function phaseYaw(c: number, yawOffset: number): number {
-  if (c < 0.25)  return yawOffset + ENTER_YAW * (1 - easeInOut(norm(c, 0, 0.25)))
-  if (c <= 0.75) return yawOffset
-  return yawOffset + EXIT_YAW * easeInOut(norm(c, 0.75, 1.0))
+  if (c < 0.22)  return yawOffset + ENTER_YAW * (1 - easeInOut(norm(c, 0, 0.22)))
+  if (c <= 0.78) return yawOffset
+  return yawOffset + EXIT_YAW * easeInOut(norm(c, 0.78, 1.0))
 }
 
 /** 3-phase scale */
 function phaseScale(c: number, base: number): number {
   const MIN_S = 0.7
   let s: number
-  if (c < 0.25)       s = MIN_S + (1 - MIN_S) * easeInOut(norm(c, 0, 0.25))
-  else if (c <= 0.75) s = 1.0
-  else                s = 1.0 - (1 - MIN_S) * easeInOut(norm(c, 0.75, 1.0))
+  if (c < 0.22)       s = MIN_S + (1 - MIN_S) * easeInOut(norm(c, 0, 0.22))
+  else if (c <= 0.78) s = 1.0
+  else                s = 1.0 - (1 - MIN_S) * easeInOut(norm(c, 0.78, 1.0))
   return s * base
 }
 
 /** Z-depth fly-in: enter from z=-8, hold at 0, exit to z=-8 */
 function phaseZ(c: number): number {
-  if (c < 0.25)  return -8 * (1 - easeInOut(norm(c, 0, 0.25)))
-  if (c <= 0.75) return 0
-  return -8 * easeInOut(norm(c, 0.75, 1.0))
+  if (c < 0.22)  return -8 * (1 - easeInOut(norm(c, 0, 0.22)))
+  if (c <= 0.78) return 0
+  return -8 * easeInOut(norm(c, 0.78, 1.0))
 }
 
 // -- Scene helpers --------------------------------------------------------

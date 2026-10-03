@@ -1,14 +1,20 @@
 ﻿/**
- * src/sections/Tracks.tsx  (Phase 3g)
+ * src/sections/Tracks.tsx  (Phase 3h - slower scroll, dwell & snap)
  * Single source of truth for track chapter state comes from App.tsx (useTrackSection).
  * Pin is managed by GSAP ScrollTrigger in useTrackSection hook.
  * Alternating sides: even index text LEFT art RIGHT; odd index text RIGHT art LEFT.
+ *
+ * Dwell choreography:
+ *   c 0.00-0.22 ENTER : text/art slides in, opacity 0->1
+ *   c 0.22-0.78 HOLD  : text static and fully visible, background/parallax animates
+ *   c 0.78-1.00 EXIT  : text/art slides away, opacity 1->0
  */
 import { useEffect, useRef, useCallback, useMemo } from "react"
 import gsap from "gsap"
 import { TRACKS } from "../data/tracks"
 import { CharacterArt } from "../components/CharacterArt"
 import { sound } from "../utils/audio"
+import { TRACK_SCROLL_VH } from "../config"
 
 function ss(t: number): number {
   const c = Math.max(0, Math.min(1, t))
@@ -17,11 +23,11 @@ function ss(t: number): number {
 function norm(v: number, lo: number, hi: number): number {
   return Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
 }
-function enterFrac(c: number): number { return ss(norm(c, 0, 0.25)) }
-function exitFrac(c: number): number  { return ss(norm(c, 0.75, 1.0)) }
+function enterFrac(c: number): number { return ss(norm(c, 0, 0.22)) }
+function exitFrac(c: number): number  { return ss(norm(c, 0.78, 1.0)) }
 function textOp(c: number): number {
-  if (c < 0.25) return enterFrac(c)
-  if (c <= 0.75) return 1
+  if (c < 0.22) return enterFrac(c)
+  if (c <= 0.78) return 1
   return 1 - exitFrac(c)
 }
 function clampVal(v: number, lo: number, hi: number): number {
@@ -33,11 +39,12 @@ interface TracksProps {
   chapterProgress: number
   sectionProgress: number
   debugMode?: boolean
+  trackScrollVh?: number
 }
 
 const N = TRACKS.length
 
-export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMode = false }: TracksProps) {
+export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMode = false, trackScrollVh }: TracksProps) {
   const active = TRACKS[activeIndex]
   const c = chapterProgress
   const nextTrack = TRACKS[Math.min(N - 1, activeIndex + 1)]
@@ -76,8 +83,8 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
   }, [animFrame])
 
   const glowScale = (() => {
-    if (c < 0.25) return 0.6 + 0.4 * enterFrac(c)
-    if (c <= 0.75) return 1
+    if (c < 0.22) return 0.6 + 0.4 * enterFrac(c)
+    if (c <= 0.78) return 1
     return 1 - 0.1 * exitFrac(c)
   })()
 
@@ -100,24 +107,29 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
     if (!el) return
     const pinTop = el.getBoundingClientRect().top + window.scrollY
     const viewportH = window.innerHeight
-    const target = pinTop + index * (viewportH * 1.2)
+    const vh = trackScrollVh ?? TRACK_SCROLL_VH
+    const target = pinTop + (index + 0.5) * (vh / 100) * viewportH
     window.scrollTo({ top: target, behavior: "smooth" })
   }
 
-  const lineDelay = 0.035
+  const lineDelay = 0.02
   function lineOp(line: number): number {
-    return textOp(Math.max(0, c - line * lineDelay))
+    // During HOLD (0.22 - 0.78), all text stays fully visible (opacity: 1)
+    if (c >= 0.22 && c <= 0.78) return 1
+    if (c < 0.22) return textOp(Math.max(0, c - line * lineDelay))
+    return textOp(c)
   }
   function lineY(line: number): number {
-    if (c < 0.25) return (1 - ss(norm(c - line * lineDelay, 0, 0.25))) * 20
+    // During HOLD and EXIT, text is static (un-animated)
+    if (c < 0.22) return (1 - ss(norm(c - line * lineDelay, 0, 0.22))) * 20
     return 0
   }
 
   const nameSlideX = (() => {
     if (reducedMotion) return 0
     const dir = artOnRight ? -1 : 1
-    if (c < 0.25) return dir * 60 * (1 - enterFrac(c))
-    if (c <= 0.75) return dir * (c - 0.50) * 12
+    if (c < 0.22) return dir * 60 * (1 - enterFrac(c))
+    if (c <= 0.78) return dir * (c - 0.50) * 12
     return -dir * 30 * exitFrac(c)
   })()
 
@@ -187,15 +199,15 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
               transition: "transform 0.15s ease-out, background 0.7s",
             }}
           />
-          {c < 0.35 && !reducedMotion && (
+          {c < 0.22 && !reducedMotion && (
             <div
               className="absolute rounded-full pointer-events-none"
               style={{
                 width: "36vw",
                 height: "36vw",
                 border: "2px solid " + (active?.accentColor ?? "#E23636"),
-                opacity: Math.max(0, 1 - c / 0.35),
-                transform: "scale(" + (0.6 + (c / 0.35) * 1.4) + ")",
+                opacity: Math.max(0, 1 - c / 0.22),
+                transform: "scale(" + (0.6 + (c / 0.22) * 1.4) + ")",
                 transition: "none",
               }}
             />
@@ -209,7 +221,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
               WebkitTextStroke: "1px " + (active?.accentColor ?? "#E23636") + "25",
               letterSpacing: "0.12em",
               transform: "translateX(" + (reducedMotion ? 0 : nameSlideX) + "px)",
-              opacity: c < 0.05 ? c / 0.05 : c > 0.90 ? Math.max(0, 1 - (c - 0.90) / 0.10) : 1,
+              opacity: c < 0.05 ? c / 0.05 : c > 0.95 ? Math.max(0, 1 - (c - 0.95) / 0.05) : 1,
               transition: "color 0.7s",
               userSelect: "none",
             }}
@@ -346,7 +358,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
             </div>
             {debugMode && (
               <div className="mt-4 font-mono text-[9px] text-white/30 space-y-0.5">
-                <div>activeIndex: {activeIndex} | c: {c.toFixed(3)} | sp: {sectionProgress.toFixed(3)}</div>
+                <div>activeIndex: {activeIndex} | c: {c.toFixed(3)} | phase: {c < 0.22 ? 'ENTER' : c <= 0.78 ? 'HOLD' : 'EXIT'} | sp: {sectionProgress.toFixed(3)}</div>
                 <div>GLB: /models/{active?.id}.glb</div>
               </div>
             )}

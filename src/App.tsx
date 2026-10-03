@@ -1,27 +1,29 @@
-/**
- * src/App.tsx  (Phase 3g — single-source track state)
+ï»¿/**
+ * src/App.tsx  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * Architecture:
- *   [fixed canvas z-0]   — ONE persistent R3F canvas
- *   [z-9999 loading]     — Marvel loading screen (fades out)
- *   [z-10 scroll HTML]   — All sections scroll over the canvas
- *   [z-99990 cursor]     — Custom dot+ring cursor (desktop only)
- *   [z-9990 devHUD]      — Only visible with ?debug=1 in URL
+ *   [fixed canvas z-0]   - ONE persistent R3F canvas
+ *   [z-9999 loading]     - Marvel loading screen (fades out)
+ *   [z-10 scroll HTML]   - All sections scroll over the canvas
+ *   [z-99990 cursor]     - Custom dot+ring cursor (desktop only)
+ *   [z-9990 devHUD]      - Only visible with ?debug=1 in URL
  *
- * Phase 3g:
+ * Phase 3h:
  *   useTrackSection() provides activeIndex + chapterProgress from a GSAP
- *   ScrollTrigger pin on #tracks. This is the ONE source of truth.
- *   scrollProgress (global, 0-1) is still used for camera + canvas dim.
+ *   ScrollTrigger pin on #tracks with 280vh/chapter budget, 3% hysteresis,
+ *   and snap to HOLD zone centers.
+ *   Leva controls (?debug=1) expose TRACK_SCROLL_VH, wheelMultiplier and snap on/off.
  */
 
 import { useState, Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { Leva } from 'leva'
+import { Leva, useControls } from 'leva'
 import * as THREE from 'three'
 
 import { useLenis }           from './hooks/useLenis'
 import { useScrollProgress }  from './hooks/useScrollProgress'
 import { useTrackSection }    from './hooks/useTrackSection'
+import { TRACK_SCROLL_VH }    from './config'
 
 import { Scene }          from './three/Scene'
 import { Navbar }         from './components/Navbar'
@@ -43,14 +45,28 @@ import { Footer }        from './sections/Footer'
 export default function App() {
   const [loading, setLoading] = useState(true)
 
-  // Lenis smooth scroll — synced with GSAP ticker
-  useLenis()
+  // Leva debug controls (visible with ?debug=1)
+  const controls = useControls(
+    'Track Scroll & Physics',
+    {
+      trackScrollVh:   { value: TRACK_SCROLL_VH, min: 100, max: 600, step: 10, label: 'Scroll VH/track' },
+      wheelMultiplier: { value: 0.7,             min: 0.1, max: 2.0, step: 0.05, label: 'Wheel Multiplier' },
+      snapEnabled:     { value: true,            label: 'Snap to HOLD Center' },
+    },
+    { collapsed: false }
+  )
 
-  // Global scroll progress (0..1) — for camera path + canvas dim
+  // Lenis smooth scroll - synced with GSAP ticker; accepts dynamic wheelMultiplier from Leva
+  useLenis(controls.wheelMultiplier)
+
+  // Global scroll progress (0..1) - for camera path + canvas dim
   const scrollProgress = useScrollProgress()
 
   // SINGLE SOURCE OF TRUTH for track chapter state
-  const { sectionProgress, activeIndex, chapterProgress } = useTrackSection()
+  const { sectionProgress, activeIndex, chapterProgress } = useTrackSection({
+    trackScrollVh: controls.trackScrollVh,
+    snapEnabled:   controls.snapEnabled,
+  })
 
   // Show Leva tuning panel only with ?debug=1
   const debugMode = useMemo(() =>
@@ -80,7 +96,7 @@ export default function App() {
         sectionProgress={sectionProgress}
       />
 
-      {/* -- Fixed 3D Canvas — ONE persistent canvas for the entire site -- */}
+      {/* -- Fixed 3D Canvas - ONE persistent canvas for the entire site -- */}
       <div id="canvas-wrapper" aria-hidden="true" className={canvasDimmed ? 'canvas-dimmed' : ''}>
         <Canvas
           dpr={[1, 1.5]}
@@ -112,6 +128,7 @@ export default function App() {
           chapterProgress={chapterProgress}
           sectionProgress={sectionProgress}
           debugMode={debugMode}
+          trackScrollVh={controls.trackScrollVh}
         />
         <WhySponsor />
         <SponsorTiers />

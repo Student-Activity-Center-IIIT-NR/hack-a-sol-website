@@ -1,20 +1,17 @@
-/**
- * src/components/CharacterArt.tsx  (Phase 3g)
+ï»¿/**
+ * src/components/CharacterArt.tsx  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * HTML overlay for the character PNG art layer in each Tracks chapter.
  *
  * Scroll choreography (chapterProgress = c, 0..1):
- *   c 0.00-0.25  ENTER : clip-path wipe from side, slide in, opacity 0?1, scale 0.9?1
- *   c 0.25-0.75  HOLD  : slow float, depth parallax, mouse-tilt ±6°, rim glow,
+ *   c 0.00-0.22  ENTER : clip-path wipe from side, slide in, opacity 0->1, scale 0.9->1
+ *   c 0.22-0.78  HOLD  : slow float, depth parallax, mouse-tilt +/-6 deg, rim glow,
  *                        track sig effects loop, subtle parallax drift
- *   c 0.75-1.00  EXIT  : slides to opposite edge + fades, sparks burst
+ *   c 0.78-1.00  EXIT  : slides to opposite edge + fades, sparks burst
  *
- * The next chapter's ENTER overlaps ~10% early (c >= 0.90 drives next reveal)
- * — that is handled by App passing the correct chapterProgress once activeIndex
- * increments when sectionProgress crosses the chapter boundary.
- *
- * prefers-reduced-motion ? fades only.
- * Mobile ? simple fade, no tilt or parallax.
+ * The next chapter's ENTER overlap is at most 5%.
+ * prefers-reduced-motion -> fades only.
+ * Mobile -> simple fade, no tilt or parallax.
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
@@ -27,30 +24,30 @@ function ss(t: number): number {
   return c * c * (3 - 2 * c)
 }
 function norm(v: number, lo: number, hi: number): number {
-  return (v - lo) / (hi - lo)
+  return Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
 }
 
-// -- phase helpers (new spec: enter 0-0.25, hold 0.25-0.75, exit 0.75-1) --
-function enterFrac(c: number): number { return ss(norm(c, 0,    0.25)) }
-function exitFrac(c:  number): number { return ss(norm(c, 0.75, 1.0))  }
+// -- phase helpers: enter 0-0.22, hold 0.22-0.78, exit 0.78-1.0 ------------
+function enterFrac(c: number): number { return ss(norm(c, 0,    0.22)) }
+function exitFrac(c:  number): number { return ss(norm(c, 0.78, 1.0))  }
 
 function phaseOp(c: number): number {
   if (c < 0.05)  return c / 0.05
-  if (c <= 0.75) return 1
+  if (c <= 0.78) return 1
   return 1 - exitFrac(c)
 }
 
 function phaseSc(c: number): number {
-  if (c < 0.25) return 0.90 + 0.10 * enterFrac(c)
-  if (c <= 0.75) return 1.0
+  if (c < 0.22) return 0.90 + 0.10 * enterFrac(c)
+  if (c <= 0.78) return 1.0
   return 1.0 - 0.05 * exitFrac(c)
 }
 
 /** Slide from art side on enter, to opposite side on exit */
 function phaseTransX(c: number, artOnRight: boolean): number {
   const dir = artOnRight ? 1 : -1
-  if (c < 0.25)  return  dir * 18 * (1 - enterFrac(c))  // enter from art side
-  if (c <= 0.75) return  dir * (c - 0.50) * 10          // slow hold parallax
+  if (c < 0.22)  return  dir * 18 * (1 - enterFrac(c))  // enter from art side
+  if (c <= 0.78) return  dir * (c - 0.50) * 10          // slow hold parallax
   return -dir * 20 * exitFrac(c)                         // exit to opposite side
 }
 
@@ -130,7 +127,7 @@ function Sparks({ c, vis }: { c: string; vis: boolean }) {
   )
 }
 
-// -- Exit burst sparks (bigger, during c 0.75-1.0) -------------------------
+// -- Exit burst sparks (bigger, during c 0.78-1.0) -------------------------
 function ExitSparks({ c, active }: { c: string; active: boolean }) {
   const pts = [
     { x: 10, y: 40 }, { x: 20, y: 20 }, { x: 40, y: 10 },
@@ -216,7 +213,7 @@ export function CharacterArt({
       if (reducedMotion || isMobile) {
         gsap.set(el, { opacity: active ? phaseOp(c) : 0, clearProps: 'x,y,scale,rotateX,rotateY,clipPath' })
       } else {
-        const inHold  = c >= 0.25 && c <= 0.75
+        const inHold  = c >= 0.22 && c <= 0.78
         const floatY  = active && inHold ? Math.sin(performance.now() / 1900) * 8 : 0
         const drift   = inHold ? (c - 0.50) * 14 : 0
 
@@ -228,7 +225,7 @@ export function CharacterArt({
           y:          floatY,
           rotateX:    active && inHold ? tiltRef.current.rx : 0,
           rotateY:    active && inHold ? tiltRef.current.ry : 0,
-          clipPath:   c < 0.25 ? phaseClip(c, artOnRight) : 'none',
+          clipPath:   c < 0.22 ? phaseClip(c, artOnRight) : 'none',
           transformOrigin: '50% 100%',
         })
       }
@@ -248,8 +245,8 @@ export function CharacterArt({
   }, [imgError, track.id, track.imagePath])
 
   const src    = track.imagePath ?? `/characters/${track.id}.png`
-  const isHold = active && c >= 0.25 && c <= 0.75
-  const isExit = active && c > 0.75
+  const isHold = active && c >= 0.22 && c <= 0.78
+  const isExit = active && c > 0.78
   const ac     = track.accentColor
 
   const SigEffect = () => {
@@ -338,7 +335,7 @@ export function CharacterArt({
           className="absolute top-3 left-3 font-mono text-[9px] px-2 py-0.5 rounded border backdrop-blur-sm"
           style={{ zIndex: 50, borderColor: ac + '55', color: ac, background: 'rgba(5,5,8,0.85)' }}
         >
-          {imgError ? '? ' : loaded ? '? ' : '… '}
+          {imgError ? '? ' : loaded ? '? ' : '. '}
           {src}{imgError ? ' (missing)' : ''} | c={c.toFixed(3)}
         </div>
       )}

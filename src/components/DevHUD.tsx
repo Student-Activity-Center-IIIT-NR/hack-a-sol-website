@@ -1,18 +1,18 @@
-/**
- * src/components/DevHUD.tsx  (Phase 3g)
+﻿/**
+ * src/components/DevHUD.tsx  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * Developer-only HUD: visible ONLY when URL contains ?debug=1.
- * Shows scroll progress, section state, track index, chapter progress,
- * and expected GLB filename � all from the single-source track state.
+ * Shows scroll progress, section state, track index, chapter progress c,
+ * the phase (ENTER/HOLD/EXIT), and expected GLB filename.
  */
 
 import { TRACKS } from '../data/tracks'
 
 interface DevHUDProps {
-  scrollProgress:  number
+  scrollProgress:   number
   activeTrackIndex: number
-  chapterProgress: number
-  sectionProgress: number
+  chapterProgress:  number
+  sectionProgress:  number
 }
 
 function getSectionLabel(p: number): string {
@@ -20,7 +20,7 @@ function getSectionLabel(p: number): string {
   if (p < 0.15) return 'About'
   if (p < 0.70) {
     const idx = Math.min(TRACKS.length - 1, Math.max(0, Math.floor(((p - 0.15) / 0.55) * TRACKS.length)))
-    return `Tracks ? ${TRACKS[idx]?.name ?? '?'}`
+    return `Tracks — ${TRACKS[idx]?.name ?? '?'}`
   }
   if (p < 0.76) return 'Why Sponsor Us'
   if (p < 0.82) return 'Sponsor Tiers'
@@ -41,18 +41,21 @@ export function DevHUD({ scrollProgress, activeTrackIndex, chapterProgress, sect
   const track   = TRACKS[activeTrackIndex]
   const glbFile = `/models/${track?.id ?? '?'}.glb`
 
-  // Phase label
+  // Dwell phase: ENTER 0-0.22, HOLD 0.22-0.78, EXIT 0.78-1.0
   const phase =
-    chapterProgress < 0.25 ? 'ENTER' :
-    chapterProgress < 0.75 ? 'HOLD'  : 'EXIT'
+    chapterProgress < 0.22 ? 'ENTER' :
+    chapterProgress <= 0.78 ? 'HOLD'  : 'EXIT'
 
   return (
     <div
       id="dev-hud"
-      className="fixed top-20 right-4 z-[9990] font-mono text-xs bg-black/80 border border-white/10 rounded p-3 min-w-[260px] pointer-events-none"
-      style={{ backdropFilter: 'blur(8px)' }}
+      className="fixed top-20 right-4 z-[9990] font-mono text-xs bg-black/85 border border-white/10 rounded p-3 min-w-[280px] pointer-events-none shadow-2xl"
+      style={{ backdropFilter: 'blur(10px)' }}
     >
-      <div className="text-yellow-400 font-bold mb-2 text-[10px] tracking-widest">DEV HUD � ?debug=1</div>
+      <div className="text-yellow-400 font-bold mb-2 text-[10px] tracking-widest flex items-center justify-between">
+        <span>DEV HUD — ?debug=1</span>
+        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-white/70">LIVE</span>
+      </div>
       <div className="flex flex-col gap-1 text-white/70">
 
         <div className="flex justify-between gap-4">
@@ -78,16 +81,20 @@ export function DevHUD({ scrollProgress, activeTrackIndex, chapterProgress, sect
         </div>
 
         <div className="flex justify-between gap-4">
-          <span className="text-white/40">chapterProgress</span>
-          <span className="text-purple-300">{chapterProgress.toFixed(4)}</span>
+          <span className="text-white/40">c (chapterProgress)</span>
+          <span className="text-purple-300 font-bold">{chapterProgress.toFixed(4)}</span>
         </div>
 
-        <div className="flex justify-between gap-4">
+        <div className="flex justify-between gap-4 items-center">
           <span className="text-white/40">phase</span>
           <span className={
-            phase === 'ENTER' ? 'text-green-400' :
-            phase === 'HOLD'  ? 'text-white/80' : 'text-orange-400'
-          }>{phase}</span>
+            'px-2 py-0.5 rounded text-[10px] font-bold ' +
+            (phase === 'ENTER' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+             phase === 'HOLD'  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+                                 'bg-orange-500/20 text-orange-400 border border-orange-500/30')
+          }>
+            {phase} {phase === 'HOLD' ? '(0.22–0.78)' : phase === 'ENTER' ? '(0–0.22)' : '(0.78–1)'}
+          </span>
         </div>
 
         <div className="border-t border-white/10 my-1" />

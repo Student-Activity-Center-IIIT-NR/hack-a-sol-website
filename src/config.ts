@@ -8,6 +8,9 @@
 
 import { TRACKS } from './data/tracks'
 
+/** Scroll length per track chapter in vh units */
+export const TRACK_SCROLL_VH = 280
+
 export const EVENT = {
   name: 'Hack-A-Sol 5.0',
   edition: '5.0',

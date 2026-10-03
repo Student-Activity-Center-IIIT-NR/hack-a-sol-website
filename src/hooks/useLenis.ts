@@ -1,6 +1,6 @@
 /**
  * src/hooks/useLenis.ts
- * ─────────────────────────────────────────────────────────────────────────────
+ * -----------------------------------------------------------------------------
  * Initialises Lenis smooth scroll and syncs its RAF loop with GSAP ticker.
  * Returns the Lenis instance so consumers can call lenis.scrollTo(), etc.
  *
@@ -14,7 +14,7 @@ import ScrollTrigger from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-export function useLenis() {
+export function useLenis(wheelMultiplier = 0.7) {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
@@ -23,10 +23,10 @@ export function useLenis() {
     if (prefersReduced) return
 
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.08,
+      wheelMultiplier,
+      touchMultiplier: 1.2,
       smoothWheel: true,
-      wheelMultiplier: 1.0,
     })
 
     lenisRef.current = lenis
@@ -47,6 +47,13 @@ export function useLenis() {
       gsap.ticker.remove((time) => lenis.raf(time * 1000))
     }
   }, [])
+
+  // Live update wheelMultiplier if Leva changes it
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.options.wheelMultiplier = wheelMultiplier
+    }
+  }, [wheelMultiplier])
 
   return lenisRef
 }
