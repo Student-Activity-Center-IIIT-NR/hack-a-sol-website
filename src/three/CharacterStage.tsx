@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/three/CharacterStage.tsx  (Phase 3g)
  * -----------------------------------------------------------------------------
  * Renders the 3D character in the empty half of the track chapter viewport.
@@ -31,11 +31,6 @@ useGLTF.setDecoderPath('/draco/')
 
 // -- Model manifest -------------------------------------------------------
 const available: string[] = (MODELS_MANIFEST as { available: string[] }).available ?? []
-
-// Preload all available models upfront
-for (const id of available) {
-  useGLTF.preload(`/models/${id}.glb`)
-}
 
 // -- Constants ------------------------------------------------------------
 const TARGET_HEIGHT = 3.8
@@ -320,8 +315,16 @@ export interface CharacterStageProps {
 }
 
 export function CharacterStage({ track, trackIndex, chapterProgress, active }: CharacterStageProps) {
-  const hasGLB   = available.includes(track.id)
   const hasImage = Boolean(track.imagePath)
+  // Fall back to "model" visual if a track has no image; otherwise respect track.visual (default "image")
+  const effectiveVisual = !hasImage ? 'model' : (track.visual ?? 'image')
+
+  // When visual === "image", do not mount or load any GLB or procedural prop (no useGLTF, no preload)
+  if (effectiveVisual === 'image') {
+    return null
+  }
+
+  const hasGLB = available.includes(track.id)
 
   useEffect(() => {
     if (!hasGLB && !hasImage) {

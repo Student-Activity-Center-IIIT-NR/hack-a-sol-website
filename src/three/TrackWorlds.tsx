@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/three/TrackWorlds.tsx  (Phase 3h — Marvel scroll environments)
  * ─────────────────────────────────────────────────────────────────────────────
  * Places all 5 track world environments + character stages in 3D space.
@@ -11,7 +11,6 @@
  */
 
 import { Suspense } from "react"
-import { useGLTF } from "@react-three/drei"
 import { TRACKS } from "../data/tracks"
 import { TRACK_WORLD_POSITIONS } from "../hooks/useScrollCamera"
 import { chapterLocalT } from "../hooks/useTrackSection"
@@ -30,9 +29,6 @@ const ENVIRONMENTS = [
   StrangeWorld,
 ] as const
 
-import MODELS_MANIFEST from "../data/models.json"
-const AVAILABLE_MODELS: string[] = (MODELS_MANIFEST as { available: string[] }).available ?? []
-
 interface TrackWorldsProps {
   activeTrackIndex: number
   /** Section-level progress 0..1 across all N chapters */
@@ -42,14 +38,6 @@ interface TrackWorldsProps {
 }
 
 export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }: TrackWorldsProps) {
-  const N = TRACKS.length
-
-  // Preload next and previous GLBs only
-  const prevId = TRACKS[Math.max(0, activeTrackIndex - 1)]?.id
-  const nextId = TRACKS[Math.min(N - 1, activeTrackIndex + 1)]?.id
-  if (prevId && AVAILABLE_MODELS.includes(prevId)) useGLTF.preload(`/models/${prevId}.glb`)
-  if (nextId && AVAILABLE_MODELS.includes(nextId)) useGLTF.preload(`/models/${nextId}.glb`)
-
   return (
     <>
       {TRACKS.map((track, i) => {
@@ -57,6 +45,11 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }:
         const cp         = chapterLocalT(sectionProgress, i)
         const active     = i === activeTrackIndex
         const Environment = ENVIRONMENTS[i]
+
+        // Fall back to "model" visual if a track has no image; otherwise respect track.visual (default "image")
+        const hasImage        = Boolean(track.imagePath)
+        const effectiveVisual = !hasImage ? 'model' : (track.visual ?? 'image')
+        const showModel       = effectiveVisual !== 'image'
 
         // Only render within activeIndex +/- 1 window
         const inWindow = Math.abs(i - activeTrackIndex) <= 1
@@ -74,15 +67,17 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }:
                   />
                 </group>
 
-                {/* Character stage (GLB or image-plane) — in front of environment */}
-                <Suspense fallback={null}>
-                  <CharacterStage
-                    track={track}
-                    trackIndex={i}
-                    chapterProgress={cp}
-                    active={active}
-                  />
-                </Suspense>
+                {/* Character stage (GLB or image-plane) — mounted only when visual is "model" or no image */}
+                {showModel && (
+                  <Suspense fallback={null}>
+                    <CharacterStage
+                      track={track}
+                      trackIndex={i}
+                      chapterProgress={cp}
+                      active={active}
+                    />
+                  </Suspense>
+                )}
               </>
             )}
           </group>

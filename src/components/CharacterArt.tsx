@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/components/CharacterArt.tsx  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * HTML overlay for the character PNG art layer in each Tracks chapter.
@@ -170,6 +170,10 @@ export function CharacterArt({
   active,
   debugMode = false,
 }: CharacterArtProps) {
+  const hasImage = Boolean(track.imagePath)
+  const effectiveVisual = !hasImage ? 'model' : (track.visual ?? 'image')
+  if (effectiveVisual === 'model') return null
+
   const c = chapterProgress
 
   const wrapRef = useRef<HTMLDivElement>(null)

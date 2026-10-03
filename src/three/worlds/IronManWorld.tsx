@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/three/worlds/IronManWorld.tsx  (Phase 3h — Marvel environments)
  * ─────────────────────────────────────────────────────────────────────────────
  * aiml — "Stark Workshop Hologram"
@@ -58,13 +58,9 @@ const RINGS = [
 
 export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronManWorldProps) {
   const groupRef    = useRef<THREE.Group>(null)
-  const coreRef     = useRef<THREE.Mesh>(null)
   const ringRefs    = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
   const particleRef = useRef<THREE.Points>(null)
-  const reticle1    = useRef<THREE.Mesh>(null)
-  const reticle2    = useRef<THREE.Mesh>(null)
   const timeRef     = useRef(0)
-  const coreMat     = useRef<THREE.MeshStandardMaterial>(null)
 
   const particlePositions = useMemo(() => makeParticles(), [])
 
@@ -96,29 +92,9 @@ export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronM
       r.current.rotation.z += delta * def.speed * spinMul
     })
 
-    if (coreRef.current && coreMat.current) {
-      coreRef.current.scale.setScalar(a)
-      const pulse = 0.18 + Math.sin(timeRef.current * 2.5) * 0.07 + velBoost * 0.12
-      coreMat.current.emissiveIntensity = pulse * a
-      coreRef.current.rotation.y += delta * 0.5
-    }
-
     if (particleRef.current) {
       particleRef.current.rotation.y += delta * 0.18 * spinMul
       particleRef.current.scale.setScalar(a * 0.6)  // behind char = scale down
-    }
-
-    // Reticle lock-on (appear in HOLD phase)
-    const reticleA = c >= 0.22 && c <= 0.78 ? ss(norm(c, 0.22, 0.35)) : (c > 0.78 ? 1 - exitT(c) : 0)
-    if (reticle1.current) {
-      reticle1.current.scale.setScalar(reticleA)
-      reticle1.current.rotation.z += delta * 0.3
-    }
-    if (reticle2.current) {
-      reticle2.current.scale.setScalar(reticleA * 0.8)
-      reticle2.current.rotation.z -= delta * 0.5
-      reticle2.current.position.x = Math.sin(timeRef.current * 0.4) * 0.8
-      reticle2.current.position.y = Math.cos(timeRef.current * 0.35) * 0.5
     }
   })
 
@@ -146,21 +122,6 @@ export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronM
         ))}
       </group>
 
-      {/* Arc-reactor core */}
-      <mesh ref={coreRef} position={[0, 0, -0.5]}>
-        <icosahedronGeometry args={[0.35, 1]} />
-        <meshStandardMaterial
-          ref={coreMat}
-          color={BLUE_DIM}
-          emissive={BLUE}
-          emissiveIntensity={0.2}
-          metalness={0.9}
-          roughness={0.1}
-          transparent
-          opacity={0.6 * a}
-        />
-      </mesh>
-
       {/* HUD wireframe plane — blueprint panels */}
       <mesh position={[-2.5, 0.6, -1.5]} rotation={[0, 0.4, 0]}>
         <planeGeometry args={[1.8, 1.2, 6, 4]} />
@@ -179,18 +140,6 @@ export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronM
           transparent
           opacity={0.15 * a}
         />
-      </mesh>
-
-      {/* Targeting reticle 1 */}
-      <mesh ref={reticle1} position={[1.6, 0.8, 0]}>
-        <torusGeometry args={[0.35, 0.02, 4, 16]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={0.5} />
-      </mesh>
-
-      {/* Targeting reticle 2 (roving) */}
-      <mesh ref={reticle2} position={[-1.2, -0.5, 0]}>
-        <torusGeometry args={[0.22, 0.015, 4, 12]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={0.4} />
       </mesh>
 
       {/* Data particles */}

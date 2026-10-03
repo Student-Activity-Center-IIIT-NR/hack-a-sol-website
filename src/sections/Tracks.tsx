@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/sections/Tracks.tsx  (Phase 3h - slower scroll, dwell & snap)
  * Single source of truth for track chapter state comes from App.tsx (useTrackSection).
  * Pin is managed by GSAP ScrollTrigger in useTrackSection hook.
@@ -228,7 +228,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
           >
             {active?.character.toUpperCase()}
           </p>
-          {active && (active.visual ?? "both") !== "model" && (
+          {active && (!active.imagePath ? false : (active.visual ?? "image") !== "model") && (
             <CharacterArt
               track={active}
               trackIndex={activeIndex}

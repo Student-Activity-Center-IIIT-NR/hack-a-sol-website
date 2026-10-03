@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/three/worlds/CapWorld.tsx  (Phase 3h — Marvel environments)
  * ─────────────────────────────────────────────────────────────────────────────
  * cybersec — "SHIELD Ops Room"
@@ -75,7 +75,6 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
   const radarMatRef = useRef<THREE.ShaderMaterial>(null)
   const shockRef    = useRef<THREE.Mesh>(null)
   const shockMatRef = useRef<THREE.MeshBasicMaterial>(null)
-  const starRef     = useRef<THREE.Mesh>(null)
   const timeRef     = useRef(0)
 
   const nodes = useMemo(() => makeNodes(), [])
@@ -115,13 +114,6 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
       const cycle = (timeRef.current * 0.4) % 1
       shockRef.current.scale.setScalar(1 + cycle * 2.5)
       shockMatRef.current.opacity = Math.max(0, (1 - cycle) * 0.35 * a)
-    }
-
-    // Five-point star pulse
-    if (starRef.current) {
-      const pulse = 0.9 + Math.sin(timeRef.current * 2.5 + velBoost * 3) * 0.1
-      starRef.current.scale.setScalar(a * pulse)
-      starRef.current.rotation.z += delta * 0.2
     }
 
     // Node pings
@@ -175,12 +167,6 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
           opacity={0}
           wireframe
         />
-      </mesh>
-
-      {/* Generic five-point star (built from torus with 5 segments) */}
-      <mesh ref={starRef} position={[0, 0, -0.4]}>
-        <torusGeometry args={[0.6, 0.08, 4, 5]} />
-        <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={0.3} transparent opacity={0.6 * a} />
       </mesh>
 
       {/* Scan line plane */}

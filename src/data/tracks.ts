@@ -11,9 +11,9 @@
  *
  * imagePath: transparent PNG rendered in the HTML layer (default /characters/<id>.png)
  * visual:    controls which layers render:
- *   "both"  — character image + 3D model prop (default)
- *   "image" — image only (no 3D in that chapter)
- *   "model" — 3D only (image layer skipped)
+ *   "image" — image only (default, character image with background environment)
+ *   "both"  — character image + 3D model prop
+ *   "model" — 3D only (image layer skipped, fallback if image missing)
  *
  * Tune live with ?debug=1 — Leva panel exposes yawOffset, scale, and visual mode.
  */
@@ -41,9 +41,9 @@ export interface ModelTransform {
 
 /**
  * Which visual layers render for this track chapter.
- * "both"  — character art image + corner 3D prop (default)
- * "image" — HTML image only, no 3D in the empty half
- * "model" — 3D only, skip character art image layer
+ * "image" — HTML image only, no 3D character in canvas (default)
+ * "both"  — character art image + 3D model
+ * "model" — 3D only, skip character art image layer (fallback if image missing)
  */
 export type TrackVisual = 'both' | 'image' | 'model'
 
@@ -76,7 +76,7 @@ export interface Track {
   icon: string
   /**
    * Controls which visual layers render in the track chapter.
-   * Defaults to "both".
+   * Defaults to "image".
    */
   visual?: TrackVisual
   /**
@@ -99,7 +99,7 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/aiml.png',
     primitive: 'icosahedron',
     icon: '🤖',
-    visual: 'both',
+    visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
@@ -114,7 +114,7 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/cybersec.png',
     primitive: 'torus',
     icon: '🛡️',
-    visual: 'both',
+    visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
@@ -129,7 +129,7 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/web3.png',
     primitive: 'octahedron',
     icon: '🌿',
-    visual: 'both',
+    visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
@@ -144,7 +144,7 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/robonyx.png',
     primitive: 'dodecahedron',
     icon: '⚙️',
-    visual: 'both',
+    visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
@@ -159,7 +159,7 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/coderun.png',
     primitive: 'torusKnot',
     icon: '✨',
-    visual: 'both',
+    visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
 ]
