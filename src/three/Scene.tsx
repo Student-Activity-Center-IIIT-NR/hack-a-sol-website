@@ -24,8 +24,9 @@ import { TrackWorlds } from './TrackWorlds'
 import { PostFX } from './PostFX'
 
 interface SceneProps {
-  scrollProgress:  number
+  scrollProgress:   number
   activeTrackIndex: number
+  sectionProgress:  number
 }
 
 // Pre-allocate to avoid GC
@@ -39,7 +40,7 @@ const _mouseDelta = new THREE.Vector2()
 const ACCENT_COLORS = TRACKS.map(t => new THREE.Color(t.accentColor).multiplyScalar(0.08))
 const NEUTRAL       = new THREE.Color('#0A0A0F')
 
-export function Scene({ scrollProgress, activeTrackIndex }: SceneProps) {
+export function Scene({ scrollProgress, activeTrackIndex, sectionProgress }: SceneProps) {
   const { camera, scene, gl } = useThree()
   const { getCameraTransform } = useScrollCamera()
 
@@ -110,7 +111,7 @@ export function Scene({ scrollProgress, activeTrackIndex }: SceneProps) {
       {/* All 5 track worlds — positioned in 3D space */}
       <TrackWorlds
         activeTrackIndex={activeTrackIndex}
-        scrollProgress={scrollProgress}
+        sectionProgress={sectionProgress}
       />
 
       {/* Post-processing (desktop/high-end only) */}

@@ -1,12 +1,17 @@
 /**
- * src/App.tsx  (Phase 3 — character stage, canvas dimming, debug-only HUD)
- * ─────────────────────────────────────────────────────────────────────────────
+ * src/App.tsx  (Phase 3g � single-source track state)
+ * -----------------------------------------------------------------------------
  * Architecture:
- *   [fixed canvas z-0]   — ONE persistent R3F canvas, dims behind non-track sections
- *   [z-9999 loading]     — Marvel loading screen (fades out)
- *   [z-10 scroll HTML]   — All sections scroll over the canvas
- *   [z-99990 cursor]     — Custom dot+ring cursor (desktop only)
- *   [z-9990 devHUD]      — Only visible with ?debug=1 in URL
+ *   [fixed canvas z-0]   � ONE persistent R3F canvas
+ *   [z-9999 loading]     � Marvel loading screen (fades out)
+ *   [z-10 scroll HTML]   � All sections scroll over the canvas
+ *   [z-99990 cursor]     � Custom dot+ring cursor (desktop only)
+ *   [z-9990 devHUD]      � Only visible with ?debug=1 in URL
+ *
+ * Phase 3g:
+ *   useTrackSection() provides activeIndex + chapterProgress from a GSAP
+ *   ScrollTrigger pin on #tracks. This is the ONE source of truth.
+ *   scrollProgress (global, 0-1) is still used for camera + canvas dim.
  */
 
 import { useState, Suspense, useMemo } from 'react'
@@ -14,9 +19,9 @@ import { Canvas } from '@react-three/fiber'
 import { Leva } from 'leva'
 import * as THREE from 'three'
 
-import { useLenis }                    from './hooks/useLenis'
-import { useScrollProgress, useActiveTrackIndex } from './hooks/useScrollProgress'
-import { TRACKS }                      from './data/tracks'
+import { useLenis }           from './hooks/useLenis'
+import { useScrollProgress }  from './hooks/useScrollProgress'
+import { useTrackSection }    from './hooks/useTrackSection'
 
 import { Scene }          from './three/Scene'
 import { Navbar }         from './components/Navbar'
@@ -38,12 +43,14 @@ import { Footer }        from './sections/Footer'
 export default function App() {
   const [loading, setLoading] = useState(true)
 
-  // Lenis smooth scroll — synced with GSAP ticker
+  // Lenis smooth scroll � synced with GSAP ticker
   useLenis()
 
-  // Global scroll state
-  const scrollProgress    = useScrollProgress()
-  const activeTrackIndex  = useActiveTrackIndex(TRACKS.length)
+  // Global scroll progress (0..1) � for camera path + canvas dim
+  const scrollProgress = useScrollProgress()
+
+  // SINGLE SOURCE OF TRUTH for track chapter state
+  const { sectionProgress, activeIndex, chapterProgress } = useTrackSection()
 
   // Show Leva tuning panel only with ?debug=1
   const debugMode = useMemo(() =>
@@ -52,24 +59,28 @@ export default function App() {
   , [])
 
   // Dim the 3D canvas behind non-track sections (sponsor / faq / footer)
-  // Track zone: 0.05 – 0.72. Hero/About are fine at full opacity.
+  // Track zone: approximately 0.05 - 0.72 global scroll.
   const canvasDimmed = scrollProgress > 0.72
 
   return (
     <>
-      {/* ── Leva debug panel (only with ?debug=1) ─────────────────────── */}
+      {/* -- Leva debug panel (only with ?debug=1) ----------------------- */}
       <Leva hidden={!debugMode} collapsed />
 
-      {/* ── Loading Screen ─────────────────────────────────────────────── */}
+      {/* -- Loading Screen ----------------------------------------------- */}
       {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 
-      {/* ── Custom Cursor (desktop only) ────────────────────────────────── */}
+      {/* -- Custom Cursor (desktop only) ---------------------------------- */}
       <CustomCursor />
 
-      {/* ── Cinematic Multiverse HUD (desktop/tablet) ─────────────────────── */}
-      <FloatingHUD scrollProgress={scrollProgress} activeTrackIndex={activeTrackIndex} />
+      {/* -- Cinematic Multiverse HUD (desktop/tablet) ----------------------- */}
+      <FloatingHUD
+        scrollProgress={scrollProgress}
+        activeTrackIndex={activeIndex}
+        sectionProgress={sectionProgress}
+      />
 
-      {/* ── Fixed 3D Canvas — ONE persistent canvas for the entire site ── */}
+      {/* -- Fixed 3D Canvas � ONE persistent canvas for the entire site -- */}
       <div id="canvas-wrapper" aria-hidden="true" className={canvasDimmed ? 'canvas-dimmed' : ''}>
         <Canvas
           dpr={[1, 1.5]}
@@ -84,18 +95,24 @@ export default function App() {
           <Suspense fallback={null}>
             <Scene
               scrollProgress={scrollProgress}
-              activeTrackIndex={activeTrackIndex}
+              activeTrackIndex={activeIndex}
+              sectionProgress={sectionProgress}
             />
           </Suspense>
         </Canvas>
       </div>
 
-      {/* ── Scrollable HTML content ─────────────────────────────────────── */}
+      {/* -- Scrollable HTML content --------------------------------------- */}
       <div id="scroll-content">
         <Navbar />
         <Hero />
         <About />
-        <Tracks activeTrackIndex={activeTrackIndex} scrollProgress={scrollProgress} debugMode={debugMode} />
+        <Tracks
+          activeIndex={activeIndex}
+          chapterProgress={chapterProgress}
+          sectionProgress={sectionProgress}
+          debugMode={debugMode}
+        />
         <WhySponsor />
         <SponsorTiers />
         <Timeline />
@@ -104,8 +121,13 @@ export default function App() {
         <Footer />
       </div>
 
-      {/* ── Dev HUD ─────────────────────────────────────────────────────── */}
-      <DevHUD scrollProgress={scrollProgress} activeTrackIndex={activeTrackIndex} />
+      {/* -- Dev HUD ------------------------------------------------------- */}
+      <DevHUD
+        scrollProgress={scrollProgress}
+        activeTrackIndex={activeIndex}
+        chapterProgress={chapterProgress}
+        sectionProgress={sectionProgress}
+      />
     </>
   )
 }

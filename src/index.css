@@ -174,3 +174,25 @@ footer#footer {
   20%  { opacity: 1; }
   100% { opacity: 0;   transform: translateY(-40px) scale(0.4); }
 }
+
+/* ── Scroll velocity: heading skew + rim-glow flicker ───────────────────── */
+@keyframes char-skew {
+  0%,100% { skew: 0deg; }
+  50%     { skew: 4deg; }
+}
+
+@keyframes char-rimflicker {
+  0%, 100% { opacity: 1; }
+  10%      { opacity: 0.4; }
+  20%      { opacity: 0.9; }
+  30%      { opacity: 0.5; }
+  40%      { opacity: 1; }
+}
+
+/* ── Fade-in utility for modals ─────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease; }
+

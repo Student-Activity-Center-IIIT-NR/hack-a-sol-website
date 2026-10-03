@@ -14,14 +14,15 @@ import { TRACKS } from '../data/tracks'
 interface FloatingHUDProps {
   scrollProgress: number
   activeTrackIndex: number
+  sectionProgress: number
 }
 
-export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDProps) {
+export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress }: FloatingHUDProps) {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
   const activeTrack = TRACKS[activeTrackIndex]
 
-  // Hide top-left HUD while inside the Tracks section to avoid covering headings
-  const inTracksSection = scrollProgress >= 0.15 && scrollProgress <= 0.70
+  // In-tracks: sectionProgress > 0 means ST is active (we're pinned)
+  const inTracksSection = sectionProgress > 0 && sectionProgress < 1
 
 
   useEffect(() => {
