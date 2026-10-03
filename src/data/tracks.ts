@@ -1,16 +1,21 @@
 /**
- * src/data/tracks.ts  (Phase 3b — modelTransform overrides added)
+ * src/data/tracks.ts  (Phase 3d — character art + visual mode)
  * ─────────────────────────────────────────────────────────────────────────────
  * Single source of truth for all hackathon tracks.
  * Components MUST consume this array — never hardcode track data in JSX.
  *
  * modelTransform: optional per-model overrides applied AFTER auto-fit.
- *   scale    — multiplier on top of auto-fit scale (1 = keep auto-fit result)
- *   position — [x,y,z] offset in scene units after centering
- *   rotation — [x,y,z] Euler angles in radians; default pose is [0, π/8, 0]
+ *   scale      — multiplier on top of auto-fit scale (1 = keep auto-fit result)
+ *   position   — [x,y,z] offset in scene units after centering
+ *   yawOffset  — radians added so model's "front" faces camera at chapter p=0.5
  *
- * Tune these live in-browser with ?debug=1 — the Leva panel shows a per-track
- * tuning UI with a "Copy modelTransform" button that prints to the console.
+ * imagePath: transparent PNG rendered in the HTML layer (default /characters/<id>.png)
+ * visual:    controls which layers render:
+ *   "both"  — character image + 3D model prop (default)
+ *   "image" — image only (no 3D in that chapter)
+ *   "model" — 3D only (image layer skipped)
+ *
+ * Tune live with ?debug=1 — Leva panel exposes yawOffset, scale, and visual mode.
  */
 
 export type TrackPrimitiveType =
@@ -27,11 +32,20 @@ export interface ModelTransform {
   /** World-space position offset [x, y, z] in scene units (default [0, 0, 0]). */
   position?: [number, number, number]
   /**
-   * Euler rotation [x, y, z] in radians for the resting pose.
-   * Default: [0, π/8, 0] — slight 3/4 turn toward camera.
+   * Y-axis rotation offset in radians so the model's "front" faces the camera
+   * when chapter scroll progress p = 0.5.
+   * Default: 0 (model's +Z is its front; camera approaches from +Z).
    */
-  rotation?: [number, number, number]
+  yawOffset?: number
 }
+
+/**
+ * Which visual layers render for this track chapter.
+ * "both"  — character art image + corner 3D prop (default)
+ * "image" — HTML image only, no 3D in the empty half
+ * "model" — 3D only, skip character art image layer
+ */
+export type TrackVisual = 'both' | 'image' | 'model'
 
 export interface Track {
   id: string
@@ -51,14 +65,20 @@ export interface Track {
    */
   modelPath: string
   /**
-   * Optional: path to a transparent PNG/WebP image (relative to /public).
-   * Used by CharacterStage as a fallback when no GLB is available.
+   * Path to the transparent PNG/WebP character art (relative to /public).
+   * Defaults to /characters/<id>.png when not set.
+   * CharacterArt logs a console warning if the file cannot be loaded.
    */
   imagePath?: string
   /** Three.js placeholder primitive to render before GLB is available */
   primitive: TrackPrimitiveType
   /** Short icon emoji for badges */
   icon: string
+  /**
+   * Controls which visual layers render in the track chapter.
+   * Defaults to "both".
+   */
+  visual?: TrackVisual
   /**
    * Optional per-model transform overrides. Tune live with ?debug=1
    * then copy the printed JSON here.
@@ -74,10 +94,13 @@ export const TRACKS: Track[] = [
     tagline: 'Build the Arc Reactor of Intelligence',
     description:
       'Harness machine learning, computer vision, and generative AI to solve real-world problems. Think like Tony Stark — iterate fast, build smarter.',
-    accentColor: '#60A5FA',   // blue-400
+    accentColor: '#60A5FA',
     modelPath: '/models/aiml.glb',
+    imagePath: '/characters/aiml.png',
     primitive: 'icosahedron',
     icon: '🤖',
+    visual: 'both',
+    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
     id: 'cybersec',
@@ -86,10 +109,13 @@ export const TRACKS: Track[] = [
     tagline: 'Shield the Digital Frontier',
     description:
       'From reverse engineering to ethical hacking and secure system design — defend the digital frontier with the resolve of a super-soldier.',
-    accentColor: '#EF4444',   // red-500
+    accentColor: '#EF4444',
     modelPath: '/models/cybersec.glb',
+    imagePath: '/characters/cybersec.png',
     primitive: 'torus',
     icon: '🛡️',
+    visual: 'both',
+    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
     id: 'web3',
@@ -98,10 +124,13 @@ export const TRACKS: Track[] = [
     tagline: 'Vibranium for the Planet',
     description:
       'Build decentralised applications, green-tech solutions, and blockchain-powered systems. Wakanda showed us — technology and nature can coexist.',
-    accentColor: '#A855F7',   // purple-500
+    accentColor: '#A855F7',
     modelPath: '/models/web3.glb',
+    imagePath: '/characters/web3.png',
     primitive: 'octahedron',
     icon: '🌿',
+    visual: 'both',
+    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
     id: 'robonyx',
@@ -110,10 +139,13 @@ export const TRACKS: Track[] = [
     tagline: 'Forge the Autonomous Machines of Tomorrow',
     description:
       'The ultimate buildathon track — design, prototype, and program autonomous robotics, drones, and embedded hardware platforms. Forge what machines can become.',
-    accentColor: '#F87171',   // red wireframe
+    accentColor: '#F87171',
     modelPath: '/models/robonyx.glb',
+    imagePath: '/characters/robonyx.png',
     primitive: 'dodecahedron',
     icon: '⚙️',
+    visual: 'both',
+    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
   {
     id: 'coderun',
@@ -122,9 +154,12 @@ export const TRACKS: Track[] = [
     tagline: 'See Every Possible Solution',
     description:
       'A high-octane DSA and competitive programming contest. Bend time, peer through infinite algorithmic timelines, and engineer the optimal solution.',
-    accentColor: '#F59E0B',   // amber-500 / gold
+    accentColor: '#F59E0B',
     modelPath: '/models/coderun.glb',
+    imagePath: '/characters/coderun.png',
     primitive: 'torusKnot',
     icon: '✨',
+    visual: 'both',
+    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },
 ]

@@ -95,7 +95,7 @@ export default function App() {
         <Navbar />
         <Hero />
         <About />
-        <Tracks activeTrackIndex={activeTrackIndex} />
+        <Tracks activeTrackIndex={activeTrackIndex} scrollProgress={scrollProgress} debugMode={debugMode} />
         <WhySponsor />
         <SponsorTiers />
         <Timeline />

@@ -1,29 +1,42 @@
 /**
- * src/sections/Tracks.tsx  (Phase 3b — left-model / right-text layout)
+ * src/sections/Tracks.tsx  (Phase 3d — character art layer)
  * ─────────────────────────────────────────────────────────────────────────────
- * Layout: 3D character lives in the LEFT ~55 % (canvas shows through).
- *         Text column occupies the RIGHT ~45 % with a dark gradient backing.
+ * Layout: 3D character lives in the LEFT or RIGHT ~55% (canvas shows through).
+ *         Text column occupies the opposite ~45% with a dark gradient backing.
  *
- * HTML overlays on the left (no canvas involvement):
- *   • Big outlined character-name watermark (low-opacity)
- *   • Soft accent-color glow disc (CSS radial gradient)
- *   • Character-name + track-number chip near bottom
+ * HTML overlays in the empty half (back → front):
+ *   1. Outlined character-name watermark (low-opacity)
+ *   2. Soft accent-color glow disc
+ *   3. CharacterArt: rotating sig ring, character PNG, sparks (Phase 3d)
+ *   4. Character-name + track-number chip near bottom
  *
  * Mobile layout: transparent 45 vh spacer on top (model visible) then text.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { TRACKS } from '../data/tracks'
+import { getTrackLocalT } from '../hooks/useScrollCamera'
+import { CharacterArt } from '../components/CharacterArt'
 import { sound } from '../utils/audio'
 
 interface TracksProps {
   activeTrackIndex: number
+  /** Global page scroll progress 0→1, used to compute per-track localT */
+  scrollProgress: number
+  /** Show debug overlays (wired from App.tsx ?debug=1) */
+  debugMode?: boolean
 }
 
-export function Tracks({ activeTrackIndex }: TracksProps) {
+export function Tracks({ activeTrackIndex, scrollProgress, debugMode = false }: TracksProps) {
   const active    = TRACKS[activeTrackIndex]
   const lastIndex = useRef(activeTrackIndex)
   const [gridOpen, setGridOpen] = useState(false)
+
+  // Per-chapter progress (0→1) for the active track
+  const localT = useMemo(
+    () => getTrackLocalT(scrollProgress, activeTrackIndex),
+    [scrollProgress, activeTrackIndex]
+  )
 
   useEffect(() => {
     if (lastIndex.current !== activeTrackIndex) {
@@ -142,6 +155,17 @@ export function Tracks({ activeTrackIndex }: TracksProps) {
           >
             {active?.character.toUpperCase()}
           </p>
+
+          {/* ── Character Art layer (PNG + signature effect + sparks) ──── */}
+          {active && (active.visual ?? 'both') !== 'model' && (
+            <CharacterArt
+              track={active}
+              trackIndex={activeTrackIndex}
+              localT={localT}
+              active={true}
+              debugMode={debugMode}
+            />
+          )}
 
           {/* Character chip — sits below the model */}
           <div

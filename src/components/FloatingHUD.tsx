@@ -20,8 +20,9 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
   const activeTrack = TRACKS[activeTrackIndex]
 
-  // Hide telemetry when near footer to avoid overlap
-  const nearFooter = scrollProgress > 0.92
+  // Hide top-left HUD while inside the Tracks section to avoid covering headings
+  const inTracksSection = scrollProgress >= 0.15 && scrollProgress <= 0.70
+
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -50,7 +51,10 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
       <div className="absolute bottom-16 right-8 w-4 h-4 border-b border-r border-white/20" />
 
       {/* ── Top-Left: Campus & Multiverse Coordinates ── */}
-      <div className="absolute top-20 left-16 font-mono text-[10px] tracking-widest text-white/40 flex flex-col gap-0.5">
+      {/* Hidden during Tracks section to avoid overlapping headings */}
+      <div
+        className={`absolute top-20 left-16 font-mono text-[10px] tracking-widest text-white/40 flex flex-col gap-0.5 transition-opacity duration-500 ${inTracksSection ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      >
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-marvel-red animate-pulse" />
           <span className="text-white/70 font-semibold">MULTIVERSE SECTOR {String(TRACKS.length).padStart(2, '0')}</span>
@@ -61,7 +65,7 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
 
       {/* ── Bottom-Left: Comic Meta Data ── */}
       <div
-        className={`absolute bottom-20 left-16 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${nearFooter ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute bottom-20 left-16 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${scrollProgress > 0.92 ? 'opacity-0' : 'opacity-100'}`}
       >
         <div className="text-white/70 font-heading tracking-widest text-xs mb-0.5">
           VOL. 5 // NO. 2026
@@ -73,7 +77,7 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex }: FloatingHUDPro
 
       {/* ── Bottom-Right: Active Track Telemetry ── */}
       <div
-        className={`absolute bottom-20 right-16 font-mono text-[10px] tracking-wider text-right text-white/40 transition-opacity duration-500 ${nearFooter ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute bottom-20 right-16 font-mono text-[10px] tracking-wider text-right text-white/40 transition-opacity duration-500 ${scrollProgress > 0.92 ? 'opacity-0' : 'opacity-100'}`}
       >
         <div className="flex items-center justify-end gap-2 mb-0.5">
           <span

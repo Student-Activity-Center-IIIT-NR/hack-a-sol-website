@@ -59,7 +59,7 @@ export function TrackWorlds({ activeTrackIndex, scrollProgress }: TrackWorldsPro
           <group key={track.id} position={[x, y, z]}>
             {/* Character stage: GLB or image-plane (highest priority) */}
             <Suspense fallback={null}>
-              <CharacterStage track={track} localT={localT} active={active} />
+            <CharacterStage track={track} trackIndex={i} localT={localT} active={active} />
             </Suspense>
 
             {/* Procedural fallback — hidden when a real GLB is loaded */}
