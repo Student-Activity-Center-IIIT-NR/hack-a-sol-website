@@ -1,4 +1,4 @@
-/* src/index.css ─────────────────────────────────────────────────────────── */
+﻿/* src/index.css ─────────────────────────────────────────────────────────── */
 /* Tailwind base layers */
 @tailwind base;
 @tailwind components;
@@ -196,3 +196,14 @@ footer#footer {
 }
 .animate-fadeIn { animation: fadeIn 0.3s ease; }
 
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* MarvelOverlay.tsx — crack glitch flash keyframe                             */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes marvel-crack {
+  0%   { opacity: 0;   clip-path: polygon(0 40%,100% 35%,100% 65%,0 70%); }
+  15%  { opacity: 1;   clip-path: polygon(0 38%,100% 30%,100% 72%,0 76%); }
+  40%  { opacity: 0.7; clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
+  100% { opacity: 0;   clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
+}

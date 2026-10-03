@@ -1,46 +1,47 @@
-/**
- * src/three/TrackWorlds.tsx  (Phase 3g)
- * -----------------------------------------------------------------------------
- * Places all 5 track world objects at fixed 3D positions.
+﻿/**
+ * src/three/TrackWorlds.tsx  (Phase 3h — Marvel scroll environments)
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Places all 5 track world environments + character stages in 3D space.
  *
- * Performance: only the active track �1 neighbour is rendered (visible).
- * Others are hidden (group.visible = false) to keep the renderer lean.
- * useGLTF.preload is called for next and prev track ahead of time.
- *
- * chapterProgress is now the canonical progress value per chapter (0..1),
- * derived from sectionProgress in App.tsx / useTrackSection.
+ * Phase 3h changes:
+ *   - Environments now accept chapterProgress (0..1) and velocity instead of localT
+ *   - Environments always render alongside the character (not just as fallback)
+ *   - Environments are BEHIND the character (negative Z offset)
+ *   - Only active +/- 1 window is rendered for performance
  */
 
-import { Suspense } from 'react'
-import { useGLTF } from '@react-three/drei'
-import { TRACKS } from '../data/tracks'
-import { TRACK_WORLD_POSITIONS } from '../hooks/useScrollCamera'
-import { chapterLocalT } from '../hooks/useTrackSection'
-import { CharacterStage } from './CharacterStage'
-import { IronManWorld }       from './worlds/IronManWorld'
-import { CapWorld }           from './worlds/CapWorld'
-import { BlackPantherWorld }  from './worlds/BlackPantherWorld'
-import { UltronWorld }        from './worlds/UltronWorld'
-import { StrangeWorld }       from './worlds/StrangeWorld'
+import { Suspense } from "react"
+import { useGLTF } from "@react-three/drei"
+import { TRACKS } from "../data/tracks"
+import { TRACK_WORLD_POSITIONS } from "../hooks/useScrollCamera"
+import { chapterLocalT } from "../hooks/useTrackSection"
+import { CharacterStage } from "./CharacterStage"
+import { IronManWorld }      from "./worlds/IronManWorld"
+import { CapWorld }          from "./worlds/CapWorld"
+import { BlackPantherWorld } from "./worlds/BlackPantherWorld"
+import { UltronWorld }       from "./worlds/UltronWorld"
+import { StrangeWorld }      from "./worlds/StrangeWorld"
 
-const PROCEDURAL_WORLDS = [
+const ENVIRONMENTS = [
   IronManWorld,
   CapWorld,
   BlackPantherWorld,
   UltronWorld,
   StrangeWorld,
-]
+] as const
 
-import MODELS_MANIFEST from '../data/models.json'
+import MODELS_MANIFEST from "../data/models.json"
 const AVAILABLE_MODELS: string[] = (MODELS_MANIFEST as { available: string[] }).available ?? []
 
 interface TrackWorldsProps {
   activeTrackIndex: number
   /** Section-level progress 0..1 across all N chapters */
   sectionProgress: number
+  /** Lenis scroll velocity (0+), passed to environments for velocity fx */
+  velocity?: number
 }
 
-export function TrackWorlds({ activeTrackIndex, sectionProgress }: TrackWorldsProps) {
+export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }: TrackWorldsProps) {
   const N = TRACKS.length
 
   // Preload next and previous GLBs only
@@ -53,20 +54,27 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress }: TrackWorldsPr
     <>
       {TRACKS.map((track, i) => {
         const [x, y, z] = TRACK_WORLD_POSITIONS[i]
-        // chapterProgress for THIS chapter derived from section progress
         const cp         = chapterLocalT(sectionProgress, i)
         const active     = i === activeTrackIndex
-        const hasGLB     = AVAILABLE_MODELS.includes(track.id)
-        const ProceduralWorld = PROCEDURAL_WORLDS[i]
+        const Environment = ENVIRONMENTS[i]
 
-        // Only render this world if it is within activeIndex � 1
+        // Only render within activeIndex +/- 1 window
         const inWindow = Math.abs(i - activeTrackIndex) <= 1
 
         return (
           <group key={track.id} position={[x, y, z]} visible={inWindow}>
             {inWindow && (
               <>
-                {/* Character stage: GLB or image-plane (highest priority) */}
+                {/* Marvel environment — BEHIND character, full scroll choreography */}
+                <group position={[0, 0, 0]}>
+                  <Environment
+                    chapterProgress={cp}
+                    active={active}
+                    velocity={active ? velocity : 0}
+                  />
+                </group>
+
+                {/* Character stage (GLB or image-plane) — in front of environment */}
                 <Suspense fallback={null}>
                   <CharacterStage
                     track={track}
@@ -75,11 +83,6 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress }: TrackWorldsPr
                     active={active}
                   />
                 </Suspense>
-
-                {/* Procedural fallback � only when no GLB is available */}
-                {!hasGLB && (
-                  <ProceduralWorld localT={cp} active={active} />
-                )}
               </>
             )}
           </group>
