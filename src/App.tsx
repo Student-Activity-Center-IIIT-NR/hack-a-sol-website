@@ -137,7 +137,7 @@ export default function App() {
       {/* -- Scrollable HTML content --------------------------------------- */}
       <div id="scroll-content">
         <Navbar />
-        <Hero />
+        <Hero ready={!loading}/>
         <About />
         <Tracks
           activeIndex={activeIndex}

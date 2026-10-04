@@ -1,89 +1,184 @@
-import { ScrollReveal, FadeUp } from '../components/ScrollReveal'
+/**
+ * src/sections/Hero.tsx
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Cinematic "Breach" hero: a fullscreen-shader dimensional gateway (see
+ * src/three/hero/HeroScene.js) plus the title treatment and HUD micro-details.
+ *
+ * NOTE: this section owns ONE small WebGL canvas (hero only). It pauses itself
+ * when scrolled out of view. All uncertain copy comes from src/config.ts.
+ *
+ * `ready` should be false while the loading screen is up; the opening sequence
+ * starts when it flips to true.
+ */
+
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import type { CSSProperties } from 'react'
+import gsap from 'gsap'
+import ScrollTrigger from 'gsap/ScrollTrigger'
 import { EVENT } from '../config'
-import { TRACKS } from '../data/tracks'
+import { initHero } from '../three/hero/HeroScene'
+import type { HeroHandle } from '../three/hero/HeroScene'
+import '../styles/hero.css'
 
-export function Hero() {
+interface HeroProps {
+  /** False while the loading screen is showing. */
+  ready: boolean
+}
+
+/** Position of a HUD tag relative to the gateway, in units of its outer radius. */
+const at = (tx: number, ty: number) => ({ '--tx': tx, '--ty': ty }) as CSSProperties
+
+const GLITCH_CHARS = '#%&01'
+
+export function Hero({ ready }: HeroProps) {
+  const rootRef = useRef<HTMLElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const statusRef = useRef<HTMLParagraphElement>(null)
+  const energyRef = useRef<HTMLElement>(null)
+  const variantRef = useRef<HTMLElement>(null)
+  const xyRef = useRef<HTMLSpanElement>(null)
+  const heroRef = useRef<HeroHandle | null>(null)
+  const playedRef = useRef(false)
+
+  // Hidden start states, applied before first paint so nothing flashes.
+  useLayoutEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.set('.ln > span', { yPercent: 115 })
+      gsap.set('.fade', { opacity: 0, y: 14 })
+      gsap.set('.tag, .hud', { opacity: 0 })
+    }, rootRef)
+    return () => ctx.revert()
+  }, [])
+
+  // Mount / unmount the WebGL gateway.
+  useEffect(() => {
+    const container = canvasRef.current
+    if (!container) return
+    const hero = initHero(container)
+    heroRef.current = hero
+    return () => {
+      hero.destroy()
+      heroRef.current = null
+      playedRef.current = false
+    }
+  }, [])
+
+  // Always-on live bits: pointer readout, energy flicker, variant glitch, text parallax.
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const textEl = root.querySelector<HTMLElement>('.hs-text')
+    const moveX = textEl ? gsap.quickTo(textEl, 'x', { duration: 1.4, ease: 'power3.out' }) : null
+
+    const pad = (v: number, m: number) => ((v / m) * 100).toFixed(2).padStart(5, '0')
+    const onMove = (e: PointerEvent) => {
+      if (xyRef.current) xyRef.current.textContent = `X ${pad(e.clientX, innerWidth)} Y ${pad(e.clientY, innerHeight)}`
+      moveX?.((e.clientX / innerWidth - 0.5) * -12)
+    }
+    window.addEventListener('pointermove', onMove)
+
+    const energy = window.setInterval(() => {
+      if (energyRef.current) energyRef.current.textContent = (97.4 + (Math.random() - 0.5) * 0.6).toFixed(1).padStart(5, '0')
+    }, 1400)
+
+    let restore = 0
+    const onGlitch = () => {
+      const el = variantRef.current
+      if (!el) return
+      const original = 'VARIANT // 07'
+      el.textContent = original.replace(/[A-Z0-9]/g, (c) =>
+        Math.random() < 0.35 ? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)] : c)
+      window.clearTimeout(restore)
+      restore = window.setTimeout(() => { el.textContent = original }, 140)
+    }
+    window.addEventListener('variant-glitch', onGlitch)
+
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('variant-glitch', onGlitch)
+      window.clearInterval(energy)
+      window.clearTimeout(restore)
+    }
+  }, [])
+
+  // Opening sequence: starts once the loading screen is gone.
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!ready || !hero || playedRef.current) return
+    playedRef.current = true
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    hero.play()
+
+    const ctx = gsap.context(() => {
+      const type = (text: string, delay: number) => {
+        const o = { n: 0 }
+        gsap.to(o, {
+          n: text.length, duration: text.length * 0.028, ease: 'none', delay,
+          onUpdate: () => { if (statusRef.current) statusRef.current.textContent = text.slice(0, Math.round(o.n)) },
+        })
+      }
+      type('INCOMING TRANSMISSION...', reduced ? 0 : 0.4)
+      if (!reduced) type('REALITY DETECTED  //  MISSION ACTIVE', 2.7)
+
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+        .to('.hud', { opacity: 1, duration: 1.4 }, 1.0)
+        .to('.fade.pre', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.0)
+        .to('.ln > span', { yPercent: 0, duration: 0.9, stagger: 0.14, ease: 'expo.out' }, 2.2)
+        .to('.tag', { opacity: 1, duration: 1.2, stagger: 0.15 }, 2.6)
+        .to('.fade.post', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.8)
+      if (reduced) tl.timeScale(20)
+
+      // Scroll: the gateway swells and fades while the text lifts away.
+      ScrollTrigger.create({
+        trigger: rootRef.current, start: 'top top', end: 'bottom top', scrub: true,
+        onUpdate: (s) => hero.setScroll(s.progress),
+      })
+      gsap.to('.hs-text, .tags', {
+        yPercent: -10, opacity: 0, ease: 'none',
+        scrollTrigger: { trigger: rootRef.current, start: 'top top', end: '65% top', scrub: true },
+      })
+    }, rootRef)
+
+    return () => ctx.revert()
+  }, [ready])
+
   return (
-    <section
-      id="hero"
-      className="relative min-h-screen flex items-center justify-center px-6 overflow-hidden"
-    >
-      {/* Comic halftone dots */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-[0.025]"
-        style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-      />
-      {/* Bottom blend */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-marvel-darker to-transparent pointer-events-none" />
+    <section id="hero" ref={rootRef} className="hs-hero" aria-label={`${EVENT.name} — Enter the Multiverse`}>
+      <div ref={canvasRef} className="hs-canvas" aria-hidden="true" />
+      <p ref={statusRef} className="status" aria-hidden="true" />
 
-      <div className="relative text-center max-w-5xl mx-auto">
-        <FadeUp className="mb-6">
-          <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase">
-            {EVENT.hostedBy} Presents
-          </p>
-        </FadeUp>
+      <div className="tags" aria-hidden="true">
+        <div className="tag" style={at(0.72, -0.7)}><i /><p>DIMENSION // 616<br /><span>REALITY // DETECTED</span></p></div>
+        <div className="tag l" style={at(-0.8, -0.62)}><i /><p>CALIBRATION // 98.7%<br /><span>ENERGY FLOW // STABLE</span></p></div>
+        <div className="tag l" style={at(-0.78, 0.62)}><i /><p>SIGNAL // DETECTED<br /><span>SECTOR // A-07</span></p></div>
+        <div className="tag" style={at(0.9, 0.46)}><i /><p>ENERGY // <b ref={energyRef}>097.4</b>%<br /><span>DIMENSIONAL LOCK // 87%</span></p></div>
+        <div className="tag" style={at(0.62, 0.8)}><i /><p><b ref={variantRef}>VARIANT // 07</b><br /><span>TIMELINE // ACTIVE</span></p></div>
+        <div className="tag cal" style={at(1.27, 0)}>090</div>
+        <div className="tag cal" style={at(-1.27, 0)}>270</div>
+      </div>
 
-        {/* Word-by-word staggered reveal */}
-        <div className="mb-4">
-          <ScrollReveal
-            as="h1"
-            className="font-heading text-7xl sm:text-[9rem] leading-none tracking-widest text-white block"
-            stagger={0.08}
-            duration={1.0}
-          >
-            HACK-A-SOL
-          </ScrollReveal>
+      <div className="hs-text">
+        <p className="label fade pre"><i />{EVENT.hostedBy} presents</p>
+        <p className="name fade pre">Hack-A-Sol <b>{EVENT.edition}</b></p>
+        <h1 aria-label="Enter the Multiverse">
+          <span className="ln"><span>Enter the</span></span>
+          <span className="ln big"><span>Multiverse</span></span>
+        </h1>
+        <p className="support fade post">Teams from every reality. One mission. Build what comes next.</p>
+        <div className="cta fade post">
+          <a id="hero-register-btn" className="btn" href={EVENT.registrationLink} data-magnetic>
+            <span>{EVENT.registrationStatus}</span><em>→</em>
+          </a>
+          <a id="hero-tracks-link" className="link" href="#tracks">View tracks</a>
+          <a id="hero-sponsor-btn" className="link" href="#why-sponsor">Become a sponsor</a>
         </div>
+      </div>
 
-        <FadeUp delay={0.3} className="inline-flex items-center gap-3 mb-6">
-          <div className="h-px w-12 bg-white/20" />
-          <span className="font-heading text-2xl tracking-[0.6em] text-white/60">5.0</span>
-          <div className="h-px w-12 bg-white/20" />
-        </FadeUp>
-
-        <FadeUp delay={0.4}>
-          <p className="font-heading text-3xl tracking-[1em] text-white/30 mb-8">{EVENT.theme}</p>
-        </FadeUp>
-
-        <FadeUp delay={0.5}>
-          <p className="font-body text-lg text-white/60 max-w-2xl mx-auto mb-10">
-            The flagship hackathon of {EVENT.hostedBy} returns. {TRACKS.length} specialised tracks.
-            {TRACKS.length} Marvel champions. One multiverse to conquer.
-          </p>
-        </FadeUp>
-
-        <FadeUp delay={0.6}>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            <a
-              id="hero-register-btn"
-              href={EVENT.registrationLink}
-              data-magnetic
-              className="px-8 py-3.5 font-heading tracking-widest text-sm bg-marvel-red text-white rounded-sm hover:bg-red-700 transition-all hover:shadow-[0_0_30px_rgba(226,54,54,0.6)] hover:scale-105 active:scale-95"
-            >
-              {EVENT.registrationStatus.toUpperCase()}
-            </a>
-            <a
-              id="hero-sponsor-btn"
-              href="#why-sponsor"
-              data-magnetic
-              className="px-8 py-3.5 font-heading tracking-widest text-sm border border-white/20 text-white rounded-sm hover:border-white/50 hover:bg-white/5 transition-all hover:scale-105 active:scale-95"
-            >
-              BECOME A SPONSOR
-            </a>
-          </div>
-        </FadeUp>
-
-        <FadeUp delay={0.7}>
-          <p className="mt-8 font-body text-xs text-white/30 tracking-widest uppercase">
-            📅 {EVENT.date}
-          </p>
-        </FadeUp>
-
-        {/* Scroll indicator */}
-        <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-white/20 text-xs tracking-widest uppercase font-body">Scroll</span>
-          <div className="w-px h-12 bg-gradient-to-b from-white/20 to-transparent animate-pulse" />
-        </div>
+      <div className="hud" aria-hidden="true">
+        <span>MISSION // 005 &nbsp;·&nbsp; {EVENT.date}</span>
+        <span className="hud-mid">LAT 21.2514 &nbsp; LNG 81.6296</span>
+        <span><i className="dot" />SIGNAL STABLE &nbsp;·&nbsp; <span ref={xyRef}>X 00.00 Y 00.00</span></span>
       </div>
     </section>
   )
