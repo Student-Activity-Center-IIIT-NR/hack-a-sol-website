@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/three/Scene.tsx  (Phase 3h — Marvel scroll environments)
  * ─────────────────────────────────────────────────────────────────────────────
  * ONE persistent R3F scene. Camera path, fog, stars, environments.
@@ -13,6 +13,7 @@ import * as THREE from "three"
 import { TRACKS } from "../data/tracks"
 import { useScrollCamera } from "../hooks/useScrollCamera"
 import { TrackWorlds } from "./TrackWorlds"
+import { HeroCosmos } from "./HeroCosmos"
 import { PostFX } from "./PostFX"
 
 interface SceneProps {
@@ -84,6 +85,9 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
       <Stars radius={100} depth={100} count={5000} factor={4} saturation={0.1} fade speed={0.3} />
 
       <Environment preset="city" environmentIntensity={0.45} />
+
+      {/* Procedural 3D Marvel objects for Hero section */}
+      <HeroCosmos scrollProgress={scrollProgress} />
 
       <TrackWorlds
         activeTrackIndex={activeTrackIndex}
