@@ -33,7 +33,6 @@ const GLITCH_CHARS = '#%&01'
 export function Hero({ ready }: HeroProps) {
   const rootRef = useRef<HTMLElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
-  const statusRef = useRef<HTMLParagraphElement>(null)
   const energyRef = useRef<HTMLElement>(null)
   const variantRef = useRef<HTMLElement>(null)
   const xyRef = useRef<HTMLSpanElement>(null)
@@ -111,16 +110,7 @@ export function Hero({ ready }: HeroProps) {
     hero.play()
 
     const ctx = gsap.context(() => {
-      const type = (text: string, delay: number) => {
-        const o = { n: 0 }
-        gsap.to(o, {
-          n: text.length, duration: text.length * 0.028, ease: 'none', delay,
-          onUpdate: () => { if (statusRef.current) statusRef.current.textContent = text.slice(0, Math.round(o.n)) },
-        })
-      }
-      type('INCOMING TRANSMISSION...', reduced ? 0 : 0.4)
-      if (!reduced) type('REALITY DETECTED  //  MISSION ACTIVE', 2.7)
-
+      
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
         .to('.hud', { opacity: 1, duration: 1.4 }, 1.0)
         .to('.fade.pre', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.0)
@@ -146,8 +136,6 @@ export function Hero({ ready }: HeroProps) {
   return (
     <section id="hero" ref={rootRef} className="hs-hero" aria-label={`${EVENT.name} — Enter the Multiverse`}>
       <div ref={canvasRef} className="hs-canvas" aria-hidden="true" />
-      <p ref={statusRef} className="status" aria-hidden="true" />
-
       <div className="tags" aria-hidden="true">
         <div className="tag" style={at(0.72, -0.7)}><i /><p>DIMENSION // 616<br /><span>REALITY // DETECTED</span></p></div>
         <div className="tag l" style={at(-0.8, -0.62)}><i /><p>CALIBRATION // 98.7%<br /><span>ENERGY FLOW // STABLE</span></p></div>

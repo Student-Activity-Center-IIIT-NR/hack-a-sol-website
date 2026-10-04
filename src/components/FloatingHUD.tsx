@@ -56,25 +56,11 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
       <div
         className={`absolute top-20 left-16 font-mono text-[10px] tracking-widest text-white/40 flex flex-col gap-0.5 transition-opacity duration-500 ${inTracksSection ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-marvel-red animate-pulse" />
-          <span className="text-white/70 font-semibold">MULTIVERSE SECTOR {String(TRACKS.length).padStart(2, '0')}</span>
-        </div>
         <span className="text-white/40">COORD: 21.1255° N, 81.7662° E [IIIT-NR]</span>
         <span className="text-white/30 text-[9px]">TIMELINE INTEGRITY: STABLE // EARTH-616</span>
       </div>
 
-      {/* ── Bottom-Left: Comic Meta Data ── */}
-      <div
-        className={`absolute bottom-20 left-16 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${scrollProgress > 0.92 ? 'opacity-0' : 'opacity-100'}`}
-      >
-        <div className="text-white/70 font-heading tracking-widest text-xs mb-0.5">
-          VOL. 5 // NO. 2026
-        </div>
-        <div className="text-white/40 tracking-widest text-[9px] uppercase">
-          FLAGSHIP TECH CONVERGENCE • IIIT NAYA RAIPUR
-        </div>
-      </div>
+      
 
       {/* ── Bottom-Right: Active Track Telemetry ── */}
       <div
