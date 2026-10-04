@@ -1,56 +1,52 @@
 /**
- * src/hooks/useScrollCamera.ts
+ * src/hooks/useScrollCamera.ts  (Phase 3i — environments at origin fix)
  * ─────────────────────────────────────────────────────────────────────────────
  * Piecewise keyframe camera path synced to scroll progress (0→1).
  *
- * Each keyframe defines: scroll t, camera world-position, and lookAt target.
- * Between keyframes, position and lookAt are smooth-lerped via CatmullRomCurve3
- * so the camera travels through the Marvel multiverse world continuously.
+ * PHASE 3i KEY CHANGE:
+ *   All track environments now render at [0,0,0] (origin) because the GSAP pin
+ *   on #tracks FREEZES scrollProgress during the entire Tracks section. The
+ *   camera must therefore stay in front of origin for the entire tracks range.
  *
- * Track world positions (where each 3D object lives in scene space):
- *   Iron Man       : (+3.5, 0, -8)
- *   Cap America    : (-3.5, 0, -20)
- *   Black Panther  : (+3.5, 0, -32)
- *   Ultron         : (-3.5, 0, -44)
- *   Doctor Strange : (  0,  0, -56)
+ *   Camera sits at [0, 0, 4], looking at [0, 0, 0] for ALL tracks (t=0.15→0.70).
+ *   Before: approached along Z, now stays put — scroll-within-pin is managed by
+ *   GSAP/chapterProgress, not by the global scrollProgress camera path.
+ *
+ * Post-tracks (t>0.70): camera moves away to give sponsors/FAQ/footer a clear bg.
  */
 
 import { useMemo, useRef } from 'react'
 import { CatmullRomCurve3, Vector3 } from 'three'
 
 // ---------------------------------------------------------------------------
-// World anchor positions (where track 3D objects are placed)
+// Legacy world anchor positions — kept for reference only; TrackWorlds no
+// longer uses these (all environments render at [0,0,0] now).
 // ---------------------------------------------------------------------------
 export const TRACK_WORLD_POSITIONS: [number, number, number][] = [
-  [ 3.0, 0, -8  ],   // 0: Iron Man       (RIGHT)
-  [-3.0, 0, -20 ],   // 1: Cap America    (LEFT)
-  [ 3.0, 0, -32 ],   // 2: Black Panther  (RIGHT)
-  [-3.0, 0, -44 ],   // 3: Ultron         (LEFT)
-  [ 3.0, 0, -56 ],   // 4: Doctor Strange (RIGHT)
+  [ 3.0, 0, -8  ],
+  [-3.0, 0, -20 ],
+  [ 3.0, 0, -32 ],
+  [-3.0, 0, -44 ],
+  [ 3.0, 0, -56 ],
 ]
 
 // ---------------------------------------------------------------------------
 // Camera keyframes: [scroll_t, camX, camY, camZ, lookX, lookY, lookZ]
-// Scroll thresholds match useScrollProgress: tracks span ~0.15 → 0.70
-// Camera travels forward along center X=0, so X=+3.0 sits cleanly in the
-// RIGHT half and X=-3.0 sits cleanly in the LEFT half.
+//
+ // During the pinned Tracks section (t ≈ 0.15 → 0.70), scrollProgress is
+// FROZEN at the pin-start value, so the camera must stay at a fixed position
+// that keeps the origin ([0,0,0]) clearly visible in the frustum.
+// Camera at z=+4 looking at z=0 gives ~37° angle to origin at fov=60 — good.
 // ---------------------------------------------------------------------------
 const KF: Array<{ t: number; pos: [number,number,number]; look: [number,number,number] }> = [
-  { t: 0.00, pos: [0, 0,   8  ], look: [0, 0,   0  ] },  // Hero
-  { t: 0.09, pos: [0, 0,   4  ], look: [0, 0,   0  ] },  // About
-  { t: 0.15, pos: [0, 0,   0  ], look: [0, 0,  -8  ] },  // Approaching Iron Man (RIGHT)
-  { t: 0.21, pos: [0, 0,  -4.5], look: [0, 0, -11  ] },  // AT Iron Man
-  { t: 0.27, pos: [0, 0, -12  ], look: [0, 0, -20  ] },  // Transitioning to Cap (LEFT)
-  { t: 0.32, pos: [0, 0, -16.5], look: [0, 0, -23  ] },  // AT Cap
-  { t: 0.38, pos: [0, 0, -24  ], look: [0, 0, -32  ] },  // Transitioning to Black Panther (RIGHT)
-  { t: 0.43, pos: [0, 0, -28.5], look: [0, 0, -35  ] },  // AT Black Panther
-  { t: 0.49, pos: [0, 0, -36  ], look: [0, 0, -44  ] },  // Transitioning to Ultron (LEFT)
-  { t: 0.54, pos: [0, 0, -40.5], look: [0, 0, -47  ] },  // AT Ultron
-  { t: 0.60, pos: [0, 0, -48  ], look: [0, 0, -56  ] },  // Transitioning to Strange (RIGHT)
-  { t: 0.65, pos: [0, 0, -52.5], look: [0, 0, -59  ] },  // AT Strange
-  { t: 0.72, pos: [0, 0.5,-62 ], look: [0, 0, -66  ] },  // Post-tracks / Sponsors
-  { t: 0.85, pos: [0, 0,  -70 ], look: [0, 0, -73  ] },  // FAQ / Contact
-  { t: 1.00, pos: [0, 0,  -78 ], look: [0, 0, -81  ] },  // Footer
+  { t: 0.00, pos: [0, 0,  8  ], look: [0, 0,   0  ] },  // Hero
+  { t: 0.09, pos: [0, 0,  5  ], look: [0, 0,   0  ] },  // About
+  { t: 0.14, pos: [0, 0,  4  ], look: [0, 0,   0  ] },  // Approaching Tracks — settle at z=4
+  { t: 0.15, pos: [0, 0,  4  ], look: [0, 0,   0  ] },  // Tracks START — camera stays here
+  { t: 0.70, pos: [0, 0,  4  ], look: [0, 0,   0  ] },  // Tracks END   — same position
+  { t: 0.72, pos: [0, 0.5, 6 ], look: [0, 0,   2  ] },  // Post-tracks / Sponsors (pull back)
+  { t: 0.85, pos: [0, 0,   8 ], look: [0, 0,   4  ] },  // FAQ / Contact
+  { t: 1.00, pos: [0, 0,  10 ], look: [0, 0,   6  ] },  // Footer
 ]
 
 // Build CatmullRomCurve3 for both position and lookAt

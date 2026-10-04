@@ -5,13 +5,13 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-/* ================= THE BREACH (one fullscreen shader) ================= */
+/* ================= THE MULTIVERSE PORTAL (Fullscreen Rift Shader) ================= */
 const VERT = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
 
 const FRAG = `
 varying vec2 vUv;
 uniform float uTime, uAspect, uScale, uScroll, uPx, uSide;
-uniform float uSig, uR1, uR2, uCrack, uLock, uPulseT;
+uniform float uSig, uCrack, uLock, uPulseT;
 uniform vec2 uMouse, uCenter, uLight;
 #define TAU 6.2831853
 #define PI 3.14159265
@@ -27,7 +27,7 @@ float segd(vec2 p, vec2 a, vec2 b){ vec2 pa = p - a, ba = b - a; return length(p
 void main(){
   vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0);
   float t = uTime;
-  float iT = uR1, iD = uR2, iC = uCrack;
+  float iC = uCrack;
   float fade = 1.0 - smoothstep(0.25, 1.0, uScroll);
   float sc = uScale * mix(1.07, 1.0, uLock) * mix(1.0, 1.6, uScroll);
   float px = uPx / sc;
@@ -35,7 +35,7 @@ void main(){
   float brt = 0.85 + 0.15 * sin(t * 0.8);
   float dC = length(p - uCenter);
 
-  // ---- fracture first: it drives light, displacement, pulses ----
+  // ---- fracture / dimensional tear ----
   vec2 qc = (p - uCenter - uMouse * 0.04) / sc;
   vec2 kc = rot(0.06) * qc;
   float L = max(0.56 * iC, 0.001);
@@ -54,7 +54,7 @@ void main(){
   float pY = mix(-L, L, clamp(ph, 0.0, 1.0));
   float pg = exp(-abs(kc.y - pY) * 14.0) * act;
 
-  // ---- environment: near-black, haze, faint grid, comic print ----
+  // ---- cosmic atmosphere: dark void, nebula haze, comic print grain ----
   vec2 bp = p + uMouse * 0.012;
   float cloud = fbm(bp * 1.5 + vec2(t * 0.010, -t * 0.007));
   vec3 col = vec3(0.0016, 0.0017, 0.0022);
@@ -65,137 +65,42 @@ void main(){
   float hm = smoothstep(0.25, 0.9, cloud) * (0.35 + 0.65 * smoothstep(0.2, 0.9, dC));
   float ht = (1.0 - smoothstep(0.42 * hm - 0.07, 0.42 * hm + 0.07, length(cell))) * smoothstep(0.03, 0.25, hm);
   col += vec3(0.014, 0.004, 0.005) * ht;
-  col += vec3(0.35, 0.03, 0.025) * exp(-dC * 3.0) * 0.07 * (0.7 + 0.6 * ht) * brt * iD * fade;
+  
+  // Ambient multiverse red glow radiating from portal center
+  col += vec3(0.45, 0.04, 0.03) * exp(-dC * 2.6) * 0.22 * (0.8 + 0.5 * ht) * brt * fade;
 
-  // ---- shared ring frame ----
-  vec2 q = (p - uCenter - uMouse * 0.02) / sc + dislocate;
-  float r = length(q);
-  float a = atan(q.y, q.x);
-  float hl = 0.30 + 0.70 * pow(max(0.0, dot(vec2(cos(a), sin(a)), ld)), 2.5);
-  vec3 ringC = mix(vec3(0.80, 0.84, 0.92), vec3(0.9, 0.1, 0.08), exp(-abs(kc.x) * 5.0) * 0.7 * brt);
-
-  // ---- LAYER 1: engineered outer ring (draws on as a sweep) ----
-  float draw = step((a + PI) / TAU, iT * 1.02);
-  float rT = 0.0;
-  rT += ln(abs(r - 0.58), px * 1.1) * 0.25;
-  rT += ln(abs(r - 0.50), px * 1.2) * 0.55;
-  rT += ln(abs(r - 0.565), px * 1.2) * step(0.12, fract((a + t * 0.04) / TAU * 36.0)) * 0.35;
-  rT += ln(abs(r - 0.50), px * 1.6) * pow(fract((t * 0.9 - a) / TAU), 6.0) * 1.1;
-  float tk  = 1.0 - smoothstep(0.0, 0.08, abs(fract(a / TAU * 180.0) - 0.5));
-  float tkL = 1.0 - smoothstep(0.0, 0.05, abs(fract(a / TAU * 30.0) - 0.5));
-  rT += (tk * step(abs(r - 0.535), 0.006) + tkL * step(abs(r - 0.538), 0.012)) * 0.5;
-  float cd = abs(fract(a / TAU * 4.0 + 0.5) - 0.5);
-  rT += (1.0 - smoothstep(0.0, 0.004, cd)) * step(abs(r - 0.545), 0.075) * 0.7;
-  col += ringC * rT * draw * hl * fade;
-
-  // ---- LAYER 3: dimensional ring, deliberately off-plane ----
-  vec2 qm = q + vec2(0.011, -0.007) + uMouse * 0.012;
-  float rm = length(qm), am = atan(qm.y, qm.x);
-  float a1 = am + t * 0.035;
-  float s1 = mod(floor(a1 / TAU * 28.0), 28.0);
-  float h1 = hash(vec2(s1, 4.7)), h2 = hash(vec2(s1, 9.1)), h3 = hash(vec2(s1, 1.3));
-  float on1 = step(h1 * 0.8, iD);
-  float lx = (fract(a1 / TAU * 28.0) - 0.5) * 0.2244 * rm;
-  float ly = rm - 0.455;
-  float rD = 0.0;
-  rD += ln(abs(ly), px * 1.3) * step(0.3, h1) * on1 * 0.75;
-  rD += ln(abs(lx), px * 1.1) * step(0.008, ly) * step(ly, 0.008 + 0.03 * h1) * step(0.45, h1) * on1 * 0.8;
-  rD += ln(abs(ly - (0.018 + 0.012 * h2)), px * 1.1) * step(abs(lx), 0.028 * (0.5 + h2)) * step(0.55, h2) * on1 * 0.7;
-  rD += (1.0 - smoothstep(0.003, 0.006, length(vec2(lx, ly - 0.036)))) * step(0.78, h3) * on1 * 0.9;
-  vec2 qn = rot(0.5) * q * vec2(1.0, 1.07);
-  float rn = length(qn), a2 = atan(qn.y, qn.x) - t * 0.05;
-  rD += ln(abs(rn - 0.395), px * 1.3) * step(0.4, hash(vec2(mod(floor(a2 / TAU * 17.0), 17.0), 2.2))) * 0.6;
-  rD += ln(abs(rn - 0.375), px * 3.0) * step(0.72, hash(vec2(mod(floor(a2 / TAU * 7.0), 7.0), 5.5))) * 0.4;
-  vec2 sqa = rot(t * 0.02 + 0.3) * q, sqb = rot(-t * 0.014 + 1.085) * q;
-  float gm = step(0.25, hash(vec2(mod(floor(a / TAU * 12.0), 12.0), 8.8)));
-  rD += ln(abs(max(abs(sqa.x), abs(sqa.y)) - 0.30), px) * gm * 0.3;
-  rD += ln(abs(max(abs(sqb.x), abs(sqb.y)) - 0.30), px) * step(0.4, hash(vec2(mod(floor(a / TAU * 9.0), 9.0), 3.3))) * 0.22;
-
-  // ---- LAYER 2: shield-like concentric rings + slow pulse ----
-  rD += (ln(abs(r - 0.31), px) + ln(abs(r - 0.26), px)) * 0.16;
-  float pr = fract(t / 7.0);
-  rD += ln(abs(r - mix(0.25, 0.58, pr)), px * 2.0) * (1.0 - pr) * uLock * 0.5;
-
-  // ---- LAYER 7: etched circuit band, only in some arcs ----
-  float ca = a / TAU * 48.0, cr = (r - 0.26) / 0.039;
-  vec2 pc = vec2(fract(ca), fract(cr)), pid = vec2(mod(floor(ca), 48.0), floor(cr));
-  float hw = hash(pid);
-  float vl = ln(abs(pc.x - 0.5) * 0.039, px), hz = ln(abs(pc.y - 0.5) * 0.039, px);
-  float nd = 1.0 - smoothstep(0.0, 0.08, length(pc - 0.5));
-  float circ = hw < 0.4 ? vl : (hw < 0.75 ? hz : max(vl * step(pc.y, 0.5), hz * step(pc.x, 0.5)) + nd);
-  circ *= step(0.0, cr) * step(cr, 3.0) * step(0.45, hash(pid + 7.0)) * step(0.5, noise(vec2(a * 1.3 + 3.0, 2.0)));
-  rD += circ * 0.45;
-  col += ringC * rD * hl * iD * fade;
-
-  // ---- LAYER 4: web threads, lit by the pointer / idle light ----
-  float sec = TAU / 12.0;
-  float aw = mod(a, sec) - sec * 0.5;
-  float u = (r * cos(aw) - 0.26) / 0.045;
-  float web = ln(abs(fract(u + 0.5) - 0.5) * 0.045, px * 0.9) * step(0.0, u) * step(u, 4.6)
-            + ln((sec * 0.5 - abs(aw)) * r, px * 0.9) * step(0.25, r) * step(r, 0.47);
-  vec2 dl = p - uLight;
-  web *= 0.07 + 1.5 * exp(-dot(dl, dl) * 20.0);
-  col += vec3(0.85, 0.9, 1.0) * web * iD * fade * 0.8;
-  col += vec3(0.9, 0.1, 0.08) * ln(abs(r - 0.285), px * 1.2) * 0.18 * iD * fade;
-
-  // ---- six tiny nodes + orbiting specks ----
-  vec3 nodes = vec3(0.0);
-  for (int i = 0; i < 6; i++) {
-    float fi = float(i);
-    vec2 np = vec2(cos(fi * TAU / 6.0 + 0.52), sin(fi * TAU / 6.0 + 0.52)) * 0.355;
-    float dn = length(q - np);
-    vec3 stn = i == 0 ? vec3(0.62, 0.35, 1.0) : i == 1 ? vec3(0.3, 0.6, 1.0) : i == 2 ? vec3(1.0, 0.2, 0.2)
-             : i == 3 ? vec3(1.0, 0.6, 0.15) : i == 4 ? vec3(0.3, 1.0, 0.5) : vec3(1.0, 0.85, 0.25);
-    float pl = exp(-fract(t / 7.2 - fi / 6.0) * 6.0);
-    nodes += mix(vec3(0.85, 0.88, 0.95), stn, 0.5) * ((1.0 - smoothstep(0.004, 0.009, dn)) + exp(-dn * 70.0) * 0.25) * (0.4 + 1.6 * pl);
-  }
-  col += nodes * iD * fade;
-  float orb = 0.0;
-  for (int i = 0; i < 4; i++) {
-    float fi = float(i);
-    float ang = t * (0.22 + 0.08 * fi) * (mod(fi, 2.0) < 1.0 ? 1.0 : -1.0) + fi * 1.7;
-    orb += 1.0 - smoothstep(0.002, 0.005, length(qm - vec2(cos(ang), sin(ang)) * (0.455 + 0.022 * fi)));
-  }
-  col += vec3(0.9) * orb * 0.8 * iD * fade;
-
-  // tilted orbit ring: back half behind the disc
-  vec2 qe = rot(-0.38) * ((p - uCenter - uMouse * 0.045) / sc + dislocate);
-  float ringE = ln(abs(length(qe * vec2(1.0, 3.4)) - 0.66), px * 1.5);
-  float fr = 1.0 - smoothstep(-0.03, 0.03, qe.y);
-  float heE = 0.3 + 0.7 * pow(max(0.0, dot(normalize(qe + vec2(0.0001)), ld)), 2.0);
-  col += ringC * ringE * 0.2 * (1.0 - fr) * iT * fade;
-
-  // ---- inner disc: two realities, parallax depth ----
-  float R0 = 0.235;
-  float rc = length(qc);
+  // ---- inner dimensional disc: two realities & vortex depth ----
+  float R0 = 0.245;
+  float rc = length(qc + dislocate * 0.4);
   float disc = 1.0 - smoothstep(R0 - px * 1.5, R0 + px * 0.5, rc);
   vec2 qi = qc - uMouse * 0.03;
   float ri = length(qi);
   float sideI = smoothstep(-0.006, 0.006, dx);
   float depthShade = 1.0 - smoothstep(0.0, R0, ri);
   float sw = fbm(rot(ri * 2.2 - t * 0.04) * qi * 3.0 + sideI * vec2(3.7, 1.3) + vec2(0.0, t * 0.05));
-  vec3 tint = mix(vec3(0.020, 0.040, 0.075), vec3(0.12, 0.010, 0.012), sideI);
+  vec3 tint = mix(vec3(0.020, 0.040, 0.075), vec3(0.14, 0.012, 0.014), sideI);
   float tun = (1.0 - smoothstep(0.0, 0.06, abs(fract(0.05 / (ri + 0.02) - t * 0.05) - 0.5))) * smoothstep(0.02, 0.08, ri);
   vec3 inner = vec3(0.0008, 0.0004, 0.0008);
   inner += tint * smoothstep(0.35, 0.95, sw) * (0.25 + 0.75 * depthShade);
-  inner += mix(vec3(0.03, 0.045, 0.07), vec3(0.14, 0.02, 0.02), sideI) * tun * (0.3 + 0.7 * depthShade) * 0.5;
-  inner += vec3(0.30, 0.025, 0.02) * pow(depthShade, 3.0) * 0.5 * sideI;
+  inner += mix(vec3(0.03, 0.045, 0.07), vec3(0.16, 0.02, 0.025), sideI) * tun * (0.3 + 0.7 * depthShade) * 0.5;
+  inner += vec3(0.35, 0.03, 0.02) * pow(depthShade, 3.0) * 0.5 * sideI;
   col = mix(col, inner, disc * iC);
 
-  // signal pulse (opening)
+  // Initial signal pulse on breach opening
   col += vec3(0.9, 0.93, 1.0) * (ln(abs(rc - uSig * 0.16), px * 1.3) * (1.0 - uSig) * smoothstep(0.0, 0.1, uSig) * 0.9
        + (1.0 - smoothstep(0.0, px * 3.0, rc)) * smoothstep(0.0, 0.2, uSig) * (1.0 - iC) * 1.6);
 
-  // ---- LAYERS 5+6: the tear, travelling pulse, branches, torn shards ----
+  // ---- the tear / breach, travelling pulse, lightning branches, torn shards ----
   float within = inTear * (1.0 - clamp(abs(dx) / max(W, 0.0005), 0.0, 1.0));
-  vec3 tearC = mix(vec3(0.85, 0.04, 0.05) * 1.2, vec3(1.0, 0.92, 0.88) * 1.5, pow(within, 1.4));
+  vec3 tearC = mix(vec3(0.88, 0.05, 0.06) * 1.25, vec3(1.0, 0.94, 0.90) * 1.5, pow(within, 1.4));
   float tm = lenM * brt * iC * fade * (0.94 + 0.06 * noise(vec2(t * 5.0, kc.y * 3.0))) * (1.0 + 0.7 * pg);
   col = mix(col, tearC, inTear * tm);
   col += vec3(1.0, 0.93, 0.88) * ln(dEdge, px * 1.2) * lenM * 0.8 * iC * fade;
-  col += vec3(0.85, 0.04, 0.05) * exp(-dEdge * 30.0) * 0.3 * tm;
-  col += vec3(0.85, 0.04, 0.05) * exp(-abs(dx) * 8.0) * disc * 0.05 * tm;
+  col += vec3(0.88, 0.05, 0.06) * exp(-dEdge * 28.0) * 0.35 * tm;
+  col += vec3(0.88, 0.05, 0.06) * exp(-abs(dx) * 8.0) * disc * 0.06 * tm;
   col += vec3(1.0, 0.5, 0.4) * ln(abs(dx), px * 0.9) * (1.0 - smoothstep(0.9, 1.35, abs(kc.y) / L)) * 0.45 * iC * fade;
 
+  // Lightning arcs along the breach
   float br = 0.0;
   for (int i = 0; i < 4; i++) {
     float fi = float(i);
@@ -208,6 +113,7 @@ void main(){
   }
   col += vec3(1.0, 0.55, 0.35) * br * act * 1.4 * fade;
 
+  // Crystalline dimensional shards
   vec2 fg = vec2(kc.x * 10.0, kc.y * 10.0 + t * 0.15);
   vec2 cid = floor(fg), fl = fract(fg) - 0.5;
   float ga = hash(cid) * TAU;
@@ -215,13 +121,12 @@ void main(){
   float shard = ln(abs(dot(fl, vec2(-sd.y, sd.x))), px * 10.0) * step(abs(dot(fl, sd)), 0.12 + 0.1 * hash(cid + 1.0)) * step(0.86, hash(cid + 3.1));
   col += vec3(1.0, 0.35, 0.25) * shard * exp(-abs(kc.x) * 9.0) * 0.8 * lenM * iC * fade;
 
-  // ---- machined rim with pointer specular ----
+  // ---- Soft Dimensional Rift Event Horizon (organic cosmic glow, NO arc-reactor rings) ----
   float ac = atan(qc.y, qc.x);
-  float hlc = 0.25 + 0.75 * pow(max(0.0, dot(vec2(cos(ac), sin(ac)), ld)), 3.0);
-  col += vec3(0.85, 0.88, 0.95) * ln(abs(rc - R0), px * 1.6) * (0.35 + 1.5 * hlc) * iC * fade;
-  col += vec3(1.0, 0.08, 0.05) * exp(-abs(rc - R0) * 38.0) * 0.10 * brt * iC * fade;
-  col += vec3(0.8) * ln(abs(rc - (R0 - 0.018)), px * 1.1) * 0.12 * iC * fade;
-  col += ringC * ringE * fr * (0.35 + 0.9 * heE) * iT * fade;
+  float hlc = 0.35 + 0.65 * pow(max(0.0, dot(vec2(cos(ac), sin(ac)), ld)), 2.5);
+  col += vec3(0.92, 0.08, 0.06) * exp(-abs(rc - R0) * 18.0) * 0.42 * brt * iC * fade;
+  col += vec3(1.0, 0.30, 0.20) * ln(abs(rc - R0), px * 1.8) * (0.35 + 0.6 * hlc) * iC * fade;
+  col += vec3(0.60, 0.05, 0.04) * exp(-abs(rc - R0) * 6.0) * 0.25 * fade;
 
   col *= mix(1.0, mix(0.6, 1.0, smoothstep(uCenter.x - 0.8, uCenter.x - 0.15, p.x)), uSide);
   col *= 1.0 - 0.55 * smoothstep(0.35, 1.0, length(vUv - 0.5) * 1.25);
@@ -285,15 +190,26 @@ const FinalShader = {
       vec2 uv = vUv + vec2(g * (rand(vec2(row, 3.0)) - 0.5) * 0.02, 0.0);
       vec3 c = texture2D(tDiffuse, uv).rgb;
       vec2 dir = uv - 0.5;
-float ca = 0.002 + 0.006 * length(dir);
-c.r = texture2D(tDiffuse, uv + dir * ca + vec2(g * 0.004, 0.0)).r;
-c.b = texture2D(tDiffuse, uv - dir * ca).b;
+      float ca = 0.002 + 0.006 * length(dir);
+      c.r = texture2D(tDiffuse, uv + dir * ca + vec2(g * 0.004, 0.0)).r;
+      c.b = texture2D(tDiffuse, uv - dir * ca).b;
       c = 1.0 - exp(-c * 1.1);
       c = pow(c, vec3(0.4545));
       c += (rand(vUv * vec2(1920.0, 1080.0) + fract(uTime) * 37.0) - 0.5) * 0.035;
       gl_FragColor = vec4(c, 1.0);
     }`,
 };
+
+/* ================= 6 INFINITY STONES SPECIFICATION ================= */
+// Blue (Space), Purple (Power), Red (Reality), Green (Time), Orange (Soul), Yellow (Mind)
+const STONES = [
+  { name: 'Space',   color: 0x00d2ff, emissive: 0x0088ff, intensity: 2.5, rFactor: 0.40, speed: 0.24, tilt: 0.25, geomType: 'octa' },
+  { name: 'Power',   color: 0xcc22ff, emissive: 0x9900ee, intensity: 2.5, rFactor: 0.48, speed: -0.19, tilt: -0.32, geomType: 'ico' },
+  { name: 'Reality', color: 0xff1e38, emissive: 0xee0824, intensity: 2.7, rFactor: 0.56, speed: 0.17, tilt: 0.40, geomType: 'elongated' },
+  { name: 'Time',    color: 0x10ff66, emissive: 0x00cc44, intensity: 2.5, rFactor: 0.64, speed: -0.15, tilt: -0.22, geomType: 'octa' },
+  { name: 'Soul',    color: 0xff7b00, emissive: 0xff5500, intensity: 2.6, rFactor: 0.72, speed: 0.13, tilt: 0.32, geomType: 'ico' },
+  { name: 'Mind',    color: 0xffdd00, emissive: 0xffbb00, intensity: 2.5, rFactor: 0.80, speed: -0.11, tilt: -0.36, geomType: 'elongated' },
+];
 
 export function initHero(container) {
   const hero = container.parentElement;
@@ -304,7 +220,7 @@ export function initHero(container) {
   const U = {
     uTime: { value: 0 }, uAspect: { value: 1 }, uScale: { value: 0.8 },
     uScroll: { value: 0 }, uPx: { value: 0.001 }, uSide: { value: 1 }, uPR: { value: 1 },
-    uSig: { value: 0 }, uR1: { value: 0 }, uR2: { value: 0 }, uCrack: { value: 0 }, uLock: { value: 0 },
+    uSig: { value: 0 }, uCrack: { value: 0 }, uLock: { value: 0 },
     uFlow: { value: 0 }, uAmb: { value: 0 }, uPulseT: { value: -100 }, uGlitch: { value: 0 },
     uMouse: { value: new THREE.Vector2() }, uCenter: { value: new THREE.Vector2() }, uLight: { value: new THREE.Vector2(0.4, 0.1) },
   };
@@ -315,6 +231,7 @@ export function initHero(container) {
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
 
+  // Background dimensional rift shader
   const bg = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
     new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: U, depthTest: false, depthWrite: false })
@@ -322,7 +239,8 @@ export function initHero(container) {
   bg.frustumCulled = false; bg.renderOrder = -1;
   scene.add(bg);
 
-  const COUNT = mobile ? 260 : 700;
+  // Sparks / embers rising from the breach
+  const COUNT = mobile ? 220 : 600;
   const seed = new Float32Array(COUNT * 4);
   for (let i = 0; i < seed.length; i++) seed[i] = Math.random();
   const pg = new THREE.BufferGeometry();
@@ -335,9 +253,83 @@ export function initHero(container) {
   sparks.frustumCulled = false; sparks.renderOrder = 1;
   scene.add(sparks);
 
+  // Scene lighting for 3D gemstone facets
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambLight);
+  const dirLight = new THREE.DirectionalLight(0xfff5ea, 1.8);
+  dirLight.position.set(1.5, 2.0, 2.5);
+  scene.add(dirLight);
+
+  // ---- 6 GLOWING INFINITY STONES ----
+  const gemGroupRoot = new THREE.Group();
+  gemGroupRoot.renderOrder = 2;
+  scene.add(gemGroupRoot);
+
+  const gemEntrance = { scale: 0, opacity: 0 };
+
+  const gemItems = STONES.map((stone, index) => {
+    const group = new THREE.Group();
+    const gemRadius = mobile ? 0.019 : 0.023;
+
+    let geom;
+    if (stone.geomType === 'ico') {
+      geom = new THREE.IcosahedronGeometry(gemRadius, 0);
+    } else if (stone.geomType === 'elongated') {
+      geom = new THREE.OctahedronGeometry(gemRadius, 0);
+      geom.scale(0.85, 1.35, 0.85);
+    } else {
+      geom = new THREE.OctahedronGeometry(gemRadius, 0);
+    }
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: stone.color,
+      emissive: stone.emissive,
+      emissiveIntensity: stone.intensity,
+      roughness: 0.15,
+      metalness: 0.35,
+      flatShading: true,
+      transparent: true,
+      opacity: 0.0,
+    });
+    const mesh = new THREE.Mesh(geom, mat);
+    group.add(mesh);
+
+    // Inner bright hot core for intense bloom highlight
+    const coreGeom = new THREE.OctahedronGeometry(gemRadius * 0.42, 0);
+    const coreMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.0,
+    });
+    const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+    group.add(coreMesh);
+
+    // Local emissive point light for glow radiance
+    const pLight = new THREE.PointLight(stone.color, 0.9, 0.35);
+    group.add(pLight);
+
+    gemGroupRoot.add(group);
+
+    return {
+      stone,
+      index,
+      group,
+      mesh,
+      geom,
+      coreMesh,
+      coreGeom,
+      mat,
+      coreMat,
+      pLight,
+      baseRadius: stone.rFactor,
+      phase: (index * Math.PI * 2) / 6,
+    };
+  });
+
+  // Postprocessing composer with UnrealBloomPass
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.6, 1.0);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.45, 0.65);
   composer.addPass(bloom);
   const final = new ShaderPass(FinalShader);
   composer.addPass(final);
@@ -348,7 +340,8 @@ export function initHero(container) {
     aspect = w / h;
     renderer.setPixelRatio(pr); renderer.setSize(w, h);
     composer.setPixelRatio(pr); composer.setSize(w, h);
-    camera.left = -aspect / 2; camera.right = aspect / 2; camera.updateProjectionMatrix();
+    camera.left = -aspect / 2; camera.right = aspect / 2; camera.top = 0.5; camera.bottom = -0.5;
+    camera.updateProjectionMatrix();
 
     const wide = aspect >= 1.1;
     const scale = THREE.MathUtils.clamp(aspect * 0.85, 0.5, 0.74);
@@ -366,7 +359,7 @@ export function initHero(container) {
   ro.observe(container);
   resize();
 
-  // pointer: parallax target + light position; drifts on its own when idle
+  // Pointer tracking
   const pt = new THREE.Vector2(), lt = new THREE.Vector2();
   let lastMove = -10;
   const onMove = (e) => {
@@ -391,7 +384,7 @@ export function initHero(container) {
     const now = performance.now() / 1000, t = now - t0, dt = now - last;
     last = now;
 
-    // auto-downgrade on weak GPUs
+    // Auto-downgrade on weak GPUs
     if (frames < 120) {
       if (frames > 20) acc += dt;
       if (++frames === 120 && acc / 99 > 0.034) { maxPR = 1; bloom.enabled = false; resize(); }
@@ -415,23 +408,80 @@ export function initHero(container) {
     U.uTime.value = ts;
     final.uniforms.uTime.value = ts;
     final.uniforms.uGlitch.value = U.uGlitch.value;
+
+    // ---- ANIMATE ORBITING INFINITY STONES ----
+    const scrollVal = U.uScroll.value; // 0 to 1
+    const scaleVal = U.uScale.value;
+    const center = U.uCenter.value;
+
+    // On scroll: drift upward & outward, then smoothly fade before entering tracks section
+    const scrollDriftY = scrollVal * 0.95;
+    const scrollExpand = 1.0 + scrollVal * 2.4;
+    const scrollFade = Math.max(0, 1.0 - scrollVal * 2.8);
+    const activeOpacity = gemEntrance.opacity * scrollFade;
+    const activeScale = gemEntrance.scale;
+
+    gemItems.forEach((item) => {
+      const { stone, group, mesh, mat, coreMat, pLight, baseRadius, phase } = item;
+      const orbitSpeed = stone.speed * (reduced ? 0.3 : 1.0);
+      const angle = ts * orbitSpeed + phase;
+      const r = baseRadius * scaleVal * 0.72;
+
+      // 3D tilted orbit around portal center
+      const cosTilt = Math.cos(stone.tilt);
+      const sinTilt = Math.sin(stone.tilt);
+      const orbitX = Math.cos(angle) * r * scrollExpand;
+      const orbitY = Math.sin(angle) * r * cosTilt * scrollExpand;
+      const orbitZ = Math.sin(angle) * r * sinTilt;
+
+      group.position.set(
+        center.x + orbitX,
+        center.y + orbitY + scrollDriftY,
+        orbitZ
+      );
+
+      group.scale.setScalar(activeScale);
+
+      // Slow tumbling faceted rotation
+      mesh.rotation.x = ts * 0.65 + item.index;
+      mesh.rotation.y = ts * 0.85 + item.index * 0.6;
+      mesh.rotation.z = ts * 0.35;
+
+      // Emissive & opacity adjustments
+      mat.opacity = activeOpacity;
+      coreMat.opacity = activeOpacity * 0.9;
+      pLight.intensity = 0.9 * activeOpacity;
+    });
+
     composer.render();
   }
   tick();
 
   return {
     play() {
-      if (reduced) { ['uSig', 'uR1', 'uR2', 'uCrack', 'uLock', 'uFlow', 'uAmb'].forEach((k) => (U[k].value = 1)); return; }
+      if (reduced) {
+        ['uSig', 'uCrack', 'uLock', 'uFlow', 'uAmb'].forEach((k) => (U[k].value = 1));
+        gemEntrance.scale = 1;
+        gemEntrance.opacity = 1;
+        return;
+      }
       const T = performance.now() / 1000 - t0;
       nextPulse = T + 2.4; nextGlitch = T + 9;
       gsap.timeline()
         .to(U.uAmb,   { value: 1, duration: 1.5 }, 0)
         .to(U.uSig,   { value: 1, duration: 0.9, ease: 'power2.out' }, 0.8)
-        .to(U.uR1,    { value: 1, duration: 1.1, ease: 'power2.inOut' }, 1.1)
-        .to(U.uR2,    { value: 1, duration: 1.0, ease: 'power2.inOut' }, 1.7)
-        .to(U.uFlow,  { value: 1, duration: 0.8 }, 2.0)
-        .to(U.uCrack, { value: 1, duration: 0.5, ease: 'power4.in' }, 2.2)
-        .to(U.uLock,  { value: 1, duration: 0.7, ease: 'power3.out' }, 2.5);
+        .to(U.uFlow,  { value: 1, duration: 0.8 }, 1.4)
+        .to(U.uCrack, { value: 1, duration: 0.6, ease: 'power4.in' }, 1.6)
+        .to(U.uLock,  { value: 1, duration: 0.7, ease: 'power3.out' }, 2.0);
+
+      // Smooth gemstone entrance
+      gsap.to(gemEntrance, {
+        scale: 1,
+        opacity: 1,
+        duration: 1.6,
+        delay: 1.2,
+        ease: 'back.out(1.5)',
+      });
     },
     setScroll(v) { U.uScroll.value = v; },
     destroy() {
@@ -439,6 +489,12 @@ export function initHero(container) {
       window.removeEventListener('pointermove', onMove);
       ro.disconnect(); io.disconnect();
       bg.geometry.dispose(); bg.material.dispose(); pg.dispose(); sparks.material.dispose();
+      gemItems.forEach((item) => {
+        item.geom.dispose();
+        item.mat.dispose();
+        item.coreGeom.dispose();
+        item.coreMat.dispose();
+      });
       composer.dispose(); renderer.dispose(); renderer.domElement.remove();
     },
   };

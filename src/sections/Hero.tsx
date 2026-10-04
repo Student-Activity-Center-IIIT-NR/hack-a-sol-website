@@ -1,185 +1,471 @@
 /**
  * src/sections/Hero.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Cinematic "Breach" hero: a fullscreen-shader dimensional gateway (see
- * src/three/hero/HeroScene.js) plus the title treatment and HUD micro-details.
- *
- * NOTE: this section owns ONE small WebGL canvas (hero only). It pauses itself
- * when scrolled out of view. All uncertain copy comes from src/config.ts.
- *
- * `ready` should be false while the loading screen is up; the opening sequence
- * starts when it flips to true.
+ * Centered Marvel Multiverse Hero Section:
+ * - Centered hierarchy:
+ *     "IIIT NAYA RAIPUR PRESENTS"
+ *     "HACK-A-SOL"
+ *     "5.0" (between two thin lines)
+ *     "MARVEL" (high contrast, tracked)
+ *     "5 specialised tracks. 5 Marvel champions."
+ *     Centered CTA buttons: COMING SOON + BECOME A SPONSOR
+ * - Background: 5 character silhouettes (/characters/<id>.png) flanking left and right,
+ *   tinted in track accent colors with grayscale, brightness(0.5), gradient masks,
+ *   slow mouse parallax, floating animations, and scroll drift/fade.
+ * - Faint generic SVG motifs (shield rings, claw slashes, spell mandala, drone eye, red crack).
+ * - Proper top padding to clear fixed navbar.
  */
 
-import { useEffect, useLayoutEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { EVENT } from '../config'
-import { initHero } from '../three/hero/HeroScene'
-import type { HeroHandle } from '../three/hero/HeroScene'
 import '../styles/hero.css'
 
+gsap.registerPlugin(ScrollTrigger)
+
 interface HeroProps {
-  /** False while the loading screen is showing. */
-  ready: boolean
+  /** False while the loading screen is showing */
+  ready?: boolean
 }
 
-/** Position of a HUD tag relative to the gateway, in units of its outer radius. */
-const at = (tx: number, ty: number) => ({ '--tx': tx, '--ty': ty }) as CSSProperties
+// 5 character silhouettes flanking the sides (center column kept 100% clear)
+const SILHOUETTES = [
+  // Left flank
+  {
+    id: 'cybersec',
+    image: '/characters/cybersec.png',
+    accentColor: '#EF4444',
+    name: 'Captain America',
+    side: 'left' as const,
+    className: 'hidden sm:block -left-6 sm:left-[2%] lg:left-[5%] top-[12%] h-[58vh] max-h-[580px] w-auto z-[1]',
+    depth: 0.25,
+    floatDuration: 8.5,
+    floatDelay: 0,
+    baseOpacity: 0.12,
+  },
+  {
+    id: 'aiml',
+    image: '/characters/aiml.png',
+    accentColor: '#60A5FA',
+    name: 'Iron Man',
+    side: 'left' as const,
+    className: 'left-[1%] sm:left-[11%] lg:left-[15%] top-[24%] h-[50vh] max-h-[500px] w-auto z-[2]',
+    depth: 0.5,
+    floatDuration: 7.2,
+    floatDelay: 1.2,
+    baseOpacity: 0.14,
+    mobileVisible: true,
+  },
+  {
+    id: 'robonyx',
+    image: '/characters/robonyx.png',
+    accentColor: '#F87171',
+    name: 'Ultron',
+    side: 'left' as const,
+    className: 'hidden md:block -left-10 lg:-left-4 top-[36%] h-[46vh] max-h-[460px] w-auto z-[1]',
+    depth: 0.35,
+    floatDuration: 9.0,
+    floatDelay: 2.4,
+    baseOpacity: 0.10,
+  },
+  // Right flank
+  {
+    id: 'coderun',
+    image: '/characters/coderun.png',
+    accentColor: '#F59E0B',
+    name: 'Doctor Strange',
+    side: 'right' as const,
+    className: 'hidden sm:block -right-6 sm:right-[2%] lg:right-[5%] top-[10%] h-[60vh] max-h-[600px] w-auto z-[1]',
+    depth: 0.28,
+    floatDuration: 8.0,
+    floatDelay: 0.8,
+    baseOpacity: 0.12,
+  },
+  {
+    id: 'web3',
+    image: '/characters/web3.png',
+    accentColor: '#A855F7',
+    name: 'Black Panther',
+    side: 'right' as const,
+    className: 'right-[1%] sm:right-[11%] lg:right-[15%] top-[26%] h-[50vh] max-h-[500px] w-auto z-[2]',
+    depth: 0.55,
+    floatDuration: 7.6,
+    floatDelay: 1.8,
+    baseOpacity: 0.14,
+    mobileVisible: true,
+  },
+]
 
-const GLITCH_CHARS = '#%&01'
+export function Hero({ ready = true }: HeroProps) {
+  const heroRef = useRef<HTMLElement>(null)
+  const leftGroupRef = useRef<HTMLDivElement>(null)
+  const rightGroupRef = useRef<HTMLDivElement>(null)
+  const textGroupRef = useRef<HTMLDivElement>(null)
+  const motifsRef = useRef<HTMLDivElement>(null)
 
-export function Hero({ ready }: HeroProps) {
-  const rootRef = useRef<HTMLElement>(null)
-  const canvasRef = useRef<HTMLDivElement>(null)
-  const statusRef = useRef<HTMLParagraphElement>(null)
-  const energyRef = useRef<HTMLElement>(null)
-  const variantRef = useRef<HTMLElement>(null)
-  const xyRef = useRef<HTMLSpanElement>(null)
-  const heroRef = useRef<HeroHandle | null>(null)
-  const playedRef = useRef(false)
-
-  // Hidden start states, applied before first paint so nothing flashes.
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.set('.ln > span', { yPercent: 115 })
-      gsap.set('.fade', { opacity: 0, y: 14 })
-      gsap.set('.tag, .hud', { opacity: 0 })
-    }, rootRef)
-    return () => ctx.revert()
-  }, [])
-
-  // Mount / unmount the WebGL gateway.
-  useEffect(() => {
-    const container = canvasRef.current
-    if (!container) return
-    const hero = initHero(container)
-    heroRef.current = hero
-    return () => {
-      hero.destroy()
-      heroRef.current = null
-      playedRef.current = false
-    }
-  }, [])
-
-  // Always-on live bits: pointer readout, energy flicker, variant glitch, text parallax.
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root) return
-    const textEl = root.querySelector<HTMLElement>('.hs-text')
-    const moveX = textEl ? gsap.quickTo(textEl, 'x', { duration: 1.4, ease: 'power3.out' }) : null
-
-    const pad = (v: number, m: number) => ((v / m) * 100).toFixed(2).padStart(5, '0')
-    const onMove = (e: PointerEvent) => {
-      if (xyRef.current) xyRef.current.textContent = `X ${pad(e.clientX, innerWidth)} Y ${pad(e.clientY, innerHeight)}`
-      moveX?.((e.clientX / innerWidth - 0.5) * -12)
-    }
-    window.addEventListener('pointermove', onMove)
-
-    const energy = window.setInterval(() => {
-      if (energyRef.current) energyRef.current.textContent = (97.4 + (Math.random() - 0.5) * 0.6).toFixed(1).padStart(5, '0')
-    }, 1400)
-
-    let restore = 0
-    const onGlitch = () => {
-      const el = variantRef.current
-      if (!el) return
-      const original = 'VARIANT // 07'
-      el.textContent = original.replace(/[A-Z0-9]/g, (c) =>
-        Math.random() < 0.35 ? GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)] : c)
-      window.clearTimeout(restore)
-      restore = window.setTimeout(() => { el.textContent = original }, 140)
-    }
-    window.addEventListener('variant-glitch', onGlitch)
-
-    return () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('variant-glitch', onGlitch)
-      window.clearInterval(energy)
-      window.clearTimeout(restore)
-    }
-  }, [])
-
-  // Opening sequence: starts once the loading screen is gone.
   useEffect(() => {
     const hero = heroRef.current
-    if (!ready || !hero || playedRef.current) return
-    playedRef.current = true
+    if (!hero) return
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    hero.play()
+
+    // Mouse parallax with variable depths per layer
+    let quickXLeft: ((v: number) => void) | null = null
+    let quickYLeft: ((v: number) => void) | null = null
+    let quickXRight: ((v: number) => void) | null = null
+    let quickYRight: ((v: number) => void) | null = null
+    let quickXMotifs: ((v: number) => void) | null = null
+    let quickYMotifs: ((v: number) => void) | null = null
+
+    if (!reduced) {
+      if (leftGroupRef.current) {
+        quickXLeft = gsap.quickTo(leftGroupRef.current, 'x', { duration: 1.2, ease: 'power2.out' })
+        quickYLeft = gsap.quickTo(leftGroupRef.current, 'y', { duration: 1.2, ease: 'power2.out' })
+      }
+      if (rightGroupRef.current) {
+        quickXRight = gsap.quickTo(rightGroupRef.current, 'x', { duration: 1.2, ease: 'power2.out' })
+        quickYRight = gsap.quickTo(rightGroupRef.current, 'y', { duration: 1.2, ease: 'power2.out' })
+      }
+      if (motifsRef.current) {
+        quickXMotifs = gsap.quickTo(motifsRef.current, 'x', { duration: 1.6, ease: 'power2.out' })
+        quickYMotifs = gsap.quickTo(motifsRef.current, 'y', { duration: 1.6, ease: 'power2.out' })
+      }
+
+      const onPointerMove = (e: PointerEvent) => {
+        const nx = (e.clientX / window.innerWidth - 0.5) * 2 // -1 to 1
+        const ny = (e.clientY / window.innerHeight - 0.5) * 2
+
+        quickXLeft?.(nx * -24)
+        quickYLeft?.(ny * -18)
+        quickXRight?.(nx * 24)
+        quickYRight?.(ny * -18)
+        quickXMotifs?.(nx * -14)
+        quickYMotifs?.(ny * -10)
+      }
+
+      window.addEventListener('pointermove', onPointerMove, { passive: true })
+
+      return () => {
+        window.removeEventListener('pointermove', onPointerMove)
+      }
+    }
+  }, [])
+
+  // Scroll animations: characters drift outward and fade as user enters Tracks
+  useEffect(() => {
+    const hero = heroRef.current
+    if (!hero || !ready) return
 
     const ctx = gsap.context(() => {
-      const type = (text: string, delay: number) => {
-        const o = { n: 0 }
-        gsap.to(o, {
-          n: text.length, duration: text.length * 0.028, ease: 'none', delay,
-          onUpdate: () => { if (statusRef.current) statusRef.current.textContent = text.slice(0, Math.round(o.n)) },
+      // Outward drift and fade for left silhouettes
+      if (leftGroupRef.current) {
+        gsap.to(leftGroupRef.current, {
+          xPercent: -35,
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: '60% top',
+            scrub: true,
+          },
         })
       }
-      type('INCOMING TRANSMISSION...', reduced ? 0 : 0.4)
-      if (!reduced) type('REALITY DETECTED  //  MISSION ACTIVE', 2.7)
 
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
-        .to('.hud', { opacity: 1, duration: 1.4 }, 1.0)
-        .to('.fade.pre', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.0)
-        .to('.ln > span', { yPercent: 0, duration: 0.9, stagger: 0.14, ease: 'expo.out' }, 2.2)
-        .to('.tag', { opacity: 1, duration: 1.2, stagger: 0.15 }, 2.6)
-        .to('.fade.post', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.8)
-      if (reduced) tl.timeScale(20)
+      // Outward drift and fade for right silhouettes
+      if (rightGroupRef.current) {
+        gsap.to(rightGroupRef.current, {
+          xPercent: 35,
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: '60% top',
+            scrub: true,
+          },
+        })
+      }
 
-      // Scroll: the gateway swells and fades while the text lifts away.
-      ScrollTrigger.create({
-        trigger: rootRef.current, start: 'top top', end: 'bottom top', scrub: true,
-        onUpdate: (s) => hero.setScroll(s.progress),
-      })
-      gsap.to('.hs-text, .tags', {
-        yPercent: -10, opacity: 0, ease: 'none',
-        scrollTrigger: { trigger: rootRef.current, start: 'top top', end: '65% top', scrub: true },
-      })
-    }, rootRef)
+      // Motifs fade on scroll
+      if (motifsRef.current) {
+        gsap.to(motifsRef.current, {
+          opacity: 0,
+          scale: 1.08,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: '50% top',
+            scrub: true,
+          },
+        })
+      }
+
+      // Center text lifts and fades
+      if (textGroupRef.current) {
+        gsap.to(textGroupRef.current, {
+          yPercent: -15,
+          opacity: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: hero,
+            start: 'top top',
+            end: '55% top',
+            scrub: true,
+          },
+        })
+      }
+    }, hero)
 
     return () => ctx.revert()
-  }, [ready])
+  }, [])
 
   return (
-    <section id="hero" ref={rootRef} className="hs-hero" aria-label={`${EVENT.name} — Enter the Multiverse`}>
-      <div ref={canvasRef} className="hs-canvas" aria-hidden="true" />
-      <p ref={statusRef} className="status" aria-hidden="true" />
+    <section
+      id="hero"
+      ref={heroRef}
+      aria-label={`${EVENT.name} — Enter the Multiverse`}
+      className="relative min-h-[100svh] flex flex-col justify-center items-center overflow-hidden pt-24 sm:pt-28 pb-16 px-4 sm:px-6 select-none"
+    >
+      {/* ── Subtle Comic Halftone Dot Texture ── */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.025]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+        }}
+        aria-hidden="true"
+      />
 
-      <div className="tags" aria-hidden="true">
-        <div className="tag" style={at(0.72, -0.7)}><i /><p>DIMENSION // 616<br /><span>REALITY // DETECTED</span></p></div>
-        <div className="tag l" style={at(-0.8, -0.62)}><i /><p>CALIBRATION // 98.7%<br /><span>ENERGY FLOW // STABLE</span></p></div>
-        <div className="tag l" style={at(-0.78, 0.62)}><i /><p>SIGNAL // DETECTED<br /><span>SECTOR // A-07</span></p></div>
-        <div className="tag" style={at(0.9, 0.46)}><i /><p>ENERGY // <b ref={energyRef}>097.4</b>%<br /><span>DIMENSIONAL LOCK // 87%</span></p></div>
-        <div className="tag" style={at(0.62, 0.8)}><i /><p><b ref={variantRef}>VARIANT // 07</b><br /><span>TIMELINE // ACTIVE</span></p></div>
-        <div className="tag cal" style={at(1.27, 0)}>090</div>
-        <div className="tag cal" style={at(-1.27, 0)}>270</div>
+      {/* ── GENERIC FAINT MOTIFS (References: Shield, Slashes, Mandala, Drone Eye, Crack) ── */}
+      <div ref={motifsRef} className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        {/* 1. Shield Rings Motif (Left / Cap reference) */}
+        <svg
+          className="absolute left-[8%] top-[18%] w-56 h-56 sm:w-80 sm:h-80 opacity-[0.07] stroke-red-500"
+          viewBox="0 0 200 200"
+          fill="none"
+        >
+          <circle cx="100" cy="100" r="90" strokeWidth="1.2" strokeDasharray="6 4" />
+          <circle cx="100" cy="100" r="68" strokeWidth="1.6" />
+          <circle cx="100" cy="100" r="46" strokeWidth="1.2" strokeDasharray="3 3" />
+          <circle cx="100" cy="100" r="24" strokeWidth="2" />
+        </svg>
+
+        {/* 2. Diagonal Claw Slashes Motif (Right / Black Panther reference) */}
+        <svg
+          className="absolute right-[12%] bottom-[22%] w-44 h-44 sm:w-64 sm:h-64 opacity-[0.07] stroke-purple-400"
+          viewBox="0 0 160 160"
+          fill="none"
+        >
+          <path d="M20 140 L130 20" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M40 150 L145 35" strokeWidth="3" strokeLinecap="round" />
+          <path d="M60 160 L160 55" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+
+        {/* 3. Spell Circle Mandala Motif (Upper Right / Strange reference) */}
+        <svg
+          className="hero-mandala-spin absolute right-[8%] top-[12%] w-60 h-60 sm:w-88 sm:h-88 opacity-[0.07] stroke-amber-400"
+          viewBox="0 0 200 200"
+          fill="none"
+        >
+          <circle cx="100" cy="100" r="88" strokeWidth="1" />
+          <circle cx="100" cy="100" r="72" strokeWidth="1.2" strokeDasharray="4 4" />
+          <rect x="42" y="42" width="116" height="116" strokeWidth="1" transform="rotate(45 100 100)" />
+          <rect x="42" y="42" width="116" height="116" strokeWidth="1" />
+          <circle cx="100" cy="100" r="32" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="16" strokeWidth="1" strokeDasharray="2 2" />
+        </svg>
+
+        {/* 4. Drone Eye with Red Glint (Lower Left / Ultron reference) */}
+        <svg
+          className="absolute left-[16%] bottom-[26%] w-16 h-16 opacity-[0.08]"
+          viewBox="0 0 64 64"
+          fill="none"
+        >
+          <circle cx="32" cy="32" r="14" stroke="#f87171" strokeWidth="1.5" />
+          <circle cx="32" cy="32" r="5" fill="#ef4444" />
+          {/* Glint flare lines */}
+          <line x1="32" y1="12" x2="32" y2="52" stroke="#f87171" strokeWidth="1" opacity="0.6" />
+          <line x1="12" y1="32" x2="52" y2="32" stroke="#f87171" strokeWidth="1" opacity="0.6" />
+        </svg>
+
+        {/* 5. Thin Red Multiverse Crack of Light */}
+        <svg
+          className="absolute left-1/2 -translate-x-1/2 top-4 w-[280px] h-[92vh] opacity-[0.07] pointer-events-none"
+          viewBox="0 0 280 800"
+          fill="none"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M140 0 L144 140 L136 280 L148 390 L135 520 L144 670 L140 800"
+            stroke="#ff2424"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M140 0 L144 140 L136 280 L148 390 L135 520 L144 670 L140 800"
+            stroke="#ffffff"
+            strokeWidth="0.8"
+            strokeOpacity="0.8"
+          />
+        </svg>
       </div>
 
-      <div className="hs-text">
-        <p className="label fade pre"><i />{EVENT.hostedBy} presents</p>
-        <p className="name fade pre">Hack-A-Sol <b>{EVENT.edition}</b></p>
-        <h1 aria-label="Enter the Multiverse">
-          <span className="ln"><span>Enter the</span></span>
-          <span className="ln big"><span>Multiverse</span></span>
+      {/* ── BACKGROUND CHARACTERS: 5 Flanking Dark Tinted Silhouettes ── */}
+      {/* Left Flank Group (Cap, Iron Man, Ultron) */}
+      <div ref={leftGroupRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none" aria-hidden="true">
+        {SILHOUETTES.filter((s) => s.side === 'left').map((s) => (
+          <div
+            key={s.id}
+            className={`absolute pointer-events-none ${s.className} hero-char-float`}
+            style={{
+              animationDuration: `${s.floatDuration}s`,
+              animationDelay: `${s.floatDelay}s`,
+            }}
+          >
+            <div className="relative w-full h-full">
+              <img
+                src={s.image}
+                alt=""
+                onError={(e) => {
+                  (e.currentTarget.parentElement?.parentElement as HTMLElement)?.style.setProperty('display', 'none')
+                }}
+                className="w-full h-full object-contain pointer-events-none"
+                style={{
+                  filter: 'grayscale(100%) brightness(0.45)',
+                  opacity: s.baseOpacity,
+                  mixBlendMode: 'screen',
+                  maskImage: 'linear-gradient(to bottom, black 50%, transparent 95%), radial-gradient(ellipse at 50% 40%, black 50%, transparent 90%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 95%), radial-gradient(ellipse at 50% 40%, black 50%, transparent 90%)',
+                }}
+              />
+              {/* Subtle accent color wash */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundColor: s.accentColor,
+                  opacity: 0.12,
+                  mixBlendMode: 'screen',
+                  maskImage: 'linear-gradient(to bottom, black 40%, transparent 95%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 95%)',
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Right Flank Group (Doctor Strange, Black Panther) */}
+      <div ref={rightGroupRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none" aria-hidden="true">
+        {SILHOUETTES.filter((s) => s.side === 'right').map((s) => (
+          <div
+            key={s.id}
+            className={`absolute pointer-events-none ${s.className} hero-char-float`}
+            style={{
+              animationDuration: `${s.floatDuration}s`,
+              animationDelay: `${s.floatDelay}s`,
+            }}
+          >
+            <div className="relative w-full h-full">
+              <img
+                src={s.image}
+                alt=""
+                onError={(e) => {
+                  (e.currentTarget.parentElement?.parentElement as HTMLElement)?.style.setProperty('display', 'none')
+                }}
+                className="w-full h-full object-contain pointer-events-none"
+                style={{
+                  filter: 'grayscale(100%) brightness(0.45)',
+                  opacity: s.baseOpacity,
+                  mixBlendMode: 'screen',
+                  maskImage: 'linear-gradient(to bottom, black 50%, transparent 95%), radial-gradient(ellipse at 50% 40%, black 50%, transparent 90%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent 95%), radial-gradient(ellipse at 50% 40%, black 50%, transparent 90%)',
+                }}
+              />
+              {/* Subtle accent color wash */}
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundColor: s.accentColor,
+                  opacity: 0.12,
+                  mixBlendMode: 'screen',
+                  maskImage: 'linear-gradient(to bottom, black 40%, transparent 95%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 95%)',
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── CENTERED HERO CONTENT (Keep center column 100% clear of silhouettes) ── */}
+      <div
+        ref={textGroupRef}
+        className="relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center justify-center my-auto"
+      >
+        {/* 1. IIIT NAYA RAIPUR PRESENTS (small, red, spaced) */}
+        <p className="font-mono text-xs sm:text-sm tracking-[0.45em] sm:tracking-[0.55em] text-[#e53935] uppercase mb-4 sm:mb-6 font-semibold">
+          {EVENT.hostedBy} PRESENTS
+        </p>
+
+        {/* 2. HUGE CENTERED HACK-A-SOL */}
+        <h1
+          className="font-heading font-black text-6xl sm:text-8xl md:text-9xl lg:text-[10.5rem] leading-[0.88] tracking-widest text-white uppercase drop-shadow-[0_0_50px_rgba(229,57,53,0.32)]"
+        >
+          HACK-A-SOL
         </h1>
-        <p className="support fade post">Teams from every reality. One mission. Build what comes next.</p>
-        <div className="cta fade post">
-          <a id="hero-register-btn" className="btn" href={EVENT.registrationLink} data-magnetic>
-            <span>{EVENT.registrationStatus}</span><em>→</em>
+
+        {/* 3. 5.0 BETWEEN TWO THIN LINES */}
+        <div className="inline-flex items-center justify-center gap-4 sm:gap-6 my-3 sm:my-4">
+          <div className="h-px w-10 sm:w-16 bg-white/25" />
+          <span className="font-heading text-xl sm:text-2xl md:text-3xl tracking-[0.6em] text-white/80 font-bold pl-2">
+            {EVENT.edition}
+          </span>
+          <div className="h-px w-10 sm:w-16 bg-white/25" />
+        </div>
+
+        {/* 4. MARVEL (spaced letters, higher contrast) */}
+        <p className="font-heading text-2xl sm:text-4xl md:text-5xl tracking-[0.75em] sm:tracking-[0.95em] text-white/90 uppercase font-black pl-3 my-1 sm:my-2 text-shadow-marvel">
+          {EVENT.theme}
+        </p>
+
+        {/* 5. DESCRIPTION: 5 specialised tracks. 5 Marvel champions. */}
+        <p className="font-body text-base sm:text-lg md:text-xl text-white/70 max-w-2xl mx-auto my-5 sm:my-7 leading-relaxed font-light px-4">
+          5 specialised tracks. 5 Marvel champions.
+        </p>
+
+        {/* 6. TWO CENTERED BUTTONS: COMING SOON + BECOME A SPONSOR */}
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-5 mt-2">
+          {/* COMING SOON button */}
+          <a
+            id="hero-register-btn"
+            href={EVENT.registrationLink}
+            data-magnetic
+            className="px-8 sm:px-9 py-3.5 sm:py-4 font-mono font-medium tracking-[0.22em] text-xs sm:text-sm uppercase text-white bg-[#e53935] hover:bg-[#ff4a4e] rounded-sm transition-all duration-300 shadow-[0_0_24px_rgba(229,57,53,0.45)] hover:shadow-[0_0_36px_rgba(229,57,53,0.7)] hover:scale-105 active:scale-95 flex items-center gap-2"
+          >
+            <span>{EVENT.registrationStatus.toUpperCase()}</span>
+            <span aria-hidden="true">→</span>
           </a>
-          <a id="hero-tracks-link" className="link" href="#tracks">View tracks</a>
-          <a id="hero-sponsor-btn" className="link" href="#why-sponsor">Become a sponsor</a>
+
+          {/* BECOME A SPONSOR button */}
+          <a
+            id="hero-sponsor-btn"
+            href="#why-sponsor"
+            data-magnetic
+            className="px-8 sm:px-9 py-3.5 sm:py-4 font-mono font-medium tracking-[0.22em] text-xs sm:text-sm uppercase text-white/85 hover:text-white border border-white/25 hover:border-white/60 bg-white/[0.03] hover:bg-white/[0.08] rounded-sm transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            BECOME A SPONSOR
+          </a>
         </div>
       </div>
 
-      <div className="hud" aria-hidden="true">
-        <span>MISSION // 005 &nbsp;·&nbsp; {EVENT.date}</span>
-        <span className="hud-mid">LAT 21.2514 &nbsp; LNG 81.6296</span>
-        <span><i className="dot" />SIGNAL STABLE &nbsp;·&nbsp; <span ref={xyRef}>X 00.00 Y 00.00</span></span>
-      </div>
+      {/* ── Bottom Gradient Blend ── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#04050a] to-transparent pointer-events-none"
+        aria-hidden="true"
+      />
     </section>
   )
 }
