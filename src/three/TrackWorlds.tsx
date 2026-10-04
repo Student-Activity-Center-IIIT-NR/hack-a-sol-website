@@ -1,18 +1,28 @@
 /**
- * src/three/TrackWorlds.tsx  (Phase 3h — Marvel scroll environments)
+ * src/three/TrackWorlds.tsx  (Phase 3i — fix: environments at camera origin)
  * ─────────────────────────────────────────────────────────────────────────────
- * Places all 5 track world environments + character stages in 3D space.
+ * ROOT FIX: All environments render at [0,0,0] (origin, right in front of the
+ * camera). The previous layout placed them at z=-8,-20,-32,-44,-56, positions
+ * the camera only reaches when scrollProgress advances beyond the pin — which
+ * never happens because GSAP pins #tracks (scrollProgress stays frozen).
  *
- * Phase 3h changes:
- *   - Environments now accept chapterProgress (0..1) and velocity instead of localT
- *   - Environments always render alongside the character (not just as fallback)
- *   - Environments are BEHIND the character (negative Z offset)
- *   - Only active +/- 1 window is rendered for performance
+ * Solution: mount only the ACTIVE environment at origin; crossfade via
+ * chapterProgress. Adjacent environments (±1) are mounted but positioned at
+ * origin too — their globalA() naturally fades them to 0 when not active.
+ *
+ * chapterLocalT for track i:
+ *   - i === activeTrackIndex: cp = chapterProgress ∈ [0,1]
+ *   - i === activeTrackIndex - 1: cp → 1 (exiting), α → 0
+ *   - i === activeTrackIndex + 1: cp = 0 (not yet entered), α = 0
+ *
+ * Phase 3i changes:
+ *   - Removed TRACK_WORLD_POSITIONS offset — all environments at [0, 0, 0]
+ *   - CharacterStage still mounted when visual === "model"
+ *   - ?debug=1&env=bright: renderOrder trick + large emissive boost via prop
  */
 
 import { Suspense } from "react"
 import { TRACKS } from "../data/tracks"
-import { TRACK_WORLD_POSITIONS } from "../hooks/useScrollCamera"
 import { chapterLocalT } from "../hooks/useTrackSection"
 import { CharacterStage } from "./CharacterStage"
 import { IronManWorld }      from "./worlds/IronManWorld"
@@ -41,33 +51,30 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }:
   return (
     <>
       {TRACKS.map((track, i) => {
-        const [x, y, z] = TRACK_WORLD_POSITIONS[i]
-        const cp         = chapterLocalT(sectionProgress, i)
-        const active     = i === activeTrackIndex
+        const cp      = chapterLocalT(sectionProgress, i)
+        const active  = i === activeTrackIndex
         const Environment = ENVIRONMENTS[i]
 
-        // Fall back to "model" visual if a track has no image; otherwise respect track.visual (default "image")
+        // Fall back to "model" visual if a track has no image
         const hasImage        = Boolean(track.imagePath)
         const effectiveVisual = !hasImage ? 'model' : (track.visual ?? 'image')
         const showModel       = effectiveVisual !== 'image'
 
-        // Only render within activeIndex +/- 1 window
+        // Only render within activeIndex ±1 window (adjacent chapters fade out naturally)
         const inWindow = Math.abs(i - activeTrackIndex) <= 1
 
         return (
-          <group key={track.id} position={[x, y, z]} visible={inWindow}>
+          <group key={track.id} position={[0, 0, 0]} visible={inWindow}>
             {inWindow && (
               <>
-                {/* Marvel environment — BEHIND character, full scroll choreography */}
-                <group position={[0, 0, 0]}>
-                  <Environment
-                    chapterProgress={cp}
-                    active={active}
-                    velocity={active ? velocity : 0}
-                  />
-                </group>
+                {/* Marvel environment — at origin, right in front of camera */}
+                <Environment
+                  chapterProgress={cp}
+                  active={active}
+                  velocity={active ? velocity : 0}
+                />
 
-                {/* Character stage (GLB or image-plane) — mounted only when visual is "model" or no image */}
+                {/* Character stage (GLB) — only when visual === "model" */}
                 {showModel && (
                   <Suspense fallback={null}>
                     <CharacterStage
