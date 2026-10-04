@@ -7,7 +7,7 @@
 
 import { useRef, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
-import { Stars, Environment } from "@react-three/drei"
+import { Stars } from "@react-three/drei"
 import * as THREE from "three"
 
 import { TRACKS } from "../data/tracks"
@@ -84,7 +84,10 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
 
       <Stars radius={100} depth={100} count={5000} factor={4} saturation={0.1} fade speed={0.3} />
 
-      <Environment preset="city" environmentIntensity={0.45} />
+      {/* Local lighting setup — zero external network dependencies */}
+      <hemisphereLight args={["#ffffff", "#050508", 0.65]} />
+      <directionalLight position={[-8, -6, -4]} intensity={0.45} color="#60a5fa" />
+      <directionalLight position={[0, 8, -6]} intensity={0.35} color="#a855f7" />
 
       {/* Procedural 3D Marvel objects for Hero section */}
       <HeroCosmos scrollProgress={scrollProgress} />
