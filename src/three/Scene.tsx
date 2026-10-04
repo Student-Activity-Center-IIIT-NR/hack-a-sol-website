@@ -90,7 +90,7 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
       <directionalLight position={[0, 8, -6]} intensity={0.35} color="#a855f7" />
 
       {/* Procedural 3D Marvel objects for Hero section */}
-      <HeroCosmos scrollProgress={scrollProgress} />
+      <HeroCosmos scrollProgress={scrollProgress} velocity={velocity} />
 
       <TrackWorlds
         activeTrackIndex={activeTrackIndex}
