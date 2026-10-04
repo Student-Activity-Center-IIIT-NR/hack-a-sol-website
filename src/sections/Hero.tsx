@@ -95,7 +95,6 @@ export function Hero({ ready = true }: HeroProps) {
   const rightGroupRef = useRef<HTMLDivElement>(null)
   const textGroupRef = useRef<HTMLDivElement>(null)
   const crackRef = useRef<SVGSVGElement>(null)
-
   // Verify PNG transparency: if a PNG has an opaque background, hide it and log warning
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     try {

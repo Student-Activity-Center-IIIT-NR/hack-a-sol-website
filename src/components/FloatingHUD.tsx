@@ -80,11 +80,11 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
       {/* ── Bottom-Right: Active Track Telemetry ── */}
       {/* Hidden during Hero to keep strictly ONE corner label in Hero; right margin safeguarded */}
       <div
-        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 ${(inHeroSection || scrollProgress > 0.92) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 ${(inHeroSection || scrollProgress > 0.92 || !inTracksSection) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
         <div className="flex items-center justify-end gap-2 mb-0.5">
           <span
-            className="w-1.5 h-1.5 rounded-full"
+            className="w-1.5 h-1.5 rounded-l"
             style={{ backgroundColor: activeTrack ? activeTrack.accentColor : '#E23636' }}
           />
           <span className="text-white/70 uppercase truncate">
