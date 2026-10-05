@@ -26,30 +26,32 @@ interface HeroProps {
   ready?: boolean
 }
 
-// 5 character silhouettes flanking the sides (pure images, no background boxes/color-washes)
+// 5 character silhouettes flanking the sides with staggered sizes and individual depths
 const SILHOUETTES = [
-  // Left flank
+  // Left flank (3 characters: aiml nearer title, cybersec mid, robonyx outer)
   {
     id: 'cybersec',
     src: '/characters/cybersec.png',
     name: 'Captain America',
     side: 'left' as const,
-    className: 'hidden sm:block -left-4 md:left-[1%] lg:left-[3%] top-[12%] h-[48vh] max-h-[460px] w-auto z-[1]',
-    depth: 0.25,
+    className: 'hidden sm:block left-[2%] sm:left-[4%] lg:left-[6%] top-[8%] h-[44vh] sm:h-[48vh] max-h-[460px] w-auto z-[2]',
+    depth: 0.32,
     floatDuration: 8.5,
     floatDelay: 0,
-    opacity: 0.19,
+    opacity: 0.34,
+    accentColor: '#EF4444',
   },
   {
     id: 'aiml',
     src: '/characters/aiml.png',
     name: 'Iron Man',
     side: 'left' as const,
-    className: 'left-[2%] sm:left-[8%] lg:left-[11%] top-[24%] h-[42vh] max-h-[400px] w-auto z-[2]',
+    className: 'left-[6%] sm:left-[10%] lg:left-[13%] top-[16%] h-[50vh] sm:h-[55vh] max-h-[520px] w-auto z-[3]',
     depth: 0.5,
     floatDuration: 7.2,
     floatDelay: 1.2,
-    opacity: 0.22,
+    opacity: 0.38,
+    accentColor: '#60A5FA',
     mobileVisible: true,
   },
   {
@@ -57,34 +59,37 @@ const SILHOUETTES = [
     src: '/characters/robonyx.png',
     name: 'Ultron',
     side: 'left' as const,
-    className: 'hidden md:block -left-8 lg:-left-2 top-[38%] h-[38vh] max-h-[360px] w-auto z-[1]',
-    depth: 0.35,
+    className: 'hidden sm:block -left-6 sm:-left-2 lg:left-[0%] top-[34%] h-[38vh] sm:h-[42vh] max-h-[390px] w-auto z-[1]',
+    depth: 0.2,
     floatDuration: 9.0,
     floatDelay: 2.4,
-    opacity: 0.17,
+    opacity: 0.30,
+    accentColor: '#F87171',
   },
-  // Right flank
+  // Right flank (2 characters: web3 nearer title, coderun mid/outer)
   {
     id: 'coderun',
     src: '/characters/coderun.png',
     name: 'Doctor Strange',
     side: 'right' as const,
-    className: 'hidden sm:block -right-4 md:right-[1%] lg:right-[3%] top-[10%] h-[50vh] max-h-[480px] w-auto z-[1]',
+    className: 'hidden sm:block right-[2%] sm:right-[4%] lg:right-[6%] top-[8%] h-[45vh] sm:h-[49vh] max-h-[470px] w-auto z-[2]',
     depth: 0.28,
     floatDuration: 8.0,
     floatDelay: 0.8,
-    opacity: 0.19,
+    opacity: 0.34,
+    accentColor: '#F59E0B',
   },
   {
     id: 'web3',
     src: '/characters/web3.png',
     name: 'Black Panther',
     side: 'right' as const,
-    className: 'right-[2%] sm:right-[8%] lg:right-[11%] top-[25%] h-[42vh] max-h-[400px] w-auto z-[2]',
-    depth: 0.55,
+    className: 'right-[6%] sm:right-[10%] lg:right-[13%] top-[16%] h-[50vh] sm:h-[55vh] max-h-[520px] w-auto z-[3]',
+    depth: 0.52,
     floatDuration: 7.6,
     floatDelay: 1.8,
-    opacity: 0.22,
+    opacity: 0.38,
+    accentColor: '#A855F7',
     mobileVisible: true,
   },
 ]
@@ -95,8 +100,11 @@ export function Hero({ ready = true }: HeroProps) {
   const rightGroupRef = useRef<HTMLDivElement>(null)
   const textGroupRef = useRef<HTMLDivElement>(null)
   const crackRef = useRef<SVGSVGElement>(null)
+  const charWrapperRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const quickToMap = useRef<{ [key: string]: { x: (v: number) => void; y: (v: number) => void } }>({})
+
   // Verify PNG transparency: if a PNG has an opaque background, hide it and log warning
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>, src: string) => {
     try {
       const img = e.currentTarget
       const canvas = document.createElement('canvas')
@@ -107,8 +115,8 @@ export function Hero({ ready = true }: HeroProps) {
         ctx.drawImage(img, 0, 0, 16, 16)
         const pixel = ctx.getImageData(0, 0, 1, 1).data
         // Corner pixel is fully opaque without alpha
-        if (pixel[3] === 255 && (pixel[0] > 240 || pixel[0] < 15)) {
-          console.warn(`[Hero] Silhouette ${img.src} has a non-transparent background; skipped silently.`)
+        if (pixel[3] === 255 && (pixel[0] > 235 || pixel[0] < 20)) {
+          console.warn(`[Hero] Silhouette ${src} has a non-transparent background; skipped.`)
           img.style.display = 'none'
         }
       }
@@ -117,7 +125,7 @@ export function Hero({ ready = true }: HeroProps) {
     }
   }
 
-  // Mouse parallax with individual depths per layer
+  // Mouse parallax with individual depths per character
   useEffect(() => {
     const hero = heroRef.current
     if (!hero) return
@@ -125,28 +133,27 @@ export function Hero({ ready = true }: HeroProps) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) return
 
-    let quickXLeft: ((v: number) => void) | null = null
-    let quickYLeft: ((v: number) => void) | null = null
-    let quickXRight: ((v: number) => void) | null = null
-    let quickYRight: ((v: number) => void) | null = null
-
-    if (leftGroupRef.current) {
-      quickXLeft = gsap.quickTo(leftGroupRef.current, 'x', { duration: 1.2, ease: 'power2.out' })
-      quickYLeft = gsap.quickTo(leftGroupRef.current, 'y', { duration: 1.2, ease: 'power2.out' })
-    }
-    if (rightGroupRef.current) {
-      quickXRight = gsap.quickTo(rightGroupRef.current, 'x', { duration: 1.2, ease: 'power2.out' })
-      quickYRight = gsap.quickTo(rightGroupRef.current, 'y', { duration: 1.2, ease: 'power2.out' })
-    }
+    SILHOUETTES.forEach((s) => {
+      const el = charWrapperRefs.current[s.id]
+      if (el) {
+        quickToMap.current[s.id] = {
+          x: gsap.quickTo(el, 'x', { duration: 1.2, ease: 'power2.out' }),
+          y: gsap.quickTo(el, 'y', { duration: 1.2, ease: 'power2.out' }),
+        }
+      }
+    })
 
     const onPointerMove = (e: PointerEvent) => {
       const nx = (e.clientX / window.innerWidth - 0.5) * 2
       const ny = (e.clientY / window.innerHeight - 0.5) * 2
 
-      quickXLeft?.(nx * -20)
-      quickYLeft?.(ny * -14)
-      quickXRight?.(nx * 20)
-      quickYRight?.(ny * -14)
+      SILHOUETTES.forEach((s) => {
+        const q = quickToMap.current[s.id]
+        if (!q) return
+        const multX = s.side === 'left' ? -30 : 30
+        q.x(nx * multX * s.depth)
+        q.y(ny * -20 * s.depth)
+      })
     }
 
     window.addEventListener('pointermove', onPointerMove, { passive: true })
@@ -257,6 +264,9 @@ export function Hero({ ready = true }: HeroProps) {
         {SILHOUETTES.filter((s) => s.side === 'left').map((s) => (
           <div
             key={s.id}
+            ref={(el) => {
+              charWrapperRefs.current[s.id] = el
+            }}
             className={`absolute pointer-events-none ${s.className} hero-float-anim`}
             style={{
               animationDuration: `${s.floatDuration}s`,
@@ -266,13 +276,15 @@ export function Hero({ ready = true }: HeroProps) {
             <img
               src={s.src}
               alt=""
-              onLoad={handleImageLoad}
+              onLoad={(e) => handleImageLoad(e, s.src)}
               onError={(e) => {
+                console.warn(`[Hero] Silhouette image missing or failed to load: ${s.src}`)
                 e.currentTarget.style.display = 'none'
               }}
               className="hero-silhouette-img w-full h-full"
               style={{
                 opacity: s.opacity,
+                filter: `grayscale(0.55) brightness(0.8) contrast(1.05) drop-shadow(0 0 14px ${s.accentColor}55) drop-shadow(0 0 28px ${s.accentColor}25)`,
               }}
             />
           </div>
@@ -284,6 +296,9 @@ export function Hero({ ready = true }: HeroProps) {
         {SILHOUETTES.filter((s) => s.side === 'right').map((s) => (
           <div
             key={s.id}
+            ref={(el) => {
+              charWrapperRefs.current[s.id] = el
+            }}
             className={`absolute pointer-events-none ${s.className} hero-float-anim`}
             style={{
               animationDuration: `${s.floatDuration}s`,
@@ -293,13 +308,15 @@ export function Hero({ ready = true }: HeroProps) {
             <img
               src={s.src}
               alt=""
-              onLoad={handleImageLoad}
+              onLoad={(e) => handleImageLoad(e, s.src)}
               onError={(e) => {
+                console.warn(`[Hero] Silhouette image missing or failed to load: ${s.src}`)
                 e.currentTarget.style.display = 'none'
               }}
               className="hero-silhouette-img w-full h-full"
               style={{
                 opacity: s.opacity,
+                filter: `grayscale(0.55) brightness(0.8) contrast(1.05) drop-shadow(0 0 14px ${s.accentColor}55) drop-shadow(0 0 28px ${s.accentColor}25)`,
               }}
             />
           </div>
@@ -311,6 +328,15 @@ export function Hero({ ready = true }: HeroProps) {
         ref={textGroupRef}
         className="relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center justify-center my-auto w-full px-2"
       >
+        {/* Soft dark radial gradient behind the center text only (preserves legibility, no hard boxes) */}
+        <div
+          aria-hidden="true"
+          className="absolute -inset-x-8 -inset-y-12 sm:-inset-x-16 sm:-inset-y-16 -z-10 pointer-events-none rounded-full"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 65% at 50% 50%, rgba(5, 5, 8, 0.88) 0%, rgba(5, 5, 8, 0.55) 55%, transparent 100%)',
+          }}
+        />
         {/* Optional slot: render /brand/official-logo.svg only if that file exists */}
         <img
           src="/brand/official-logo.svg"

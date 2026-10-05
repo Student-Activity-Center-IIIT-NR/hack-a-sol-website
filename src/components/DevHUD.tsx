@@ -82,7 +82,7 @@ export function DevHUD({ scrollProgress, activeTrackIndex, chapterProgress, sect
         <div className="flex justify-between gap-4">
           <span className="text-white/40">HeroSpace objects</span>
           <span className="text-cyan-300 font-bold">
-            {heroSpaceMounted ? "4 (ship, embers, planet+belt, dust/meteors)" : "0 (unmounted)"}
+            {heroSpaceMounted ? "1 (subtle red embers)" : "0 (unmounted)"}
           </span>
         </div>
 
