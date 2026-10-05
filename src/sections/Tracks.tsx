@@ -23,10 +23,14 @@ function ss(t: number): number {
 function norm(v: number, lo: number, hi: number): number {
   return Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
 }
-function enterFrac(c: number): number { return ss(norm(c, 0, 0.22)) }
+function textEnterFrac(c: number): number {
+  if (c < 0.03) return 0
+  if (c >= 0.22) return 1
+  return ss((c - 0.03) / (0.22 - 0.03))
+}
 function exitFrac(c: number): number  { return ss(norm(c, 0.78, 1.0)) }
 function textOp(c: number): number {
-  if (c < 0.22) return enterFrac(c)
+  if (c < 0.22) return textEnterFrac(c)
   if (c <= 0.78) return 1
   return 1 - exitFrac(c)
 }
@@ -83,7 +87,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
   }, [animFrame])
 
   const glowScale = (() => {
-    if (c < 0.22) return 0.6 + 0.4 * enterFrac(c)
+    if (c < 0.22) return 0.88 + 0.12 * textEnterFrac(c)
     if (c <= 0.78) return 1
     return 1 - 0.1 * exitFrac(c)
   })()
@@ -128,7 +132,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
   const nameSlideX = (() => {
     if (reducedMotion) return 0
     const dir = artOnRight ? -1 : 1
-    if (c < 0.22) return dir * 60 * (1 - enterFrac(c))
+    if (c < 0.22) return dir * 60 * (1 - textEnterFrac(c))
     if (c <= 0.78) return dir * (c - 0.50) * 12
     return -dir * 30 * exitFrac(c)
   })()
@@ -169,8 +173,8 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
                 } : {}}
               />
               <span
-                className={"font-mono text-[10px] tracking-widest uppercase transition-opacity duration-300 hidden md:inline " + (i === activeIndex ? "opacity-90 font-bold text-white" : "opacity-0 group-hover:opacity-60 text-white/50")}
-                style={i === activeIndex ? { color: track.accentColor } : {}}
+                className="font-mono text-[10px] tracking-widest uppercase transition-opacity duration-300 hidden md:inline opacity-0 group-hover:opacity-100 text-white/80"
+                style={{ color: track.accentColor }}
               >
                 0{i + 1} // {track.character}
               </span>
@@ -325,15 +329,6 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
               className="flex flex-wrap items-center gap-3"
               style={{ opacity: lineOp(5), transform: "translateY(" + lineY(5) + "px)" }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-white/10 rounded-sm bg-white/5 backdrop-blur-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: active?.accentColor }} />
-                  <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: active?.accentColor }} />
-                </span>
-                <span className="font-mono text-xs text-white/60 tracking-widest uppercase">
-                  CORE: {active?.primitive}
-                </span>
-              </div>
               <a
                 href="#timeline"
                 data-magnetic

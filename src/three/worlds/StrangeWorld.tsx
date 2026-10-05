@@ -1,14 +1,12 @@
-﻿/**
- * src/three/worlds/StrangeWorld.tsx  (Phase 3h — Marvel environments)
+/**
+ * src/three/worlds/StrangeWorld.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * coderun — "Sanctum / Mirror Dimension"
- * Kaleidoscopic folding city-block planes that rotate on scroll, spell-circle
- * mandalas that unfold layer by layer and counter-rotate, time rings, branching
- * decision tree of "futures" that grows branch by branch, gold sparks, code glyphs.
- * No official logos or trademarks — only generic shapes and original patterns.
+ * coderun — "Sanctum / Algorithmic Timelines"
  *
- * chapterProgress c: ENTER 0–0.22 | HOLD 0.22–0.78 | EXIT 0.78–1.0
- * Color: #F59E0B gold/amber
+ * Per-track signature:
+ * - Golden sparks along a spiral vortex around the character (at x ≈ 1.6).
+ * - Vortex tightens as chapterProgress c goes from 0.2 to 0.7.
+ * - Soft glow sprites, additive blending, mandala rings unfolding.
  */
 
 import { useRef, useMemo } from "react"
@@ -21,10 +19,8 @@ interface StrangeWorldProps {
   velocity?: number
 }
 
-const GOLD   = new THREE.Color("#F59E0B")
-const TEAL   = new THREE.Color("#06B6D4")
-const SPARK_COUNT  = 220
-const BLOCK_COUNT  = 12
+const GOLD = new THREE.Color("#F59E0B")
+const TEAL = new THREE.Color("#06B6D4")
 
 function ss(t: number) { const c = Math.max(0, Math.min(1, t)); return c * c * (3 - 2 * c) }
 function norm(v: number, lo: number, hi: number) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))) }
@@ -36,183 +32,152 @@ function globalA(c: number) {
   return 1 - exitT(c)
 }
 
-// Portal shader (original, NOT from any Marvel source)
-const portalVert = /* glsl */`
-  varying vec2 vUv;
-  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
-`
-const portalFrag = /* glsl */`
-  varying vec2 vUv;
-  uniform float uTime;
-  uniform float uProgress;
-  void main() {
-    vec2 ctr = vUv - 0.5;
-    float d   = length(ctr);
-    float ang  = atan(ctr.y, ctr.x);
-    float rings = 0.5 + 0.5 * sin(d * 18.0 - uTime * 2.5);
-    float swirl = 0.5 + 0.5 * sin(ang * 6.0 + uTime + d * 5.0);
-    float alpha = rings * swirl * smoothstep(0.5, 0.1, d) * uProgress;
-    vec3  col   = mix(vec3(0.95, 0.62, 0.04), vec3(0.02, 0.71, 0.84), swirl * 0.4);
-    gl_FragColor = vec4(col, alpha * 0.55);
+function createGoldSparkTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas")
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext("2d")
+  if (ctx) {
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+    grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)")
+    grad.addColorStop(0.25, "rgba(245, 158, 11, 0.9)")
+    grad.addColorStop(0.65, "rgba(217, 119, 6, 0.25)")
+    grad.addColorStop(1.0, "rgba(0, 0, 0, 0)")
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, 64, 64)
   }
-`
-
-function makeSparkPositions() {
-  const pos = new Float32Array(SPARK_COUNT * 3)
-  for (let i = 0; i < SPARK_COUNT; i++) {
-    const phi   = Math.acos(2 * Math.random() - 1)
-    const theta = Math.random() * Math.PI * 2
-    const r = 2.0 + Math.random() * 0.8
-    pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta)
-    pos[i * 3 + 1] = r * Math.cos(phi)
-    pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta)
-  }
-  return pos
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.generateMipmaps = false
+  tex.minFilter = THREE.LinearFilter
+  return tex
 }
 
+const VORTEX_SPARK_COUNT = 180
+
+function makeVortexSparks() {
+  const baseAngles = new Float32Array(VORTEX_SPARK_COUNT)
+  const baseHeights = new Float32Array(VORTEX_SPARK_COUNT)
+  const baseRadii  = new Float32Array(VORTEX_SPARK_COUNT)
+  const speeds     = new Float32Array(VORTEX_SPARK_COUNT)
+  const pos        = new Float32Array(VORTEX_SPARK_COUNT * 3)
+
+  for (let i = 0; i < VORTEX_SPARK_COUNT; i++) {
+    baseAngles[i]  = (i / VORTEX_SPARK_COUNT) * Math.PI * 8 + Math.random() * 0.4
+    baseHeights[i] = (i / VORTEX_SPARK_COUNT - 0.5) * 3.4
+    baseRadii[i]   = 0.4 + (i / VORTEX_SPARK_COUNT) * 1.8
+    speeds[i]      = 1.5 + Math.random() * 1.2
+  }
+  return { baseAngles, baseHeights, baseRadii, speeds, pos }
+}
+
+const MANDALA_RINGS = [
+  { r: 0.9, tube: 0.020, tilt: [0, 0, 0] as [number,number,number],                     speed:  0.8 },
+  { r: 1.4, tube: 0.015, tilt: [Math.PI / 2, 0, 0] as [number,number,number],           speed: -1.1 },
+  { r: 1.9, tube: 0.010, tilt: [Math.PI / 4, Math.PI / 4, 0] as [number,number,number], speed:  0.6 },
+  { r: 2.5, tube: 0.007, tilt: [Math.PI / 3, 0, Math.PI / 5] as [number,number,number], speed: -0.4 },
+]
+
 export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: StrangeWorldProps) {
-  const groupRef   = useRef<THREE.Group>(null)
-  const portalRef  = useRef<THREE.Mesh>(null)
-  const portalMat  = useRef<THREE.ShaderMaterial>(null)
-  const sparkRef   = useRef<THREE.Points>(null)
-  const blockRef   = useRef<THREE.InstancedMesh>(null)
-  const ringRefs   = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
-  const timeRef    = useRef(0)
+  const groupRef  = useRef<THREE.Group>(null)
+  const vortexRef = useRef<THREE.Points>(null)
+  const ringRefs  = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
+  const timeRef   = useRef(0)
 
-  const sparkPos = useMemo(() => makeSparkPositions(), [])
-  const dummy    = useMemo(() => new THREE.Object3D(), [])
-  const a = globalA(c)
+  const sparkTex  = useMemo(() => createGoldSparkTexture(), [])
+  const vortex    = useMemo(() => makeVortexSparks(), [])
+  const a         = globalA(c)
 
-  // Mandala ring definitions
-  const mandalaRings = useMemo(() => [
-    { r: 1.0, tube: 0.025, tilt: [0, 0, 0],                          speed:  0.7 },
-    { r: 1.4, tube: 0.018, tilt: [Math.PI / 2, 0, 0],                speed: -1.0 },
-    { r: 1.9, tube: 0.013, tilt: [Math.PI / 4, Math.PI / 4, 0],      speed:  0.55 },
-    { r: 2.5, tube: 0.009, tilt: [Math.PI / 3, 0, Math.PI / 5],      speed: -0.4 },
-    { r: 3.2, tube: 0.005, tilt: [Math.PI * 0.4, Math.PI * 0.2, 0],  speed:  0.25 },
-  ], [])
+  const charX = 1.6 // Character on right for even track index
 
   useFrame((state, delta) => {
     timeRef.current += delta
-    const t  = timeRef.current
-    const vel = Math.min(1, velocity * 4)
-    const spinMul = 1 + vel * 2.5
+    const t = timeRef.current
+    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const orbitSpeed = 1.0 + velBoost * 2.2
 
     if (groupRef.current) {
-      const ty = active ? state.pointer.x * 0.3 : 0
-      const tx = active ? -state.pointer.y * 0.2 : 0
+      const ty = active ? state.pointer.x * 0.22 : 0
+      const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -3 * (1 - enterT(c)) : 0
+      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
-    // Mandala rings — staggered reveal
+    // Tightening factor: c goes from 0.2 to 0.7
+    const tightenFrac = ss(norm(c, 0.2, 0.7)) // 0 at c<=0.2, 1 at c>=0.7
+    const radiusMultiplier = 1.0 - tightenFrac * 0.62 // Tightens from 100% down to 38%
+
+    // Golden sparks along spiral vortex
+    if (vortexRef.current?.geometry?.attributes?.position) {
+      const pos = vortexRef.current.geometry.attributes.position.array as Float32Array
+      for (let i = 0; i < VORTEX_SPARK_COUNT; i++) {
+        const angle = vortex.baseAngles[i] + t * vortex.speeds[i] * orbitSpeed * 0.4
+        const r = vortex.baseRadii[i] * radiusMultiplier
+
+        pos[i * 3 + 0] = charX + Math.cos(angle) * r
+        pos[i * 3 + 1] = vortex.baseHeights[i] * (1.0 - tightenFrac * 0.2) + Math.sin(angle * 2.0) * 0.15
+        pos[i * 3 + 2] = -0.8 + Math.sin(angle) * r * 0.6
+      }
+      vortexRef.current.geometry.attributes.position.needsUpdate = true
+
+      const vMat = vortexRef.current.material as THREE.PointsMaterial
+      if (vMat) {
+        vMat.opacity = 0.85 * a
+      }
+    }
+
+    // Mandala spell-circle rings unfold
     ringRefs.forEach((r, i) => {
       if (!r.current) return
-      const def = mandalaRings[i]
-      const delay = (i / mandalaRings.length) * 0.35
+      const def = MANDALA_RINGS[i]
+      const delay = (i / MANDALA_RINGS.length) * 0.30
       const ringA = ss(Math.max(0, Math.min(1, (a - delay) / (1 - delay + 0.001))))
       r.current.scale.setScalar(ringA)
-      r.current.rotation.z += delta * def.speed * spinMul
+      r.current.rotation.z += delta * def.speed * (1 + velBoost)
     })
-
-    // Portal shader
-    if (portalMat.current) {
-      portalMat.current.uniforms.uTime.value = t
-      portalMat.current.uniforms.uProgress.value = a
-    }
-
-    // Folding city blocks (instanced)
-    if (blockRef.current) {
-      for (let i = 0; i < BLOCK_COUNT; i++) {
-        const delay = (i / BLOCK_COUNT) * 0.4
-        const blockA = ss(Math.max(0, Math.min(1, (a - delay) / (1 - delay + 0.001))))
-        const angle  = (i / BLOCK_COUNT) * Math.PI * 2 + t * (0.08 + (i % 3) * 0.04)
-        const r      = 3.5 + (i % 3) * 0.4
-        dummy.position.set(
-          Math.cos(angle) * r,
-          Math.sin(angle * 0.5) * 0.8,
-          -1.5,
-        )
-        dummy.scale.setScalar(blockA * 0.25)
-        dummy.rotation.set(t * 0.3 + i * 0.5, t * 0.2 + i * 0.3, angle)
-        dummy.updateMatrix()
-        blockRef.current.setMatrixAt(i, dummy.matrix)
-      }
-      blockRef.current.instanceMatrix.needsUpdate = true
-    }
-
-    // Sparks
-    if (sparkRef.current) {
-      sparkRef.current.rotation.y += delta * 0.22 * spinMul
-      sparkRef.current.scale.setScalar(a * 0.65)
-    }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Portal disc — swirling original pattern */}
-      <mesh ref={portalRef} position={[0, 0, -1.2]}>
-        <circleGeometry args={[2.8, 64]} />
-        <shaderMaterial
-          ref={portalMat}
-          vertexShader={portalVert}
-          fragmentShader={portalFrag}
-          uniforms={{ uTime: { value: 0 }, uProgress: { value: 0 } }}
-          transparent
-          depthWrite={false}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* Mandala/spell-circle rings — staggered, counter-rotating */}
-      {mandalaRings.map((def, i) => (
-        <mesh
-          key={i}
-          ref={ringRefs[i]}
-          rotation={def.tilt as [number, number, number]}
-        >
-          <torusGeometry args={[def.r, def.tube, 6, 72]} />
-          <meshStandardMaterial
-            color={i % 2 === 0 ? GOLD : TEAL}
-            emissive={i % 2 === 0 ? GOLD : TEAL}
-            emissiveIntensity={0.3 - i * 0.04}
-            metalness={0.6}
-            roughness={0.3}
-            transparent
-            opacity={0.75 - i * 0.1}
-          />
-        </mesh>
-      ))}
-
-      {/* Folding city blocks (instanced wireframe boxes) */}
-      <instancedMesh ref={blockRef} args={[undefined, undefined, BLOCK_COUNT]}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color={GOLD} wireframe transparent opacity={0.35} />
-      </instancedMesh>
-
-      {/* Gold sparks */}
-      <points ref={sparkRef}>
+      {/* Golden sparks along spiral vortex */}
+      <points ref={vortexRef}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[sparkPos, 3]} />
+          <bufferAttribute attach="attributes-position" args={[vortex.pos, 3]} />
         </bufferGeometry>
-        <pointsMaterial color={GOLD} size={0.04} sizeAttenuation transparent opacity={0.75} />
+        <pointsMaterial
+          map={sparkTex}
+          color={GOLD}
+          size={0.13}
+          sizeAttenuation
+          transparent
+          opacity={0.85 * a}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </points>
 
-      {/* Branching decision tree — simplified with line segments */}
-      {[0, 1, 2, 3].map((i) => {
-        const treeA = Math.max(0, Math.min(1, (a - i * 0.1) / 0.4))
-        return (
-          <mesh key={`tree-${i}`} position={[i % 2 === 0 ? -0.5 : 0.5, 1.5 + i * 0.4, -0.3]} rotation={[0, 0, Math.PI / 6 * (i % 2 === 0 ? 1 : -1)]}>
-            <boxGeometry args={[0.015, treeA * 0.6, 0.015]} />
-            <meshBasicMaterial color={GOLD} transparent opacity={treeA * 0.6} />
+      {/* Mandala / Spell-circle rings centered at character */}
+      <group position={[charX, 0, -1.0]}>
+        {MANDALA_RINGS.map((def, i) => (
+          <mesh key={i} ref={ringRefs[i]} rotation={def.tilt}>
+            <torusGeometry args={[def.r, def.tube, 6, 72]} />
+            <meshStandardMaterial
+              color={i % 2 === 0 ? GOLD : TEAL}
+              emissive={i % 2 === 0 ? GOLD : TEAL}
+              emissiveIntensity={0.35 - i * 0.05}
+              metalness={0.6}
+              roughness={0.3}
+              transparent
+              opacity={0.70 - i * 0.12}
+            />
           </mesh>
-        )
-      })}
+        ))}
+      </group>
 
-      <pointLight color={GOLD} intensity={a * 1.2} distance={14} decay={2} />
-      <pointLight color={TEAL} intensity={a * 0.4} distance={8}  decay={2} position={[0, 2, 0]} />
+      <pointLight color={GOLD} intensity={a * 1.3} distance={12} decay={2} position={[charX, 0, 0]} />
+      <pointLight color={TEAL} intensity={a * 0.5} distance={8}  decay={2} position={[charX, 1.6, 0]} />
     </group>
   )
 }

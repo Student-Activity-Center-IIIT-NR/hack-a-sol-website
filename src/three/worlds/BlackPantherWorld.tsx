@@ -1,14 +1,12 @@
 /**
- * src/three/worlds/BlackPantherWorld.tsx  (Phase 3h — Marvel environments)
+ * src/three/worlds/BlackPantherWorld.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * web3 — "Wakanda"
- * Vibranium crystals growing from the floor with purple/green energy, futuristic
- * skyline silhouette, tribal geometric pattern lines that draw on scroll, chain-
- * link cubes, leaf particles that drift with velocity.
- * No official marks — only generic shapes.
+ * web3 — "Wakanda / Vibranium Sanctuary"
  *
- * chapterProgress c: ENTER 0–0.22 | HOLD 0.22–0.78 | EXIT 0.78–1.0
- * Colors: #A855F7 purple, #10B981 green
+ * Per-track signature:
+ * - Elongated purple vibranium shards (instanced) rising and slowly rotating.
+ * - Green glints flashing and floating around the shards.
+ * - Soft glow sprites, additive blending, smooth ambient lighting.
  */
 
 import { useRef, useMemo } from "react"
@@ -23,7 +21,6 @@ interface BlackPantherWorldProps {
 
 const PURPLE = new THREE.Color("#A855F7")
 const GREEN  = new THREE.Color("#10B981")
-const LEAF_COUNT = 120
 
 function ss(t: number) { const c = Math.max(0, Math.min(1, t)); return c * c * (3 - 2 * c) }
 function norm(v: number, lo: number, hi: number) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))) }
@@ -35,92 +32,157 @@ function globalA(c: number) {
   return 1 - exitT(c)
 }
 
-function makeLeaves() {
-  const pos = new Float32Array(LEAF_COUNT * 3)
-  for (let i = 0; i < LEAF_COUNT; i++) {
-    pos[i * 3]     = (Math.random() - 0.5) * 6
-    pos[i * 3 + 1] = (Math.random() - 0.5) * 4
-    pos[i * 3 + 2] = (Math.random() - 0.5) * 3 - 1.5
+function createGreenGlintTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas")
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext("2d")
+  if (ctx) {
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+    grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)")
+    grad.addColorStop(0.25, "rgba(16, 185, 129, 0.9)")
+    grad.addColorStop(0.65, "rgba(5, 150, 105, 0.25)")
+    grad.addColorStop(1.0, "rgba(0, 0, 0, 0)")
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, 64, 64)
   }
-  return pos
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.generateMipmaps = false
+  tex.minFilter = THREE.LinearFilter
+  return tex
+}
+
+const SHARD_COUNT = 30
+const GLINT_COUNT = 65
+
+function makeShardInitialData() {
+  return Array.from({ length: SHARD_COUNT }, () => ({
+    x: 1.6 + (Math.random() - 0.5) * 3.8, // Centered around character on right
+    y: -3.0 + Math.random() * 6.0,
+    z: -1.8 + Math.random() * 2.5,
+    speedY: 0.35 + Math.random() * 0.55,
+    rotSpeedX: 0.4 + Math.random() * 0.8,
+    rotSpeedY: 0.5 + Math.random() * 1.0,
+    scale: 0.7 + Math.random() * 0.6,
+  }))
+}
+
+function makeGreenGlints() {
+  const pos = new Float32Array(GLINT_COUNT * 3)
+  const phases = new Float32Array(GLINT_COUNT)
+  for (let i = 0; i < GLINT_COUNT; i++) {
+    pos[i * 3 + 0] = 1.6 + (Math.random() - 0.5) * 4.2
+    pos[i * 3 + 1] = (Math.random() - 0.5) * 5.0
+    pos[i * 3 + 2] = -1.5 + (Math.random() - 0.5) * 2.5
+    phases[i] = Math.random() * Math.PI * 2
+  }
+  return { pos, phases }
 }
 
 export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: BlackPantherWorldProps) {
   const groupRef   = useRef<THREE.Group>(null)
-  const leafRef    = useRef<THREE.Points>(null)
-  const leafGeo    = useRef<THREE.BufferGeometry>(null)
-  const skylineRef = useRef<THREE.Group>(null)
+  const shardsRef  = useRef<THREE.InstancedMesh>(null)
+  const glintsRef  = useRef<THREE.Points>(null)
   const timeRef    = useRef(0)
 
-  const leafPos   = useMemo(() => makeLeaves(), [])
-  const leafBuf   = useMemo(() => new Float32Array(LEAF_COUNT * 3), [])
-  const a = globalA(c)
+  const glintTex   = useMemo(() => createGreenGlintTexture(), [])
+  const shardData  = useMemo(() => makeShardInitialData(), [])
+  const glintData  = useMemo(() => makeGreenGlints(), [])
+  const dummy      = useMemo(() => new THREE.Object3D(), [])
+  const a          = globalA(c)
 
   useFrame((state, delta) => {
     timeRef.current += delta
-    const t  = timeRef.current
-    const vel = Math.min(1, velocity * 4)
+    const t = timeRef.current
+    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const riseSpeed = 1 + velBoost * 2.2
 
     if (groupRef.current) {
-      const ty = active ? state.pointer.x * 0.25 : 0
-      const tx = active ? -state.pointer.y * 0.15 : 0
+      const ty = active ? state.pointer.x * 0.22 : 0
+      const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -3 * (1 - enterT(c)) : 0
+      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
-    // Leaf drift
-    if (leafGeo.current) {
-      const driftX = vel * 0.8
-      for (let i = 0; i < LEAF_COUNT; i++) {
-        leafBuf[i * 3]     = leafPos[i * 3]     + Math.sin(t * 0.4 + i * 0.3) * 0.12 + driftX * 0.2
-        leafBuf[i * 3 + 1] = leafPos[i * 3 + 1] + Math.sin(t * 0.6 + i * 0.5) * 0.1
-        leafBuf[i * 3 + 2] = leafPos[i * 3 + 2]
-      }
-      const attr = leafGeo.current.attributes.position as THREE.BufferAttribute
-      attr.array = leafBuf
-      attr.needsUpdate = true
+    // Instanced vibranium shards rising and rotating
+    if (shardsRef.current) {
+      shardData.forEach((shard, i) => {
+        shard.y += shard.speedY * riseSpeed * delta
+        if (shard.y > 3.2) {
+          shard.y = -3.2
+        }
+        dummy.position.set(shard.x, shard.y, shard.z)
+        dummy.rotation.set(t * shard.rotSpeedX, t * shard.rotSpeedY, Math.PI / 12)
+        dummy.scale.setScalar(shard.scale * a)
+        dummy.updateMatrix()
+        shardsRef.current!.setMatrixAt(i, dummy.matrix)
+      })
+      shardsRef.current.instanceMatrix.needsUpdate = true
     }
 
-    // Skyline parallax
-    if (skylineRef.current) {
-      skylineRef.current.position.x = (active ? state.pointer.x * -0.3 : 0)
+    // Green glints twinkling and drifting
+    if (glintsRef.current?.geometry?.attributes?.position) {
+      const pos = glintsRef.current.geometry.attributes.position.array as Float32Array
+      for (let i = 0; i < GLINT_COUNT; i++) {
+        pos[i * 3 + 1] += Math.sin(t * 1.5 + glintData.phases[i]) * 0.005
+        pos[i * 3 + 0] += Math.cos(t * 1.2 + glintData.phases[i]) * 0.003
+      }
+      glintsRef.current.geometry.attributes.position.needsUpdate = true
+
+      const gMat = glintsRef.current.material as THREE.PointsMaterial
+      if (gMat) {
+        gMat.opacity = 0.8 * a
+      }
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Futuristic skyline — spiky box silhouette far away */}
-      <group ref={skylineRef} position={[0, -0.5, -3.5]}>
-        {[-2.4, -1.5, -0.6, 0.4, 1.2, 2.2].map((x, i) => (
-          <mesh key={i} position={[x, (0.4 + i * 0.18) / 2, 0]}>
-            <boxGeometry args={[0.18, 0.4 + i * 0.18, 0.12]} />
-            <meshStandardMaterial color={PURPLE} emissive={PURPLE} emissiveIntensity={0.1} transparent opacity={0.3 * a} />
-          </mesh>
-        ))}
-      </group>
+      {/* Elongated purple vibranium crystal shards */}
+      <instancedMesh ref={shardsRef} args={[undefined, undefined, SHARD_COUNT]}>
+        <cylinderGeometry args={[0.015, 0.08, 0.85, 6]} />
+        <meshStandardMaterial
+          color={PURPLE}
+          emissive={PURPLE}
+          emissiveIntensity={0.65}
+          metalness={0.7}
+          roughness={0.25}
+          transparent
+          opacity={0.82 * a}
+        />
+      </instancedMesh>
 
-      {/* Geometric tribal pattern — octagonal ring */}
-      <mesh position={[0, 0, -1]}>
-        <torusGeometry args={[2.2, 0.02, 4, 8]} />
-        <meshBasicMaterial color={PURPLE} transparent opacity={0.3 * a} />
-      </mesh>
-      <mesh position={[0, 0, -1.1]} rotation={[0, 0, Math.PI / 8]}>
-        <torusGeometry args={[1.6, 0.015, 4, 8]} />
-        <meshBasicMaterial color={GREEN} transparent opacity={0.25 * a} />
-      </mesh>
-
-      {/* Floating leaf particles */}
-      <points ref={leafRef}>
-        <bufferGeometry ref={leafGeo}>
-          <bufferAttribute attach="attributes-position" args={[leafBuf, 3]} />
+      {/* Floating green glints */}
+      <points ref={glintsRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[glintData.pos, 3]} />
         </bufferGeometry>
-        <pointsMaterial color={GREEN} size={0.035} sizeAttenuation transparent opacity={0.55 * a} />
+        <pointsMaterial
+          map={glintTex}
+          size={0.11}
+          sizeAttenuation
+          transparent
+          opacity={0.8 * a}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
       </points>
 
-      <pointLight color={PURPLE} intensity={a * 1.2} distance={12} decay={2} />
-      <pointLight color={GREEN}  intensity={a * 0.5} distance={8}  decay={2} position={[0, -2, 0]} />
+      {/* Subtle tribal geometric pattern rings */}
+      <mesh position={[1.6, 0, -1.0]}>
+        <torusGeometry args={[2.0, 0.018, 4, 8]} />
+        <meshBasicMaterial color={PURPLE} transparent opacity={0.25 * a} />
+      </mesh>
+      <mesh position={[1.6, 0, -1.1]} rotation={[0, 0, Math.PI / 8]}>
+        <torusGeometry args={[1.5, 0.014, 4, 8]} />
+        <meshBasicMaterial color={GREEN} transparent opacity={0.22 * a} />
+      </mesh>
+
+      <pointLight color={PURPLE} intensity={a * 1.2} distance={12} decay={2} position={[1.6, 0, 0]} />
+      <pointLight color={GREEN}  intensity={a * 0.7} distance={8}  decay={2} position={[1.6, 1.5, 0]} />
     </group>
   )
 }

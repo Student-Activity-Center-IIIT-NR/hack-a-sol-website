@@ -133,7 +133,7 @@ export function HeroSpace({ scrollProgress, velocity = 0 }: HeroSpaceProps) {
   })
 
   // Unmount completely when Tracks section is active
-  if (scrollProgress >= 0.15) {
+  if (scrollProgress >= 0.12) {
     return null
   }
 

@@ -13,6 +13,7 @@ import * as THREE from "three"
 import { TRACKS } from "../data/tracks"
 import { useScrollCamera } from "../hooks/useScrollCamera"
 import { TrackWorlds } from "./TrackWorlds"
+import { TrackParticles } from "./TrackParticles"
 import { HeroSpace } from "./HeroSpace"
 import { PostFX } from "./PostFX"
 
@@ -20,6 +21,7 @@ interface SceneProps {
   scrollProgress:   number
   activeTrackIndex: number
   sectionProgress:  number
+  chapterProgress?: number
   velocity?:        number
 }
 
@@ -32,7 +34,7 @@ const _mouseDelta = new THREE.Vector2()
 const ACCENT_COLORS = TRACKS.map(t => new THREE.Color(t.accentColor).multiplyScalar(0.08))
 const NEUTRAL       = new THREE.Color("#0A0A0F")
 
-export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, velocity = 0 }: SceneProps) {
+export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, chapterProgress = 0, velocity = 0 }: SceneProps) {
   const { camera, scene, gl } = useThree()
   const { getCameraTransform } = useScrollCamera()
   const mouseRef = useRef({ x: 0, y: 0 })
@@ -77,6 +79,10 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
     if (scene.fog instanceof THREE.FogExp2) scene.fog.color.copy(_fogColor)
   })
 
+  // HeroSpace strictly unmounts once Tracks section is active or approached
+  const showHeroSpace = scrollProgress < 0.12 && sectionProgress === 0
+  const showTrackParticles = scrollProgress >= 0.10 && scrollProgress <= 0.74
+
   return (
     <>
       <ambientLight intensity={0.4} />
@@ -89,8 +95,20 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
       <directionalLight position={[-8, -6, -4]} intensity={0.45} color="#60a5fa" />
       <directionalLight position={[0, 8, -6]} intensity={0.35} color="#a855f7" />
 
-      {/* Scroll-driven 3D Marvel space layer for Hero section (unmounts during Tracks) */}
-      <HeroSpace scrollProgress={scrollProgress} velocity={velocity} />
+      {/* Scroll-driven 3D Marvel space layer for Hero section — STRICTLY unmounted in Tracks */}
+      {showHeroSpace && (
+        <HeroSpace scrollProgress={scrollProgress} velocity={velocity} />
+      )}
+
+      {/* Unified soft light particle & transition system for Tracks */}
+      {showTrackParticles && (
+        <TrackParticles
+          activeTrackIndex={activeTrackIndex}
+          chapterProgress={chapterProgress}
+          sectionProgress={sectionProgress}
+          velocity={velocity}
+        />
+      )}
 
       <TrackWorlds
         activeTrackIndex={activeTrackIndex}

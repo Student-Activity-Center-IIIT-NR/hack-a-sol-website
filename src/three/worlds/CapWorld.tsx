@@ -1,13 +1,13 @@
 /**
- * src/three/worlds/CapWorld.tsx  (Phase 3h — Marvel environments)
+ * src/three/worlds/CapWorld.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * cybersec — "SHIELD Ops Room"
- * Tactical world-map grid with nodes that ping and connect, radar sweep,
- * hexagon firewall ripples, five-point star pulse, red/blue scan sweep, glitch.
- * NO official logos or trademarks — only generic shapes.
+ * cybersec — "SHIELD Ops Room / Digital Defense"
  *
- * chapterProgress c: ENTER 0–0.22 | HOLD 0.22–0.78 | EXIT 0.78–1.0
- * Colors: #EF4444 red, #3B82F6 blue
+ * Per-track signature:
+ * - Radar ping rings expanding from the character (at x ≈ -1.6).
+ * - Hex-shaped sparks bursting outward.
+ * - Red & blue tactical radar sweep.
+ * - Zero hard red sphere meshes (completely removed).
  */
 
 import { useRef, useMemo } from "react"
@@ -33,28 +33,44 @@ function globalA(c: number) {
   return 1 - exitT(c)
 }
 
-// Hexagon grid nodes
-const NODE_COUNT = 24
-function makeNodes() {
-  const positions: { x: number; y: number; delay: number }[] = []
-  for (let i = 0; i < NODE_COUNT; i++) {
-    const angle = (i / NODE_COUNT) * Math.PI * 2
-    const r = 1.5 + (i % 3) * 0.7
-    positions.push({
-      x: Math.cos(angle) * r,
-      y: Math.sin(angle) * r * 0.5,
-      delay: (i / NODE_COUNT) * 0.5,
-    })
+// Generate hexagonal soft spark texture
+function createHexSparkTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas")
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext("2d")
+  if (ctx) {
+    const cx = 32, cy = 32, r = 26
+    ctx.beginPath()
+    for (let i = 0; i < 6; i++) {
+      const a = (i * Math.PI) / 3
+      const x = cx + r * Math.cos(a)
+      const y = cy + r * Math.sin(a)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.closePath()
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+    grad.addColorStop(0.0, "rgba(255, 255, 255, 1.0)")
+    grad.addColorStop(0.3, "rgba(239, 68, 68, 0.85)")
+    grad.addColorStop(0.7, "rgba(59, 130, 246, 0.35)")
+    grad.addColorStop(1.0, "rgba(0, 0, 0, 0)")
+    ctx.fillStyle = grad
+    ctx.fill()
   }
-  return positions
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.generateMipmaps = false
+  tex.minFilter = THREE.LinearFilter
+  return tex
 }
 
-// Radar sweep shader
-const radarVert = /* glsl */`
+// Red / Blue tactical radar sweep shader
+const radarVert = /* glsl */ `
   varying vec2 vUv;
-  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
 `
-const radarFrag = /* glsl */`
+
+const radarFrag = /* glsl */ `
   varying vec2 vUv;
   uniform float uAngle;
   uniform float uOpacity;
@@ -63,89 +79,105 @@ const radarFrag = /* glsl */`
     float dist = length(c);
     float ang  = atan(c.y, c.x);
     float diff = mod(ang - uAngle + 6.2832, 6.2832);
-    float sweep = smoothstep(1.2, 0.0, diff) * (1.0 - smoothstep(0.38, 0.50, dist));
-    gl_FragColor = vec4(0.24, 0.52, 0.95, sweep * 0.55 * uOpacity);
+    float sweep = smoothstep(1.4, 0.0, diff) * (1.0 - smoothstep(0.42, 0.50, dist));
+
+    // Dynamic red & blue sweep
+    vec3 col = mix(vec3(0.94, 0.27, 0.27), vec3(0.23, 0.51, 0.96), sin(ang * 2.0 + uAngle) * 0.5 + 0.5);
+    gl_FragColor = vec4(col, sweep * 0.45 * uOpacity);
   }
 `
 
-export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldProps) {
-  const groupRef    = useRef<THREE.Group>(null)
-  const gridRef     = useRef<THREE.Mesh>(null)
-  const radarRef    = useRef<THREE.Mesh>(null)
-  const radarMatRef = useRef<THREE.ShaderMaterial>(null)
-  const shockRef    = useRef<THREE.Mesh>(null)
-  const shockMatRef = useRef<THREE.MeshBasicMaterial>(null)
-  const timeRef     = useRef(0)
+const SPARK_COUNT = 72
+function makeHexSparks() {
+  const pos = new Float32Array(SPARK_COUNT * 3)
+  const dirs = new Float32Array(SPARK_COUNT * 3)
+  const speeds = new Float32Array(SPARK_COUNT)
 
-  const nodes = useMemo(() => makeNodes(), [])
-  const dummy = useMemo(() => new THREE.Object3D(), [])
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    const angle = (Math.floor(i / 12) * Math.PI) / 3 + (Math.random() - 0.5) * 0.25
+    const r = 0.4 + Math.random() * 2.2
+    pos[i * 3 + 0] = -1.6 + Math.cos(angle) * r
+    pos[i * 3 + 1] = Math.sin(angle) * r
+    pos[i * 3 + 2] = -0.6 + (Math.random() - 0.5) * 1.5
+
+    dirs[i * 3 + 0] = Math.cos(angle)
+    dirs[i * 3 + 1] = Math.sin(angle)
+    dirs[i * 3 + 2] = (Math.random() - 0.5) * 0.4
+    speeds[i] = 0.3 + Math.random() * 0.6
+  }
+  return { pos, dirs, speeds }
+}
+
+export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldProps) {
+  const groupRef     = useRef<THREE.Group>(null)
+  const radarRef     = useRef<THREE.Mesh>(null)
+  const radarMatRef  = useRef<THREE.ShaderMaterial>(null)
+  const pingRingsRef = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
+  const sparksRef    = useRef<THREE.Points>(null)
+  const timeRef      = useRef(0)
+
+  const hexTex   = useMemo(() => createHexSparkTexture(), [])
+  const sparkData = useMemo(() => makeHexSparks(), [])
   const a = globalA(c)
 
-  // Instanced hex dots for the grid nodes
-  const nodeRef = useRef<THREE.InstancedMesh>(null)
+  const charX = -1.6 // Character position on left for odd track index
 
   useFrame((state, delta) => {
     timeRef.current += delta
-    const velBoost = Math.min(1, velocity * 3)
+    const t = timeRef.current
+    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
     const spinMul  = 1 + velBoost * 2
 
     if (groupRef.current) {
-      const ty = active ? state.pointer.x * 0.3 : 0
-      const tx = active ? -state.pointer.y * 0.2 : 0
+      const ty = active ? state.pointer.x * 0.22 : 0
+      const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -3 * (1 - enterT(c)) : 0
+      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
-    }
-
-    // Grid appear
-    if (gridRef.current) {
-      gridRef.current.scale.setScalar(a * 0.9)
     }
 
     // Radar sweep
     if (radarMatRef.current) {
-      radarMatRef.current.uniforms.uAngle.value = (timeRef.current * 1.2 * spinMul) % (Math.PI * 2)
+      radarMatRef.current.uniforms.uAngle.value = (t * 1.6 * spinMul) % (Math.PI * 2)
       radarMatRef.current.uniforms.uOpacity.value = a
     }
 
-    // Shockwave hex ripple
-    if (shockRef.current && shockMatRef.current) {
-      const cycle = (timeRef.current * 0.4) % 1
-      shockRef.current.scale.setScalar(1 + cycle * 2.5)
-      shockMatRef.current.opacity = Math.max(0, (1 - cycle) * 0.35 * a)
-    }
+    // Expanding radar ping rings around character
+    pingRingsRef.forEach((ringRef, i) => {
+      if (!ringRef.current) return
+      const cycle = (t * 0.45 + i * 0.33) % 1
+      const scale = 0.4 + cycle * 2.8
+      ringRef.current.scale.set(scale, scale, 1)
+      const mat = ringRef.current.material as THREE.MeshBasicMaterial
+      if (mat) {
+        mat.opacity = (1 - cycle) * 0.45 * a
+      }
+    })
 
-    // Node pings
-    if (nodeRef.current) {
-      nodes.forEach(({ x, y, delay }, i) => {
-        const pingA = Math.max(0, Math.min(1, (a - delay * 0.4) / (0.6 + 0.4))) * (0.6 + Math.sin(timeRef.current * 2 + i) * 0.4)
-        dummy.position.set(x, y, -0.8)
-        dummy.scale.setScalar(0.06 + pingA * 0.04)
-        dummy.updateMatrix()
-        nodeRef.current!.setMatrixAt(i, dummy.matrix)
-      })
-      nodeRef.current.instanceMatrix.needsUpdate = true
+    // Hex-shaped sparks pulsing outward
+    if (sparksRef.current?.geometry?.attributes?.position) {
+      const pos = sparksRef.current.geometry.attributes.position.array as Float32Array
+      for (let i = 0; i < SPARK_COUNT; i++) {
+        const cycle = (t * sparkData.speeds[i] + i * 0.1) % 1
+        pos[i * 3 + 0] = charX + sparkData.dirs[i * 3 + 0] * (0.3 + cycle * 2.2)
+        pos[i * 3 + 1] = sparkData.dirs[i * 3 + 1] * (0.3 + cycle * 2.2)
+        pos[i * 3 + 2] = -0.6 + sparkData.dirs[i * 3 + 2] * cycle
+      }
+      sparksRef.current.geometry.attributes.position.needsUpdate = true
+
+      const sMat = sparksRef.current.material as THREE.PointsMaterial
+      if (sMat) {
+        sMat.opacity = 0.75 * a
+      }
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Tactical map grid — flat plane with wireframe */}
-      <mesh ref={gridRef} position={[0, -1.5, -1]} rotation={[-Math.PI / 2.2, 0, 0]}>
-        <planeGeometry args={[8, 5, 12, 8]} />
-        <meshBasicMaterial color={BLUE} wireframe transparent opacity={0.12} />
-      </mesh>
-
-      {/* Grid node pings */}
-      <instancedMesh ref={nodeRef} args={[undefined, undefined, NODE_COUNT]}>
-        <sphereGeometry args={[1, 6, 4]} />
-        <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={0.8} />
-      </instancedMesh>
-
-      {/* Radar sweep disk */}
-      <mesh ref={radarRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.4, -0.5]}>
-        <circleGeometry args={[2.5, 64]} />
+      {/* Tactical radar sweep disk centered at character */}
+      <mesh ref={radarRef} position={[charX, 0, -0.9]} rotation={[0, 0, 0]}>
+        <circleGeometry args={[2.6, 64]} />
         <shaderMaterial
           ref={radarMatRef}
           vertexShader={radarVert}
@@ -153,36 +185,52 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
           uniforms={{ uAngle: { value: 0 }, uOpacity: { value: 0 } }}
           transparent
           depthWrite={false}
+          blending={THREE.AdditiveBlending}
           side={THREE.DoubleSide}
+          toneMapped={false}
         />
       </mesh>
 
-      {/* Hexagon firewall ring */}
-      <mesh ref={shockRef} position={[0, 0, -0.6]} rotation={[0, 0, 0]}>
-        <torusGeometry args={[1.4, 0.04, 6, 6]} />
-        <meshBasicMaterial
-          ref={shockMatRef}
-          color={RED}
+      {/* Radar ping rings expanding from character */}
+      {pingRingsRef.map((ref, i) => (
+        <mesh key={i} ref={ref} position={[charX, 0, -0.8]}>
+          <ringGeometry args={[0.96, 1.0, 6]} />
+          <meshBasicMaterial
+            color={i % 2 === 0 ? RED : BLUE}
+            transparent
+            opacity={0}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+
+      {/* Hex-shaped sparks */}
+      <points ref={sparksRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[sparkData.pos, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          map={hexTex}
+          size={0.12}
+          sizeAttenuation
           transparent
-          opacity={0}
-          wireframe
+          opacity={0.75 * a}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
         />
+      </points>
+
+      {/* Outer subtle tactical grid */}
+      <mesh position={[0, -1.6, -1.2]} rotation={[-Math.PI / 2.2, 0, 0]}>
+        <planeGeometry args={[8, 5, 10, 6]} />
+        <meshBasicMaterial color={BLUE} wireframe transparent opacity={0.09 * a} />
       </mesh>
 
-      {/* Scan line plane */}
-      <mesh position={[0, 0, -0.9]} rotation={[0, 0, 0]}>
-        <planeGeometry args={[6, 0.015]} />
-        <meshBasicMaterial color={RED} transparent opacity={0.35 * a} />
-      </mesh>
-
-      {/* Outer hex ring */}
-      <mesh position={[0, 0, -1]} rotation={[0, 0, Math.PI / 6]}>
-        <torusGeometry args={[2.8, 0.015, 6, 6]} />
-        <meshBasicMaterial color={BLUE} transparent opacity={0.2 * a} />
-      </mesh>
-
-      <pointLight color={RED}  intensity={a * 1.0} distance={10} decay={2} />
-      <pointLight color={BLUE} intensity={a * 0.5} distance={8}  decay={2} position={[0, 2, 0]} />
+      <pointLight color={RED}  intensity={a * 1.0} distance={10} decay={2} position={[charX, 0, 0]} />
+      <pointLight color={BLUE} intensity={a * 0.6} distance={8}  decay={2} position={[charX + 1.5, 1.5, 0]} />
     </group>
   )
 }

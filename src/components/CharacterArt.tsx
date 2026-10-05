@@ -27,18 +27,22 @@ function norm(v: number, lo: number, hi: number): number {
   return Math.max(0, Math.min(1, (v - lo) / (hi - lo)))
 }
 
-// -- phase helpers: enter 0-0.22, hold 0.22-0.78, exit 0.78-1.0 ------------
-function enterFrac(c: number): number { return ss(norm(c, 0,    0.22)) }
+// -- phase helpers: enter 0.08-0.22, hold 0.22-0.78, exit 0.78-1.0 ------------
+function charEnterFrac(c: number): number {
+  if (c < 0.08) return 0
+  if (c >= 0.22) return 1
+  return ss((c - 0.08) / (0.22 - 0.08))
+}
 function exitFrac(c:  number): number { return ss(norm(c, 0.78, 1.0))  }
 
 function phaseOp(c: number): number {
-  if (c < 0.05)  return c / 0.05
+  if (c < 0.22)  return charEnterFrac(c)
   if (c <= 0.78) return 1
   return 1 - exitFrac(c)
 }
 
 function phaseSc(c: number): number {
-  if (c < 0.22) return 0.90 + 0.10 * enterFrac(c)
+  if (c < 0.22) return 0.90 + 0.10 * charEnterFrac(c)
   if (c <= 0.78) return 1.0
   return 1.0 - 0.05 * exitFrac(c)
 }
@@ -46,13 +50,13 @@ function phaseSc(c: number): number {
 /** Slide from art side on enter, to opposite side on exit */
 function phaseTransX(c: number, artOnRight: boolean): number {
   const dir = artOnRight ? 1 : -1
-  if (c < 0.22)  return  dir * 18 * (1 - enterFrac(c))  // enter from art side
+  if (c < 0.22)  return  dir * 18 * (1 - charEnterFrac(c))  // enter from art side
   if (c <= 0.78) return  dir * (c - 0.50) * 10          // slow hold parallax
   return -dir * 20 * exitFrac(c)                         // exit to opposite side
 }
 
 function phaseClip(c: number, artOnRight: boolean): string {
-  const pct = Math.round(Math.min(100, enterFrac(c) * 100))
+  const pct = Math.round(Math.min(100, charEnterFrac(c) * 100))
   return artOnRight
     ? `inset(0 ${100 - pct}% 0 0)`
     : `inset(0 0 0 ${100 - pct}%)`

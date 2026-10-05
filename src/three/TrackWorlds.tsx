@@ -23,7 +23,6 @@
 
 import { Suspense } from "react"
 import { TRACKS } from "../data/tracks"
-import { chapterLocalT } from "../hooks/useTrackSection"
 import { CharacterStage } from "./CharacterStage"
 import { IronManWorld }      from "./worlds/IronManWorld"
 import { CapWorld }          from "./worlds/CapWorld"
@@ -51,8 +50,11 @@ export function TrackWorlds({ activeTrackIndex, sectionProgress, velocity = 0 }:
   return (
     <>
       {TRACKS.map((track, i) => {
-        const cp      = chapterLocalT(sectionProgress, i)
-        const active  = i === activeTrackIndex
+        // Next chapter's particles start ~5% before previous ends to avoid any empty gap
+        const leadIn      = 0.05
+        const rawProgress = sectionProgress * TRACKS.length - i
+        const cp          = Math.max(0, Math.min(1, (rawProgress + leadIn) / (1 + leadIn)))
+        const active      = i === activeTrackIndex
         const Environment = ENVIRONMENTS[i]
 
         // Fall back to "model" visual if a track has no image

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/App.tsx  (Phase 3h — Marvel scroll environments)
  * ─────────────────────────────────────────────────────────────────────────────
  * Architecture:
@@ -128,6 +128,7 @@ export default function App() {
               scrollProgress={scrollProgress}
               activeTrackIndex={activeIndex}
               sectionProgress={sectionProgress}
+              chapterProgress={chapterProgress}
               velocity={smoothedVelocity}
             />
           </Suspense>
