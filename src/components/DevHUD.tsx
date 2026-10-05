@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/components/DevHUD.tsx  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * Developer-only HUD: visible ONLY when URL contains ?debug=1.
@@ -41,10 +41,12 @@ export function DevHUD({ scrollProgress, activeTrackIndex, chapterProgress, sect
   const track   = TRACKS[activeTrackIndex]
   const glbFile = `/models/${track?.id ?? '?'}.glb`
 
-  // Dwell phase: ENTER 0-0.22, HOLD 0.22-0.78, EXIT 0.78-1.0
   const phase =
     chapterProgress < 0.22 ? 'ENTER' :
     chapterProgress <= 0.78 ? 'HOLD'  : 'EXIT'
+
+  // HeroSpace mounted state
+  const heroSpaceMounted = sectionProgress === 0 && scrollProgress < 0.15
 
   return (
     <div
@@ -66,6 +68,22 @@ export function DevHUD({ scrollProgress, activeTrackIndex, chapterProgress, sect
         <div className="flex justify-between gap-4">
           <span className="text-white/40">section</span>
           <span className="text-yellow-300 truncate max-w-[160px]">{section}</span>
+        </div>
+
+        <div className="border-t border-white/10 my-1" />
+
+        <div className="flex justify-between gap-4">
+          <span className="text-white/40">HeroSpace mounted</span>
+          <span className={heroSpaceMounted ? "text-green-400 font-bold" : "text-red-400"}>
+            {heroSpaceMounted ? "yes" : "no"}
+          </span>
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <span className="text-white/40">HeroSpace objects</span>
+          <span className="text-cyan-300 font-bold">
+            {heroSpaceMounted ? "4 (ship, embers, planet+belt, dust/meteors)" : "0 (unmounted)"}
+          </span>
         </div>
 
         <div className="border-t border-white/10 my-1" />

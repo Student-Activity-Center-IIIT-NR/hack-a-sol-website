@@ -38,7 +38,7 @@ const SILHOUETTES = [
     depth: 0.25,
     floatDuration: 8.5,
     floatDelay: 0,
-    opacity: 0.11,
+    opacity: 0.19,
   },
   {
     id: 'aiml',
@@ -49,7 +49,7 @@ const SILHOUETTES = [
     depth: 0.5,
     floatDuration: 7.2,
     floatDelay: 1.2,
-    opacity: 0.13,
+    opacity: 0.22,
     mobileVisible: true,
   },
   {
@@ -61,7 +61,7 @@ const SILHOUETTES = [
     depth: 0.35,
     floatDuration: 9.0,
     floatDelay: 2.4,
-    opacity: 0.09,
+    opacity: 0.17,
   },
   // Right flank
   {
@@ -73,7 +73,7 @@ const SILHOUETTES = [
     depth: 0.28,
     floatDuration: 8.0,
     floatDelay: 0.8,
-    opacity: 0.11,
+    opacity: 0.19,
   },
   {
     id: 'web3',
@@ -84,7 +84,7 @@ const SILHOUETTES = [
     depth: 0.55,
     floatDuration: 7.6,
     floatDelay: 1.8,
-    opacity: 0.13,
+    opacity: 0.22,
     mobileVisible: true,
   },
 ]
@@ -229,15 +229,6 @@ export function Hero({ ready = true }: HeroProps) {
       aria-label={`${EVENT.name} — Enter the Multiverse`}
       className="relative min-h-[100svh] flex flex-col justify-center items-center overflow-hidden pt-20 sm:pt-24 pb-8 px-4 sm:px-6 select-none"
     >
-      {/* ── ONE Small Dim Corner Label (Top-Left) ── */}
-      <div
-        className="absolute top-20 left-8 sm:left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 pointer-events-none select-none z-20"
-        aria-hidden="true"
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-[#e23636]/80 animate-pulse" />
-        <span>MULTIVERSE SECTOR 05 // REALITY DETECTED</span>
-      </div>
-
       {/* ── Faint Thin Red Multiverse Crack of Light ── */}
       <svg
         ref={crackRef}

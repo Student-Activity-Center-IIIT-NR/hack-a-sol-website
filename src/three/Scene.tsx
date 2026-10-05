@@ -13,7 +13,7 @@ import * as THREE from "three"
 import { TRACKS } from "../data/tracks"
 import { useScrollCamera } from "../hooks/useScrollCamera"
 import { TrackWorlds } from "./TrackWorlds"
-import { HeroCosmos } from "./HeroCosmos"
+import { HeroSpace } from "./HeroSpace"
 import { PostFX } from "./PostFX"
 
 interface SceneProps {
@@ -25,7 +25,7 @@ interface SceneProps {
 
 const _targetPos  = new THREE.Vector3()
 const _targetLook = new THREE.Vector3()
-const _tempObj    = new THREE.Object3D()
+const _tempObj    = new THREE.PerspectiveCamera()
 const _fogColor   = new THREE.Color("#0A0A0F")
 const _mouseDelta = new THREE.Vector2()
 
@@ -89,8 +89,8 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, veloc
       <directionalLight position={[-8, -6, -4]} intensity={0.45} color="#60a5fa" />
       <directionalLight position={[0, 8, -6]} intensity={0.35} color="#a855f7" />
 
-      {/* Procedural 3D Marvel objects for Hero section */}
-      <HeroCosmos scrollProgress={scrollProgress} velocity={velocity} />
+      {/* Scroll-driven 3D Marvel space layer for Hero section (unmounts during Tracks) */}
+      <HeroSpace scrollProgress={scrollProgress} velocity={velocity} />
 
       <TrackWorlds
         activeTrackIndex={activeTrackIndex}
