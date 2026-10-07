@@ -13,9 +13,10 @@
 import { useRef, useMemo } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { scrollStore } from "../../utils/scrollStore"
 
 interface CapWorldProps {
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   velocity?: number
 }
@@ -108,7 +109,7 @@ function makeHexSparks() {
   return { pos, dirs, speeds }
 }
 
-export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldProps) {
+export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorldProps) {
   const groupRef     = useRef<THREE.Group>(null)
   const radarRef     = useRef<THREE.Mesh>(null)
   const radarMatRef  = useRef<THREE.ShaderMaterial>(null)
@@ -118,6 +119,8 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
 
   const hexTex   = useMemo(() => createHexSparkTexture(), [])
   const sparkData = useMemo(() => makeHexSparks(), [])
+
+  const c = _c ?? scrollStore.getChapterProgress()
   const a = globalA(c)
 
   const charX = -1.6 // Character position on left for odd track index
@@ -125,7 +128,10 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
   useFrame((state, delta) => {
     timeRef.current += delta
     const t = timeRef.current
-    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const liveC = scrollStore.getChapterProgress()
+    const liveA = globalA(liveC)
+    const liveVel = scrollStore.getVelocity()
+    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
     const spinMul  = 1 + velBoost * 2
 
     if (groupRef.current) {
@@ -133,14 +139,14 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
       const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
+      const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
     // Radar sweep
     if (radarMatRef.current) {
       radarMatRef.current.uniforms.uAngle.value = (t * 1.6 * spinMul) % (Math.PI * 2)
-      radarMatRef.current.uniforms.uOpacity.value = a
+      radarMatRef.current.uniforms.uOpacity.value = liveA
     }
 
     // Expanding radar ping rings around character
@@ -151,7 +157,7 @@ export function CapWorld({ chapterProgress: c, active, velocity = 0 }: CapWorldP
       ringRef.current.scale.set(scale, scale, 1)
       const mat = ringRef.current.material as THREE.MeshBasicMaterial
       if (mat) {
-        mat.opacity = (1 - cycle) * 0.45 * a
+        mat.opacity = (1 - cycle) * 0.45 * liveA
       }
     })
 

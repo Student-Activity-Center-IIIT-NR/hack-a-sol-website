@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "optimize:models": "node scripts/optimize-models.mjs"
+    "optimize:models": "node scripts/optimize-models.mjs",
+    "optimize:images": "node scripts/optimize-images.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.117.3",

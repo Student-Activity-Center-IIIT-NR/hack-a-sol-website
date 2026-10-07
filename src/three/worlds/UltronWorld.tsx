@@ -13,9 +13,10 @@
 import { useRef, useMemo } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { scrollStore } from "../../utils/scrollStore"
 
 interface UltronWorldProps {
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   velocity?: number
 }
@@ -74,7 +75,7 @@ function makeWeldingSparks() {
   return { pos, vel }
 }
 
-export function UltronWorld({ chapterProgress: c, active, velocity = 0 }: UltronWorldProps) {
+export function UltronWorld({ chapterProgress: _c, active, velocity: _v }: UltronWorldProps) {
   const groupRef  = useRef<THREE.Group>(null)
   const sparksRef = useRef<THREE.Points>(null)
   const gearRefs  = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
@@ -82,13 +83,18 @@ export function UltronWorld({ chapterProgress: c, active, velocity = 0 }: Ultron
 
   const streakTex = useMemo(() => createWeldingStreakTexture(), [])
   const sparkData = useMemo(() => makeWeldingSparks(), [])
-  const a         = globalA(c)
+
+  const c = _c ?? scrollStore.getChapterProgress()
+  const a = globalA(c)
 
   const charX = -1.6
 
   useFrame((state, delta) => {
     timeRef.current += delta
-    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const liveC = scrollStore.getChapterProgress()
+    const liveA = globalA(liveC)
+    const liveVel = scrollStore.getVelocity()
+    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
     const showerSpeed = 1.0 + velBoost * 2.0
 
     if (groupRef.current) {
@@ -96,7 +102,7 @@ export function UltronWorld({ chapterProgress: c, active, velocity = 0 }: Ultron
       const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
+      const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
@@ -118,7 +124,7 @@ export function UltronWorld({ chapterProgress: c, active, velocity = 0 }: Ultron
 
       const sMat = sparksRef.current.material as THREE.PointsMaterial
       if (sMat) {
-        sMat.opacity = 0.85 * a
+        sMat.opacity = 0.85 * liveA
       }
     }
 

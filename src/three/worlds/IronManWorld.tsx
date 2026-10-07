@@ -14,9 +14,10 @@
 import { useRef, useMemo } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { scrollStore } from "../../utils/scrollStore"
 
 interface IronManWorldProps {
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   velocity?: number
 }
@@ -110,7 +111,7 @@ const RINGS = [
   { r: 2.3, tube: 0.010, tilt: [Math.PI / 3, Math.PI / 4, 0] as [number,number,number], speed:  0.4 },
 ]
 
-export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronManWorldProps) {
+export function IronManWorld({ chapterProgress: _c, active, velocity: _v }: IronManWorldProps) {
   const groupRef     = useRef<THREE.Group>(null)
   const ringRefs     = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
   const streamRef    = useRef<THREE.Points>(null)
@@ -135,10 +136,14 @@ export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronM
 
   const linePosBuffer = useMemo(() => new Float32Array(pairs.length * 6), [pairs])
 
+  const c = _c ?? scrollStore.getChapterProgress()
   const a = globalA(c)
 
   useFrame((state, delta) => {
-    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const liveC = scrollStore.getChapterProgress()
+    const liveA = globalA(liveC)
+    const liveVel = scrollStore.getVelocity()
+    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
     const flowSpeed = 1.0 + velBoost * 2.2
 
     if (groupRef.current) {
@@ -146,14 +151,14 @@ export function IronManWorld({ chapterProgress: c, active, velocity = 0 }: IronM
       const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
+      const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
     // Arc reactor rings spin
     ringRefs.forEach((r, i) => {
       if (!r.current) return
-      const ringA = Math.max(0, Math.min(1, (a - i * 0.05) / 0.85))
+      const ringA = Math.max(0, Math.min(1, (liveA - i * 0.05) / 0.85))
       r.current.scale.setScalar(ringA)
       r.current.rotation.z += delta * RINGS[i].speed * (1 + velBoost)
     })

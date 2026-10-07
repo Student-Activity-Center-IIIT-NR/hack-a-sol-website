@@ -9,12 +9,14 @@
  *   c 0.22-0.78 HOLD  : text static and fully visible, background/parallax animates
  *   c 0.78-1.00 EXIT  : text/art slides away, opacity 1->0
  */
-import { useEffect, useRef, useCallback, useMemo } from "react"
+import React, { useEffect, useRef, useCallback, useMemo, useState } from "react"
 import gsap from "gsap"
 import { TRACKS } from "../data/tracks"
 import { CharacterArt } from "../components/CharacterArt"
 import { sound } from "../utils/audio"
 import { TRACK_SCROLL_VH } from "../config"
+import { scrollStore } from "../utils/scrollStore"
+import { perfStore } from "../utils/perfStore"
 
 function ss(t: number): number {
   const c = Math.max(0, Math.min(1, t))
@@ -40,20 +42,31 @@ function clampVal(v: number, lo: number, hi: number): number {
 
 interface TracksProps {
   activeIndex: number
-  chapterProgress: number
-  sectionProgress: number
+  chapterProgress?: number
+  sectionProgress?: number
   debugMode?: boolean
   trackScrollVh?: number
 }
 
 const N = TRACKS.length
 
-export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMode = false, trackScrollVh }: TracksProps) {
+export const Tracks = React.memo(function Tracks({
+  activeIndex,
+  chapterProgress: propCp,
+  sectionProgress: _sp,
+  debugMode = false,
+  trackScrollVh,
+}: TracksProps) {
   const active = TRACKS[activeIndex]
-  const c = chapterProgress
+  const c = propCp !== undefined ? propCp : scrollStore.getChapterProgress()
   const nextTrack = TRACKS[Math.min(N - 1, activeIndex + 1)]
   const lastIndexRef = useRef(activeIndex)
-  const prevProgRef = useRef(sectionProgress)
+
+  // Toggle from perfStore
+  const [characterImagesEnabled, setCharacterImagesEnabled] = useState(true)
+  useEffect(() => {
+    return perfStore.subscribe((t) => setCharacterImagesEnabled(t.characterImages))
+  }, [])
 
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -71,15 +84,13 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
   const rafRef = useRef<number>(0)
 
   const animFrame = useCallback(() => {
-    const now = sectionProgress
-    const vel = Math.abs(now - prevProgRef.current) / (1 / 60)
-    prevProgRef.current = now
+    const vel = scrollStore.getVelocity()
     if (!reducedMotion && headingRef.current) {
-      const skewDeg = clampVal(vel * 800, -8, 8)
+      const skewDeg = clampVal(vel * 8, -8, 8)
       gsap.set(headingRef.current, { skewX: skewDeg })
     }
     rafRef.current = requestAnimationFrame(animFrame)
-  }, [sectionProgress, reducedMotion])
+  }, [reducedMotion])
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(animFrame)
@@ -141,9 +152,9 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
     <section
       id="tracks"
       className="relative w-full"
-      style={{ height: "100vh" }}
+      style={{ height: "100vh", contain: "layout paint" }}
     >
-      <div className="relative w-full h-screen overflow-hidden">
+      <div className="relative w-full h-screen overflow-hidden" style={{ contain: "layout paint" }}>
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: bgGradient, zIndex: 0 }}
@@ -194,11 +205,11 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
           className={"absolute inset-y-0 hidden md:flex flex-col items-center justify-center pointer-events-none " + (artOnRight ? "right-0" : "left-0")}
           style={{ width: "55%", zIndex: 5 }}
         >
+          {/* Pre-blurred glow sprite instead of filter: blur(50px) */}
           <div
             className="absolute w-[36vw] h-[36vw] rounded-full pointer-events-none"
             style={{
-              background: "radial-gradient(circle, " + (active?.accentColor ?? "#E23636") + "28 0%, transparent 70%)",
-              filter: "blur(50px)",
+              background: "radial-gradient(circle, " + (active?.accentColor ?? "#E23636") + "35 0%, " + (active?.accentColor ?? "#E23636") + "15 45%, transparent 72%)",
               transform: "scale(" + glowScale + ")",
               transition: "transform 0.15s ease-out, background 0.7s",
             }}
@@ -232,7 +243,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
           >
             {active?.character.toUpperCase()}
           </p>
-          {active && (!active.imagePath ? false : (active.visual ?? "image") !== "model") && (
+          {characterImagesEnabled && active && (!active.imagePath ? false : (active.visual ?? "image") !== "model") && (
             <CharacterArt
               track={active}
               trackIndex={activeIndex}
@@ -245,8 +256,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
             className="absolute bottom-20 flex items-center gap-2 px-4 py-1.5 rounded-sm border transition-all duration-700 pointer-events-auto"
             style={{
               borderColor: (active?.accentColor ?? "#E23636") + "50",
-              background: "rgba(5,5,8,0.7)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(5,5,8,0.92)",
               opacity: c > 0.05 && c < 0.95 ? 1 : 0,
               transition: "opacity 0.4s, border-color 0.7s",
             }}
@@ -266,8 +276,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
             className="flex items-center gap-2 px-4 py-1.5 rounded-sm border pointer-events-auto"
             style={{
               borderColor: (active?.accentColor ?? "#E23636") + "50",
-              background: "rgba(5,5,8,0.75)",
-              backdropFilter: "blur(8px)",
+              background: "rgba(5,5,8,0.92)",
             }}
           >
             <span className="text-sm">{active?.icon}</span>
@@ -353,7 +362,7 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
             </div>
             {debugMode && (
               <div className="mt-4 font-mono text-[9px] text-white/30 space-y-0.5">
-                <div>activeIndex: {activeIndex} | c: {c.toFixed(3)} | phase: {c < 0.22 ? 'ENTER' : c <= 0.78 ? 'HOLD' : 'EXIT'} | sp: {sectionProgress.toFixed(3)}</div>
+                <div>activeIndex: {activeIndex} | c: {c.toFixed(3)} | phase: {c < 0.22 ? 'ENTER' : c <= 0.78 ? 'HOLD' : 'EXIT'} | sp: {(_sp ?? scrollStore.getSectionProgress()).toFixed(3)}</div>
                 <div>GLB: /models/{active?.id}.glb</div>
               </div>
             )}
@@ -362,4 +371,4 @@ export function Tracks({ activeIndex, chapterProgress, sectionProgress, debugMod
       </div>
     </section>
   )
-}
+})

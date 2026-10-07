@@ -27,15 +27,17 @@
  *    - Points only, capped on-screen size (never large solid balls).
  */
 
-import { useRef, useMemo, useEffect } from "react"
+import { useRef, useMemo, useEffect, useState } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 import { TRACKS } from "../data/tracks"
+import { perfStore } from "../utils/perfStore"
+import { scrollStore } from "../utils/scrollStore"
 
 interface TrackParticlesProps {
   activeTrackIndex: number
-  chapterProgress: number
-  sectionProgress: number
+  chapterProgress?: number
+  sectionProgress?: number
   velocity?: number
 }
 
@@ -160,8 +162,14 @@ export function TrackParticles({
   activeTrackIndex,
   chapterProgress: _c,
   sectionProgress: _sp,
-  velocity = 0,
+  velocity: _v = 0,
 }: TrackParticlesProps) {
+  const [enabled, setEnabled] = useState(true)
+
+  useEffect(() => {
+    return perfStore.subscribe((t) => setEnabled(t.particlesEnvironments))
+  }, [])
+
   const { size } = useThree()
   const isMobile = size.width < 768
   const reducedMotion = useMemo(
@@ -255,7 +263,8 @@ export function TrackParticles({
     currentColor.current.lerp(targetColor.current, Math.min(1, delta * 7.5))
 
     // Smooth velocity with ~300ms decay
-    const targetVel = reducedMotion ? 0 : Math.abs(velocity)
+    const liveVel = scrollStore.getVelocity()
+    const targetVel = reducedMotion ? 0 : Math.abs(liveVel)
     smoothVel.current = THREE.MathUtils.lerp(smoothVel.current, targetVel, Math.min(1, delta * 6.5))
     const curVel = smoothVel.current
 
@@ -398,6 +407,8 @@ export function TrackParticles({
     }),
     []
   )
+
+  if (!enabled) return null
 
   return (
     <group name="TrackParticles" position={[0, 0, 0]}>

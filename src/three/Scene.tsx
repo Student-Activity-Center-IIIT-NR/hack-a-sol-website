@@ -5,22 +5,24 @@
  * Phase 3h: TrackWorlds receives sectionProgress + velocity for environment fx.
  */
 
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState, useMemo } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
-import { Stars } from "@react-three/drei"
+import { Stars, PerformanceMonitor, AdaptiveDpr } from "@react-three/drei"
 import * as THREE from "three"
 
 import { TRACKS } from "../data/tracks"
 import { useScrollCamera } from "../hooks/useScrollCamera"
+import { scrollStore } from "../utils/scrollStore"
 import { TrackWorlds } from "./TrackWorlds"
 import { TrackParticles } from "./TrackParticles"
 import { HeroSpace } from "./HeroSpace"
 import { PostFX } from "./PostFX"
+import { PerfMonitor } from "./PerfMonitor"
 
 interface SceneProps {
-  scrollProgress:   number
-  activeTrackIndex: number
-  sectionProgress:  number
+  scrollProgress?:   number
+  activeTrackIndex?: number
+  sectionProgress?:  number
   chapterProgress?: number
   velocity?:        number
 }
@@ -34,10 +36,39 @@ const _mouseDelta = new THREE.Vector2()
 const ACCENT_COLORS = TRACKS.map(t => new THREE.Color(t.accentColor).multiplyScalar(0.08))
 const NEUTRAL       = new THREE.Color("#0A0A0F")
 
-export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, chapterProgress = 0, velocity = 0 }: SceneProps) {
-  const { camera, scene, gl } = useThree()
+export function Scene({ activeTrackIndex = 0 }: SceneProps) {
+  const { camera, scene, set } = useThree()
   const { getCameraTransform } = useScrollCamera()
   const mouseRef = useRef({ x: 0, y: 0 })
+
+  const [zone, setZone] = useState(() => scrollStore.getZone())
+
+  const debugMode = useMemo(() =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("debug") === "1"
+  , [])
+
+  // Zone subscriptions (re-renders at most twice across entire scroll: hero exit & tracks exit)
+  useEffect(() => {
+    return scrollStore.subscribeZone(setZone)
+  }, [])
+
+  // Pause rendering when tab is hidden or when neither Hero nor Tracks is in view
+  useEffect(() => {
+    const updateFrameloop = () => {
+      const isHidden = typeof document !== "undefined" && document.hidden
+      const inView = scrollStore.isInHeroOrTracks()
+      set({ frameloop: !isHidden && inView ? "always" : "never" })
+    }
+
+    const unsub = scrollStore.subscribeInView(updateFrameloop)
+    document.addEventListener("visibilitychange", updateFrameloop)
+
+    return () => {
+      unsub()
+      document.removeEventListener("visibilitychange", updateFrameloop)
+    }
+  }, [set])
 
   useEffect(() => {
     scene.fog = new THREE.FogExp2("#0A0A0F", 0.0012)
@@ -49,18 +80,15 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, chapt
     }
     window.addEventListener("mousemove", onMouse, { passive: true })
 
-    const onVisibility = () => { gl.setAnimationLoop(document.hidden ? null : () => {}) }
-    document.addEventListener("visibilitychange", onVisibility)
-
     return () => {
       scene.fog = null
       window.removeEventListener("mousemove", onMouse)
-      document.removeEventListener("visibilitychange", onVisibility)
     }
-  }, [scene, gl])
+  }, [scene])
 
   useFrame((_, delta) => {
-    const { position, lookAt } = getCameraTransform(scrollProgress)
+    const scrollP = scrollStore.getScrollProgress()
+    const { position, lookAt } = getCameraTransform(scrollP)
     _targetPos.copy(position)
     _targetLook.copy(lookAt)
 
@@ -74,49 +102,51 @@ export function Scene({ scrollProgress, activeTrackIndex, sectionProgress, chapt
     _tempObj.lookAt(_targetLook)
     camera.quaternion.slerp(_tempObj.quaternion, Math.min(1, delta * 2.5))
 
-    const targetFog = activeTrackIndex >= 0 ? ACCENT_COLORS[activeTrackIndex] : NEUTRAL
+    const activeIdx = scrollStore.getActiveIndex()
+    const targetFog = activeIdx >= 0 && activeIdx < ACCENT_COLORS.length ? ACCENT_COLORS[activeIdx] : NEUTRAL
     _fogColor.lerp(targetFog, delta * 0.8)
     if (scene.fog instanceof THREE.FogExp2) scene.fog.color.copy(_fogColor)
   })
 
-  // HeroSpace strictly unmounts once Tracks section is active or approached
-  const showHeroSpace = scrollProgress < 0.12 && sectionProgress === 0
-  const showTrackParticles = scrollProgress >= 0.10 && scrollProgress <= 0.74
-
   return (
     <>
+      {/* Dynamic DPR optimization: drops DPR automatically when FPS < 50 */}
+      <PerformanceMonitor bounds={() => [50, 60]}>
+        <AdaptiveDpr />
+      </PerformanceMonitor>
+
+      {/* Renderer metrics & FPS debug monitor (mounted strictly with ?debug=1) */}
+      {debugMode && <PerfMonitor />}
+
       <ambientLight intensity={0.4} />
       <directionalLight position={[6, 12, 8]} intensity={1.2} />
 
       <Stars radius={100} depth={100} count={5000} factor={4} saturation={0.1} fade speed={0.3} />
 
-      {/* Local lighting setup — zero external network dependencies */}
+      {/* Local lighting setup */}
       <hemisphereLight args={["#ffffff", "#050508", 0.65]} />
       <directionalLight position={[-8, -6, -4]} intensity={0.45} color="#60a5fa" />
       <directionalLight position={[0, 8, -6]} intensity={0.35} color="#a855f7" />
 
       {/* Scroll-driven 3D Marvel space layer for Hero section — STRICTLY unmounted in Tracks */}
-      {showHeroSpace && (
-        <HeroSpace scrollProgress={scrollProgress} velocity={velocity} />
-      )}
+      {zone.hero && <HeroSpace scrollProgress={0} />}
 
       {/* Unified soft light particle & transition system for Tracks */}
-      {showTrackParticles && (
-        <TrackParticles
-          activeTrackIndex={activeTrackIndex}
-          chapterProgress={chapterProgress}
-          sectionProgress={sectionProgress}
-          velocity={velocity}
-        />
+      {zone.tracks && (
+        <>
+          <TrackParticles
+            activeTrackIndex={activeTrackIndex}
+            chapterProgress={0}
+            sectionProgress={0}
+          />
+          <TrackWorlds
+            activeTrackIndex={activeTrackIndex}
+            sectionProgress={0}
+          />
+        </>
       )}
 
-      <TrackWorlds
-        activeTrackIndex={activeTrackIndex}
-        sectionProgress={sectionProgress}
-        velocity={velocity}
-      />
-
-      <PostFX scrollProgress={scrollProgress} activeTrackIndex={activeTrackIndex} />
+      <PostFX />
     </>
   )
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/components/MarvelOverlay.tsx  (Phase 3h — common Marvel layer)
  * ─────────────────────────────────────────────────────────────────────────────
  * Common Marvel universe layer rendered above the 3D canvas but behind text:
@@ -73,7 +73,6 @@ export function MarvelOverlay({
         style={{
           backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.018) 1px, transparent 1px)",
           backgroundSize: "18px 18px",
-          mixBlendMode: "screen",
         }}
       />
 
@@ -82,8 +81,7 @@ export function MarvelOverlay({
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${accent}${Math.round(velGlow * 30).toString(16).padStart(2, "0")} 0%, transparent 100%)`,
-            mixBlendMode: "screen",
+            background: `radial-gradient(ellipse 80% 60% at 50% 50%, ${accent}${Math.round(velGlow * 25).toString(16).padStart(2, "0")} 0%, transparent 100%)`,
           }}
         />
       )}
@@ -131,7 +129,6 @@ export function MarvelOverlay({
         className="absolute inset-0"
         style={{
           backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.009) 3px, rgba(255,255,255,0.009) 4px)`,
-          mixBlendMode: "overlay",
         }}
       />
     </div>

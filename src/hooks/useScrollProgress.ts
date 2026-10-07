@@ -8,10 +8,10 @@
  * useTrackSection (GSAP ScrollTrigger pin on #tracks) — not derived from this.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import { scrollStore } from '../utils/scrollStore'
 
 export function useScrollProgress() {
-  const [progress, setProgress] = useState(0)
   const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export function useScrollProgress() {
       const scrollTop = window.scrollY || document.documentElement.scrollTop
       const docHeight =
         document.documentElement.scrollHeight - document.documentElement.clientHeight
-      const p = docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0
-      setProgress(parseFloat(p.toFixed(4)))
+      const p = docHeight > 0 ? Math.min(1, Math.max(0, scrollTop / docHeight)) : 0
+      scrollStore.updateScroll(p)
     }
 
     window.addEventListener('scroll', update, { passive: true })
@@ -34,6 +34,6 @@ export function useScrollProgress() {
     }
   }, [])
 
-  return progress
+  return scrollStore.getScrollProgress()
 }
 

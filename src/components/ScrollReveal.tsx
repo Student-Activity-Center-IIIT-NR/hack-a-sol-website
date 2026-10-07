@@ -52,7 +52,7 @@ export function ScrollReveal({
     const words = containerRef.current.querySelectorAll<HTMLSpanElement>('.sr-word')
     if (!words.length) return
 
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       words,
       { y: '105%', opacity: 0 },
       {
@@ -68,6 +68,11 @@ export function ScrollReveal({
         },
       },
     )
+
+    return () => {
+      tween.scrollTrigger?.kill()
+      tween.kill()
+    }
   }, [stagger, duration, start])
 
   // Split children string into word spans
@@ -112,7 +117,7 @@ export function FadeUp({
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) return
 
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       ref.current,
       { y: 30, opacity: 0 },
       {
@@ -128,6 +133,11 @@ export function FadeUp({
         },
       },
     )
+
+    return () => {
+      tween.scrollTrigger?.kill()
+      tween.kill()
+    }
   }, [delay])
 
   return (

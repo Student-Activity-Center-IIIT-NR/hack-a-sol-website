@@ -1,121 +1,128 @@
 /**
- * src/three/PostFX.tsx  (Phase 3b — velocity-based chromatic aberration)
+ * src/three/PostFX.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Post-processing changes from Phase 3b:
- *   • ChromaticAberration at rest = near-zero (0.0003 base)
- *   • Aberration spikes only on fast scroll, decays back in ~300 ms
- *   • Boundary-proximity warp kept for track transitions
- *   • Noise and Vignette unchanged but grain reduced to 0.022
- *   • Bloom luminance threshold raised to avoid washing models
- *
- * Performance guard: disabled on mobile, <=4 cores, prefers-reduced-motion.
+ * Performance-optimized Post-Processing pass:
+ * - One EffectComposer with multisampling = 0
+ * - Bloom with mipmapBlur and reduced resolution (about 0.5)
+ * - ChromaticAberration & Noise active ONLY while scroll velocity is above threshold
+ *   (otherwise not rendered at all)
+ * - Automatically disabled when:
+ *     1. Running on mobile (width < 768)
+ *     2. Prefers-reduced-motion
+ *     3. FPS stays below 45 for >= 2.0 seconds
+ *     4. Switched OFF in Leva debug panel (?debug=1)
  */
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { EffectComposer, Bloom, ChromaticAberration, Noise, Vignette } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
+import { scrollStore } from '../utils/scrollStore'
+import { perfStore } from '../utils/perfStore'
 
 interface PostFXProps {
   scrollProgress?: number
   activeTrackIndex?: number
 }
 
-// Track transition boundaries
-const TRANSITION_BOUNDARIES = [0.15, 0.26, 0.37, 0.48, 0.59, 0.70]
+// Velocity threshold above which chromatic aberration and noise become active
+const VELOCITY_THRESHOLD = 0.35
+const ABERRATION_MAX = 0.005
 
-// Minimum aberration at rest (zero at rest per requirement 6)
-const ABERRATION_BASE    = 0.0
-// Maximum aberration peak during fast scroll
-const ABERRATION_MAX     = 0.006
-// Velocity time-constant (seconds) for exponential decay (~300ms)
-const VELOCITY_DECAY_TAU = 0.09
+export function PostFX(_props: PostFXProps) {
+  const aberrationOffset = useRef(new THREE.Vector2(0, 0))
+  const [isFastScroll, setIsFastScroll] = useState(false)
+  const [disabledByLowFps, setDisabledByLowFps] = useState(false)
+  const [postProcessingEnabled, setPostProcessingEnabled] = useState(true)
 
-export function PostFX({ scrollProgress = 0 }: PostFXProps) {
-  const aberrationOffset = useRef(new THREE.Vector2(ABERRATION_BASE, ABERRATION_BASE))
-  // Keep a mutable ref for scrollProgress so useFrame always sees current value
-  const scrollRef     = useRef(scrollProgress)
-  const prevScroll    = useRef(scrollProgress)
-  const velocityRef   = useRef(0)
+  const lowFpsTimer = useRef(0)
+  const isFastScrollRef = useRef(false)
 
-  // Sync scroll ref each render (this runs before useFrame)
-  scrollRef.current = scrollProgress
+  // Listen to Leva toggle from perfStore
+  useEffect(() => {
+    return perfStore.subscribe((toggles) => {
+      setPostProcessingEnabled(toggles.postProcessing)
+    })
+  }, [])
 
-  const shouldRender = useMemo(() => {
-    if (typeof window === 'undefined') return false
+  // Mobile / accessibility check
+  const isMobileOrReduced = useMemo(() => {
+    if (typeof window === 'undefined') return true
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const isMobile      = window.innerWidth < 768
-    const isLowEnd      = (navigator.hardwareConcurrency ?? 8) <= 4
-    return !reducedMotion && !isMobile && !isLowEnd
+    const isMobile = window.innerWidth < 768
+    return reducedMotion || isMobile
   }, [])
 
   useFrame((_, delta) => {
-    if (!shouldRender) return
+    if (isMobileOrReduced || !postProcessingEnabled || disabledByLowFps) return
 
-    const current = scrollRef.current
-    const scrollDelta = Math.abs(current - prevScroll.current)
-    prevScroll.current = current
-
-    // Instant velocity (scroll units per second)
-    const instantVelocity = scrollDelta / Math.max(delta, 0.001)
-
-    // velocityRef = max(instantVelocity, decay of previous)
-    velocityRef.current = Math.max(
-      instantVelocity,
-      velocityRef.current * Math.exp(-delta / VELOCITY_DECAY_TAU),
-    )
-
-    // Proximity to nearest transition boundary
-    let minDist = 1.0
-    for (const b of TRANSITION_BOUNDARIES) {
-      const d = Math.abs(current - b)
-      if (d < minDist) minDist = d
+    // 1. Check FPS guard (disable if stays below 45 fps for 2 continuous seconds)
+    const instantFps = 1 / Math.max(delta, 0.001)
+    if (instantFps < 45) {
+      lowFpsTimer.current += delta
+      if (lowFpsTimer.current >= 2.0) {
+        setDisabledByLowFps(true)
+      }
+    } else {
+      lowFpsTimer.current = Math.max(0, lowFpsTimer.current - delta * 0.5)
     }
-    const boundaryProximity = Math.max(0, 1 - minDist / 0.025)
 
-    // Target aberration strength: velocity-driven + boundary-proximity boost
-    const velocityContrib  = Math.min(ABERRATION_MAX * 0.7, velocityRef.current * 0.004)
-    const boundaryContrib  = boundaryProximity * ABERRATION_MAX * 0.5
-    const target = ABERRATION_BASE + velocityContrib + boundaryContrib
+    // 2. Velocity check for chromatic aberration and noise
+    const currentVel = scrollStore.getVelocity()
+    const active = currentVel > VELOCITY_THRESHOLD
 
-    // Smooth the value (fast attack, slow decay)
-    const lerpSpeed = target > aberrationOffset.current.x ? 12 : 5
-    const val = THREE.MathUtils.lerp(aberrationOffset.current.x, target, Math.min(1, delta * lerpSpeed))
-    aberrationOffset.current.set(val, val)
+    if (active !== isFastScrollRef.current) {
+      isFastScrollRef.current = active
+      setIsFastScroll(active)
+    }
+
+    if (active) {
+      const targetOffset = Math.min(ABERRATION_MAX, currentVel * 0.003)
+      aberrationOffset.current.lerp(new THREE.Vector2(targetOffset, targetOffset), Math.min(1, delta * 12))
+    }
   })
 
-  if (!shouldRender) return null
+  // Full guard checks: skip entirely on mobile, low FPS, or toggle off
+  if (isMobileOrReduced || !postProcessingEnabled || disabledByLowFps) {
+    return null
+  }
+
+  if (isFastScroll) {
+    return (
+      <EffectComposer multisampling={0}>
+        {/* Bloom with mipmapBlur and reduced resolution (about 0.5) */}
+        <Bloom
+          intensity={0.8}
+          luminanceThreshold={0.58}
+          luminanceSmoothing={0.85}
+          mipmapBlur
+          resolutionScale={0.5}
+        />
+        {/* Chromatic Aberration and Noise active ONLY during fast scroll */}
+        <ChromaticAberration
+          offset={aberrationOffset.current}
+          radialModulation={false}
+          modulationOffset={0.15}
+        />
+        <Noise
+          premultiply
+          blendFunction={BlendFunction.ADD}
+          opacity={0.02}
+        />
+      </EffectComposer>
+    )
+  }
 
   return (
     <EffectComposer multisampling={0}>
-      {/* Bloom — slightly tighter threshold so model bodies aren't washed out */}
+      {/* Bloom with mipmapBlur and reduced resolution (about 0.5) */}
       <Bloom
-        intensity={0.85}
-        luminanceThreshold={0.55}
-        luminanceSmoothing={0.9}
+        intensity={0.8}
+        luminanceThreshold={0.58}
+        luminanceSmoothing={0.85}
         mipmapBlur
-      />
-
-      {/* Chromatic Aberration — only spikes during fast scroll */}
-      <ChromaticAberration
-        offset={aberrationOffset.current}
-        radialModulation={false}
-        modulationOffset={0.15}
-      />
-
-      {/* Subtle film grain — reduced from 0.035 */}
-      <Noise
-        premultiply
-        blendFunction={BlendFunction.ADD}
-        opacity={0.022}
-      />
-
-      {/* Cinematic vignette — subtle so side character areas stay bright */}
-      <Vignette
-        offset={0.45}
-        darkness={0.4}
-        blendFunction={BlendFunction.NORMAL}
+        resolutionScale={0.5}
       />
     </EffectComposer>
   )

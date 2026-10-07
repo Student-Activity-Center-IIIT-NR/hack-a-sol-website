@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/hooks/useTrackSection.ts  (Phase 3h - slower scroll, dwell & snap)
  * -----------------------------------------------------------------------------
  * Computes the Tracks section state from a GSAP ScrollTrigger pinned to
@@ -25,8 +25,11 @@ import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { TRACKS } from '../data/tracks'
 import { TRACK_SCROLL_VH } from '../config'
+import { scrollStore } from '../utils/scrollStore'
 
 gsap.registerPlugin(ScrollTrigger)
+ScrollTrigger.config({ limitCallbacks: true })
+gsap.ticker.lagSmoothing(0)
 
 export interface TrackSectionState {
   /** 0..1 overall progress through the entire pinned tracks section */
@@ -66,32 +69,40 @@ function computeStateWithHysteresis(p: number, currentIdx: number): TrackSection
 
 /**
  * Sets up a GSAP ScrollTrigger pin on #tracks and returns the live state.
+ * Only triggers React re-renders when activeIndex changes.
+ * Continuous metrics are updated into scrollStore.
  */
 export function useTrackSection(options?: UseTrackSectionOptions): TrackSectionState {
   const scrollVh = options?.trackScrollVh ?? TRACK_SCROLL_VH
   const snapEnabled = options?.snapEnabled ?? true
 
-  const [state, setState] = useState<TrackSectionState>(() =>
-    computeStateWithHysteresis(0, 0)
-  )
+  const [state, setState] = useState<TrackSectionState>(() => {
+    const initial = computeStateWithHysteresis(0, 0)
+    scrollStore.updateTrackSection(initial.sectionProgress, initial.activeIndex, initial.chapterProgress)
+    return initial
+  })
+
   const stRef = useRef<ScrollTrigger | null>(null)
   const activeIdxRef = useRef<number>(0)
-
-  // Keep activeIdxRef in sync
   activeIdxRef.current = state.activeIndex
 
   const onUpdate = useCallback((self: ScrollTrigger) => {
-    setState((prevState) => {
-      const next = computeStateWithHysteresis(self.progress, prevState.activeIndex)
-      return next
-    })
+    const next = computeStateWithHysteresis(self.progress, activeIdxRef.current)
+    // Non-reactive store receives 60fps updates for Three.js useFrame
+    scrollStore.updateTrackSection(next.sectionProgress, next.activeIndex, next.chapterProgress)
+
+    // DOM text updates ONLY when activeIndex changes
+    if (next.activeIndex !== activeIdxRef.current) {
+      activeIdxRef.current = next.activeIndex
+      setState(next)
+    }
   }, [])
 
   useEffect(() => {
     const el = document.getElementById('tracks')
     if (!el) return
 
-    // Kill any existing ST pinning this element
+    // Kill any existing ST pinning this element to avoid duplicate triggers doing the same scrub
     ScrollTrigger.getAll().forEach((st) => {
       if (st.trigger === el) st.kill()
     })
@@ -101,12 +112,14 @@ export function useTrackSection(options?: UseTrackSectionOptions): TrackSectionS
 
     // Pin the tracks section; end = N chapters * TRACK_SCROLL_VH vh of scrolling room
     const st = ScrollTrigger.create({
+      id: 'tracks-pin',
       trigger: el,
       start: 'top top',
       end: `+=${N * scrollVh}vh`,
       pin: true,
       pinSpacing: true,
       scrub: 1,
+      invalidateOnRefresh: true,
       snap: snapEnabled
         ? {
             snapTo: chapterCenters,
@@ -121,15 +134,25 @@ export function useTrackSection(options?: UseTrackSectionOptions): TrackSectionS
 
     stRef.current = st
 
-    // Refresh after everything loads so pin-spacer height is correct
-    const doRefresh = () => ScrollTrigger.refresh()
-    window.addEventListener('load', doRefresh)
-    document.fonts?.ready?.then(doRefresh)
+    // Refresh only after fonts and window load (once, not repeatedly)
+    let refreshed = false
+    const doRefresh = () => {
+      if (refreshed) return
+      refreshed = true
+      ScrollTrigger.refresh()
+    }
+
+    if (document.readyState === 'complete') {
+      document.fonts?.ready?.then(doRefresh)
+    } else {
+      window.addEventListener('load', () => {
+        document.fonts?.ready?.then(doRefresh)
+      }, { once: true })
+    }
 
     return () => {
       st.kill()
       stRef.current = null
-      window.removeEventListener('load', doRefresh)
     }
   }, [scrollVh, snapEnabled, onUpdate])
 

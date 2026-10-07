@@ -12,9 +12,10 @@
 import { useRef, useMemo } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { scrollStore } from "../../utils/scrollStore"
 
 interface BlackPantherWorldProps {
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   velocity?: number
 }
@@ -79,7 +80,7 @@ function makeGreenGlints() {
   return { pos, phases }
 }
 
-export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: BlackPantherWorldProps) {
+export function BlackPantherWorld({ chapterProgress: _c, active, velocity: _v }: BlackPantherWorldProps) {
   const groupRef   = useRef<THREE.Group>(null)
   const shardsRef  = useRef<THREE.InstancedMesh>(null)
   const glintsRef  = useRef<THREE.Points>(null)
@@ -89,12 +90,17 @@ export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: 
   const shardData  = useMemo(() => makeShardInitialData(), [])
   const glintData  = useMemo(() => makeGreenGlints(), [])
   const dummy      = useMemo(() => new THREE.Object3D(), [])
-  const a          = globalA(c)
+
+  const c = _c ?? scrollStore.getChapterProgress()
+  const a = globalA(c)
 
   useFrame((state, delta) => {
     timeRef.current += delta
     const t = timeRef.current
-    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const liveC = scrollStore.getChapterProgress()
+    const liveA = globalA(liveC)
+    const liveVel = scrollStore.getVelocity()
+    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
     const riseSpeed = 1 + velBoost * 2.2
 
     if (groupRef.current) {
@@ -102,7 +108,7 @@ export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: 
       const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
+      const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
@@ -115,7 +121,7 @@ export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: 
         }
         dummy.position.set(shard.x, shard.y, shard.z)
         dummy.rotation.set(t * shard.rotSpeedX, t * shard.rotSpeedY, Math.PI / 12)
-        dummy.scale.setScalar(shard.scale * a)
+        dummy.scale.setScalar(shard.scale * liveA)
         dummy.updateMatrix()
         shardsRef.current!.setMatrixAt(i, dummy.matrix)
       })
@@ -133,7 +139,7 @@ export function BlackPantherWorld({ chapterProgress: c, active, velocity = 0 }: 
 
       const gMat = glintsRef.current.material as THREE.PointsMaterial
       if (gMat) {
-        gMat.opacity = 0.8 * a
+        gMat.opacity = 0.8 * liveA
       }
     }
   })

@@ -55,12 +55,6 @@ function phaseTransX(c: number, artOnRight: boolean): number {
   return -dir * 20 * exitFrac(c)                         // exit to opposite side
 }
 
-function phaseClip(c: number, artOnRight: boolean): string {
-  const pct = Math.round(Math.min(100, charEnterFrac(c) * 100))
-  return artOnRight
-    ? `inset(0 ${100 - pct}% 0 0)`
-    : `inset(0 0 0 ${100 - pct}%)`
-}
 
 // -- Signature effects -----------------------------------------------------
 function HUDRings({ c, vis }: { c: string; vis: boolean }) {
@@ -219,7 +213,7 @@ export function CharacterArt({
 
     const tick = () => {
       if (reducedMotion || isMobile) {
-        gsap.set(el, { opacity: active ? phaseOp(c) : 0, clearProps: 'x,y,scale,rotateX,rotateY,clipPath' })
+        gsap.set(el, { opacity: active ? phaseOp(c) : 0, clearProps: 'x,y,scale,rotateX,rotateY' })
       } else {
         const inHold  = c >= 0.22 && c <= 0.78
         const floatY  = active && inHold ? Math.sin(performance.now() / 1900) * 8 : 0
@@ -233,7 +227,6 @@ export function CharacterArt({
           y:          floatY,
           rotateX:    active && inHold ? tiltRef.current.rx : 0,
           rotateY:    active && inHold ? tiltRef.current.ry : 0,
-          clipPath:   c < 0.22 ? phaseClip(c, artOnRight) : 'none',
           transformOrigin: '50% 100%',
         })
       }
@@ -247,12 +240,12 @@ export function CharacterArt({
   // Missing image warning
   useEffect(() => {
     if (imgError) {
-      const src = track.imagePath ?? `/characters/${track.id}.png`
+      const src = track.imagePath ?? `/characters/${track.id}.webp`
       console.warn(`[CharacterArt] Missing art for "${track.id}": ${src}`)
     }
   }, [imgError, track.id, track.imagePath])
 
-  const src    = track.imagePath ?? `/characters/${track.id}.png`
+  const src    = track.imagePath ?? `/characters/${track.id}.webp`
   const isHold = active && c >= 0.22 && c <= 0.78
   const isExit = active && c > 0.78
   const ac     = track.accentColor
@@ -296,13 +289,31 @@ export function CharacterArt({
         <SigEffect />
       </div>
 
-      {/* Character PNG */}
+      {/* Character WebP art with pre-blurred glow sprite */}
       {!imgError && (
         <div className="absolute inset-0 flex items-end justify-center" style={{ zIndex: 3 }}>
+          {/* Pre-blurred glow sprite instead of drop-shadow */}
+          <div
+            aria-hidden="true"
+            className="absolute pointer-events-none rounded-full"
+            style={{
+              width: '34vw',
+              height: '34vw',
+              bottom: '12%',
+              background: `radial-gradient(ellipse 65% 65% at 50% 50%, ${ac}50 0%, ${ac}25 40%, transparent 72%)`,
+              opacity: isHold ? 0.8 : isExit ? 0.35 : 0,
+              transform: 'scale(1.1)',
+              transition: 'opacity 0.5s ease',
+              willChange: 'opacity',
+            }}
+          />
           <img
             ref={imgRef}
             src={src}
             alt={`${track.character} character art`}
+            width={666}
+            height={375}
+            decoding="async"
             loading="lazy"
             onLoad={() => setLoaded(true)}
             onError={() => setImgError(true)}
@@ -312,16 +323,8 @@ export function CharacterArt({
               width:           'auto',
               objectFit:       'contain',
               objectPosition:  'bottom center',
-              WebkitMaskImage: 'linear-gradient(to top, transparent 0%, black 16%, black 88%, transparent 100%)',
-              maskImage:       'linear-gradient(to top, transparent 0%, black 16%, black 88%, transparent 100%)',
               opacity:         0,
-              willChange:      'transform, opacity',
-              filter: isHold
-                ? `drop-shadow(0 0 22px ${ac}80) drop-shadow(0 0 44px ${ac}40)`
-                : isExit
-                  ? `drop-shadow(0 0 12px ${ac}40)`
-                  : 'none',
-              transition: 'filter 0.5s ease',
+              willChange:      'transform',
             }}
           />
         </div>
@@ -340,8 +343,8 @@ export function CharacterArt({
       {/* Debug chip */}
       {debugMode && (
         <div
-          className="absolute top-3 left-3 font-mono text-[9px] px-2 py-0.5 rounded border backdrop-blur-sm"
-          style={{ zIndex: 50, borderColor: ac + '55', color: ac, background: 'rgba(5,5,8,0.85)' }}
+          className="absolute top-3 left-3 font-mono text-[9px] px-2 py-0.5 rounded border"
+          style={{ zIndex: 50, borderColor: ac + '55', color: ac, background: 'rgba(5,5,8,0.92)' }}
         >
           {imgError ? '? ' : loaded ? '? ' : '. '}
           {src}{imgError ? ' (missing)' : ''} | c={c.toFixed(3)}

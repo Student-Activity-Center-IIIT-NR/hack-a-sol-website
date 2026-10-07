@@ -31,6 +31,7 @@ import { DevHUD }         from "./components/DevHUD"
 import { CustomCursor }   from "./components/CustomCursor"
 import { FloatingHUD }    from "./components/FloatingHUD"
 import { MarvelOverlay }  from "./components/MarvelOverlay"
+import { PerfPanel }      from "./components/PerfPanel"
 
 import { Hero }          from "./sections/Hero"
 import { About }         from "./sections/About"
@@ -114,7 +115,7 @@ export default function App() {
       {/* -- Fixed 3D Canvas - ONE persistent canvas for the entire site -- */}
       <div id="canvas-wrapper" aria-hidden="true" className={canvasDimmed ? "canvas-dimmed" : ""}>
         <Canvas
-          dpr={[1, 1.5]}
+          dpr={[1, 1.25]}
           camera={{ position: [0, 0, 8], fov: 60, near: 0.1, far: 300 }}
           gl={{
             antialias: true,
@@ -124,13 +125,7 @@ export default function App() {
           }}
         >
           <Suspense fallback={null}>
-            <Scene
-              scrollProgress={scrollProgress}
-              activeTrackIndex={activeIndex}
-              sectionProgress={sectionProgress}
-              chapterProgress={chapterProgress}
-              velocity={smoothedVelocity}
-            />
+            <Scene activeTrackIndex={activeIndex} />
           </Suspense>
         </Canvas>
       </div>
@@ -155,13 +150,14 @@ export default function App() {
         <Footer />
       </div>
 
-      {/* -- Dev HUD ------------------------------------------------------- */}
+      {/* -- Dev HUD & Perf Diagnostics (?debug=1) ----------------------- */}
       <DevHUD
         scrollProgress={scrollProgress}
         activeTrackIndex={activeIndex}
         chapterProgress={chapterProgress}
         sectionProgress={sectionProgress}
       />
+      {debugMode && <PerfPanel />}
     </>
   )
 }

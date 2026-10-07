@@ -13,10 +13,11 @@
  * - Fits within the first viewport at 1920x1080 and 1366x768.
  */
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { EVENT } from '../config'
+import { perfStore } from '../utils/perfStore'
 import './hero.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -26,73 +27,176 @@ interface HeroProps {
   ready?: boolean
 }
 
-// 5 character silhouettes flanking the sides with staggered sizes and individual depths
-const SILHOUETTES = [
-  // Left flank (3 characters: aiml nearer title, cybersec mid, robonyx outer)
+// ── 1. Character Types & Sources ──
+interface CharacterItem {
+  id: string
+  name: string
+  src: string
+  accentColor: string
+}
+
+// 5 core track champions from /public/characters/ (with baked silhouette effects)
+const TRACK_CHARACTERS: CharacterItem[] = [
+  { id: 'aiml', name: 'Iron Man', src: '/characters/aiml-silhouette.webp', accentColor: '#60A5FA' },
+  { id: 'web3', name: 'Black Panther', src: '/characters/web3-silhouette.webp', accentColor: '#A855F7' },
+  { id: 'cybersec', name: 'Captain America', src: '/characters/cybersec-silhouette.webp', accentColor: '#EF4444' },
+  { id: 'coderun', name: 'Doctor Strange', src: '/characters/coderun-silhouette.webp', accentColor: '#F59E0B' },
+  { id: 'robonyx', name: 'Ultron', src: '/characters/robonyx-silhouette.webp', accentColor: '#F87171' },
+]
+
+// Helper to extract clean hero name and accent color from asset filename
+function getCharacterMeta(filename: string): { name: string; accent: string } {
+  const lower = filename.toLowerCase()
+  if (lower.includes('black-widow') || lower.includes('blackwidow')) {
+    return { name: 'Black Widow', accent: '#E11D48' }
+  }
+  if (lower.includes('scarletwitch') || lower.includes('scarlet')) {
+    return { name: 'Scarlet Witch', accent: '#EC4899' }
+  }
+  if (lower.includes('spiderman') || lower.includes('spider') || lower.includes('image-removebg')) {
+    return { name: 'Spider-Man', accent: '#EF4444' }
+  }
+  if (lower.includes('wolverine')) {
+    return { name: 'Wolverine', accent: '#F59E0B' }
+  }
+  if (lower.includes('thor')) {
+    return { name: 'Thor', accent: '#38BDF8' }
+  }
+  if (lower.includes('hulk') || lower.includes('8u4anpj')) {
+    return { name: 'Hulk', accent: '#10B981' }
+  }
+  if (lower.includes('hawkeye') || lower.includes('wp7494946')) {
+    return { name: 'Hawkeye', accent: '#A855F7' }
+  }
+  return {
+    name: filename.charAt(0).toUpperCase() + filename.slice(1).replace(/[-_]/g, ' '),
+    accent: '#E23636',
+  }
+}
+
+// 2. Automatically load all WebP images from src/assets/hero-characters/*.webp
+const assetModules = import.meta.glob<string>(
+  '../assets/hero-characters/*.webp',
+  { eager: true, query: '?url', import: 'default' }
+)
+
+const ASSET_CHARACTERS: CharacterItem[] = Object.entries(assetModules).map(([path, url]) => {
+  const filename = path.split('/').pop()?.replace(/\.(png|webp)$/i, '') || 'hero'
+  const { name, accent } = getCharacterMeta(filename)
+  return {
+    id: `asset-${filename}`,
+    name,
+    src: url,
+    accentColor: accent,
+  }
+})
+
+// Combined character pool
+const INITIAL_POOL: CharacterItem[] = [...TRACK_CHARACTERS, ...ASSET_CHARACTERS]
+
+// ── 3. 8 Fixed Slots (4 Left, 4 Right) with Staggered Heights and Depths ──
+interface SlotConfig {
+  id: string
+  side: 'left' | 'right'
+  className: string
+  depth: number
+  opacity: number
+  mobileVisible?: boolean
+  floatDuration: number
+  floatDelay: number
+}
+
+const SLOTS: SlotConfig[] = [
+  // ── LEFT FLANK (4 slots: L0 nearest title, L3 outermost) ──
   {
-    id: 'cybersec',
-    src: '/characters/cybersec.png',
-    name: 'Captain America',
-    side: 'left' as const,
-    className: 'hidden sm:block left-[2%] sm:left-[4%] lg:left-[6%] top-[8%] h-[44vh] sm:h-[48vh] max-h-[460px] w-auto z-[2]',
-    depth: 0.32,
-    floatDuration: 8.5,
-    floatDelay: 0,
-    opacity: 0.34,
-    accentColor: '#EF4444',
-  },
-  {
-    id: 'aiml',
-    src: '/characters/aiml.png',
-    name: 'Iron Man',
-    side: 'left' as const,
-    className: 'left-[6%] sm:left-[10%] lg:left-[13%] top-[16%] h-[50vh] sm:h-[55vh] max-h-[520px] w-auto z-[3]',
-    depth: 0.5,
+    id: 'slot-L0',
+    side: 'left',
+    className: 'left-[2%] sm:left-[16%] lg:left-[20%] top-[8%] sm:top-[10%] h-[34vh] sm:h-[52vh] max-h-[300px] sm:max-h-[500px] max-w-[32vw] sm:max-w-none w-auto z-[4]',
+    depth: 0.50,
+    opacity: 0.52,
+    mobileVisible: true,
     floatDuration: 7.2,
-    floatDelay: 1.2,
-    opacity: 0.38,
-    accentColor: '#60A5FA',
-    mobileVisible: true,
+    floatDelay: 0.4,
   },
   {
-    id: 'robonyx',
-    src: '/characters/robonyx.png',
-    name: 'Ultron',
-    side: 'left' as const,
-    className: 'hidden sm:block -left-6 sm:-left-2 lg:left-[0%] top-[34%] h-[38vh] sm:h-[42vh] max-h-[390px] w-auto z-[1]',
-    depth: 0.2,
-    floatDuration: 9.0,
-    floatDelay: 2.4,
-    opacity: 0.30,
-    accentColor: '#F87171',
+    id: 'slot-L1',
+    side: 'left',
+    className: 'hidden sm:block left-[9%] lg:left-[12%] top-[48%] h-[42vh] sm:h-[46vh] max-h-[440px] w-auto z-[3]',
+    depth: 0.38,
+    opacity: 0.48,
+    mobileVisible: false,
+    floatDuration: 8.2,
+    floatDelay: 0.9,
   },
-  // Right flank (2 characters: web3 nearer title, coderun mid/outer)
   {
-    id: 'coderun',
-    src: '/characters/coderun.png',
-    name: 'Doctor Strange',
-    side: 'right' as const,
-    className: 'hidden sm:block right-[2%] sm:right-[4%] lg:right-[6%] top-[8%] h-[45vh] sm:h-[49vh] max-h-[470px] w-auto z-[2]',
+    id: 'slot-L2',
+    side: 'left',
+    className: 'hidden sm:block left-[3%] lg:left-[5%] top-[6%] h-[36vh] sm:h-[40vh] max-h-[380px] w-auto z-[2]',
     depth: 0.28,
-    floatDuration: 8.0,
-    floatDelay: 0.8,
-    opacity: 0.34,
-    accentColor: '#F59E0B',
+    opacity: 0.45,
+    mobileVisible: false,
+    floatDuration: 9.0,
+    floatDelay: 1.6,
   },
   {
-    id: 'web3',
-    src: '/characters/web3.png',
-    name: 'Black Panther',
-    side: 'right' as const,
-    className: 'right-[6%] sm:right-[10%] lg:right-[13%] top-[16%] h-[50vh] sm:h-[55vh] max-h-[520px] w-auto z-[3]',
-    depth: 0.52,
-    floatDuration: 7.6,
-    floatDelay: 1.8,
-    opacity: 0.38,
-    accentColor: '#A855F7',
+    id: 'slot-L3',
+    side: 'left',
+    className: 'hidden sm:block -left-4 lg:left-0 top-[44%] h-[30vh] sm:h-[34vh] max-h-[320px] w-auto z-[1]',
+    depth: 0.18,
+    opacity: 0.42,
+    mobileVisible: false,
+    floatDuration: 8.6,
+    floatDelay: 2.2,
+  },
+
+  // ── RIGHT FLANK (4 slots: R0 nearest title, R3 outermost) ──
+  {
+    id: 'slot-R0',
+    side: 'right',
+    className: 'right-[2%] sm:right-[16%] lg:right-[20%] top-[8%] sm:top-[10%] h-[34vh] sm:h-[52vh] max-h-[300px] sm:max-h-[500px] max-w-[32vw] sm:max-w-none w-auto z-[4]',
+    depth: 0.50,
+    opacity: 0.52,
     mobileVisible: true,
+    floatDuration: 7.5,
+    floatDelay: 0.6,
+  },
+  {
+    id: 'slot-R1',
+    side: 'right',
+    className: 'hidden sm:block right-[9%] lg:right-[12%] top-[48%] h-[42vh] sm:h-[46vh] max-h-[440px] w-auto z-[3]',
+    depth: 0.38,
+    opacity: 0.48,
+    mobileVisible: false,
+    floatDuration: 8.4,
+    floatDelay: 1.1,
+  },
+  {
+    id: 'slot-R2',
+    side: 'right',
+    className: 'hidden sm:block right-[3%] lg:right-[5%] top-[6%] h-[36vh] sm:h-[40vh] max-h-[380px] w-auto z-[2]',
+    depth: 0.28,
+    opacity: 0.45,
+    mobileVisible: false,
+    floatDuration: 7.8,
+    floatDelay: 1.8,
+  },
+  {
+    id: 'slot-R3',
+    side: 'right',
+    className: 'hidden sm:block -right-4 lg:right-0 top-[44%] h-[30vh] sm:h-[34vh] max-h-[320px] w-auto z-[1]',
+    depth: 0.18,
+    opacity: 0.42,
+    mobileVisible: false,
+    floatDuration: 9.2,
+    floatDelay: 2.5,
   },
 ]
+
+interface SlotState {
+  current: CharacterItem
+  incoming: CharacterItem | null
+  isFading: boolean
+}
 
 export function Hero({ ready = true }: HeroProps) {
   const heroRef = useRef<HTMLElement>(null)
@@ -100,32 +204,120 @@ export function Hero({ ready = true }: HeroProps) {
   const rightGroupRef = useRef<HTMLDivElement>(null)
   const textGroupRef = useRef<HTMLDivElement>(null)
   const crackRef = useRef<SVGSVGElement>(null)
-  const charWrapperRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const slotWrapperRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const quickToMap = useRef<{ [key: string]: { x: (v: number) => void; y: (v: number) => void } }>({})
 
-  // Verify PNG transparency: if a PNG has an opaque background, hide it and log warning
-  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>, src: string) => {
-    try {
-      const img = e.currentTarget
-      const canvas = document.createElement('canvas')
-      canvas.width = 16
-      canvas.height = 16
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, 16, 16)
-        const pixel = ctx.getImageData(0, 0, 1, 1).data
-        // Corner pixel is fully opaque without alpha
-        if (pixel[3] === 255 && (pixel[0] > 235 || pixel[0] < 20)) {
-          console.warn(`[Hero] Silhouette ${src} has a non-transparent background; skipped.`)
-          img.style.display = 'none'
+  // Track failed image files that fail to load
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+
+  // Toggle from perfStore (?debug=1 leva toggle)
+  const [silhouettesEnabled, setSilhouettesEnabled] = useState(true)
+  useEffect(() => {
+    return perfStore.subscribe((t) => setSilhouettesEnabled(t.heroSilhouettes))
+  }, [])
+
+  // Valid characters (filtering out any skipped/failed images)
+  const validCharacters = useMemo(
+    () => INITIAL_POOL.filter((c) => !failedImages.has(c.src)),
+    [failedImages]
+  )
+
+  // Slot states (current character + incoming crossfading character)
+  const [slotStates, setSlotStates] = useState<SlotState[]>(() => {
+    return SLOTS.map((_, i) => ({
+      current: INITIAL_POOL[i % INITIAL_POOL.length],
+      incoming: null,
+      isFading: false,
+    }))
+  })
+
+  // Replace any slot character that fails to load with another valid character
+  useEffect(() => {
+    if (failedImages.size === 0) return
+    setSlotStates((prev) =>
+      prev.map((slot, i) => {
+        if (failedImages.has(slot.current.src)) {
+          const replacement = validCharacters[i % validCharacters.length] || slot.current
+          return { ...slot, current: replacement }
         }
-      }
-    } catch {
-      // CORS or canvas error, maintain default image rendering
-    }
+        return slot
+      })
+    )
+  }, [failedImages, validCharacters])
+
+  // Queue rotation index for extras when > 8 characters exist
+  const rotationIndexRef = useRef(SLOTS.length)
+  const rotateSlotRef = useRef(0)
+
+  // Handle image load error: skip file and log warning
+  const handleImageError = (src: string, name?: string) => {
+    console.warn(`[Hero] Failed to load character image (${name || 'unknown'}): ${src}`)
+    setFailedImages((prev) => new Set(prev).add(src))
   }
 
-  // Mouse parallax with individual depths per character
+  // ── Rotation Effect: Crossfade extras into slots every ~6s (one slot at a time) ──
+  useEffect(() => {
+    if (validCharacters.length <= SLOTS.length) return
+
+    const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) return
+
+    const interval = setInterval(() => {
+      const slotIdx = rotateSlotRef.current % SLOTS.length
+      rotateSlotRef.current = (rotateSlotRef.current + 1) % SLOTS.length
+
+      setSlotStates((prev) => {
+        // Collect currently visible character IDs across all slots to avoid duplicates
+        const visibleIds = new Set(prev.map((s) => s.current.id))
+        if (prev[slotIdx]?.incoming) {
+          visibleIds.add(prev[slotIdx]!.incoming!.id)
+        }
+
+        let nextCandidate: CharacterItem | undefined
+        for (let i = 0; i < validCharacters.length; i++) {
+          const idx = (rotationIndexRef.current + i) % validCharacters.length
+          if (!visibleIds.has(validCharacters[idx].id)) {
+            nextCandidate = validCharacters[idx]
+            rotationIndexRef.current = idx + 1
+            break
+          }
+        }
+        if (!nextCandidate) {
+          nextCandidate = validCharacters[rotationIndexRef.current % validCharacters.length]
+          rotationIndexRef.current += 1
+        }
+
+        const next = [...prev]
+        if (next[slotIdx]) {
+          next[slotIdx] = {
+            ...next[slotIdx],
+            incoming: nextCandidate,
+            isFading: true,
+          }
+        }
+        return next
+      })
+
+      // Complete crossfade after 1.8s
+      setTimeout(() => {
+        setSlotStates((prev) => {
+          const next = [...prev]
+          if (next[slotIdx] && next[slotIdx].incoming) {
+            next[slotIdx] = {
+              current: next[slotIdx].incoming!,
+              incoming: null,
+              isFading: false,
+            }
+          }
+          return next
+        })
+      }, 1800)
+    }, 6000)
+
+    return () => clearInterval(interval)
+  }, [validCharacters])
+
+  // ── Mouse parallax with individual depths per slot ──
   useEffect(() => {
     const hero = heroRef.current
     if (!hero) return
@@ -133,10 +325,10 @@ export function Hero({ ready = true }: HeroProps) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) return
 
-    SILHOUETTES.forEach((s) => {
-      const el = charWrapperRefs.current[s.id]
+    SLOTS.forEach((slot) => {
+      const el = slotWrapperRefs.current[slot.id]
       if (el) {
-        quickToMap.current[s.id] = {
+        quickToMap.current[slot.id] = {
           x: gsap.quickTo(el, 'x', { duration: 1.2, ease: 'power2.out' }),
           y: gsap.quickTo(el, 'y', { duration: 1.2, ease: 'power2.out' }),
         }
@@ -147,12 +339,12 @@ export function Hero({ ready = true }: HeroProps) {
       const nx = (e.clientX / window.innerWidth - 0.5) * 2
       const ny = (e.clientY / window.innerHeight - 0.5) * 2
 
-      SILHOUETTES.forEach((s) => {
-        const q = quickToMap.current[s.id]
+      SLOTS.forEach((slot) => {
+        const q = quickToMap.current[slot.id]
         if (!q) return
-        const multX = s.side === 'left' ? -30 : 30
-        q.x(nx * multX * s.depth)
-        q.y(ny * -20 * s.depth)
+        const multX = slot.side === 'left' ? -30 : 30
+        q.x(nx * multX * slot.depth)
+        q.y(ny * -20 * slot.depth)
       })
     }
 
@@ -160,7 +352,7 @@ export function Hero({ ready = true }: HeroProps) {
     return () => window.removeEventListener('pointermove', onPointerMove)
   }, [])
 
-  // Scroll animations: silhouettes drift outward and fade away as Tracks section starts
+  // ── Scroll animations: silhouettes drift outward and fade away as Tracks section starts ──
   useEffect(() => {
     const hero = heroRef.current
     if (!hero || !ready) return
@@ -176,7 +368,8 @@ export function Hero({ ready = true }: HeroProps) {
             trigger: hero,
             start: 'top top',
             end: '55% top',
-            scrub: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
           },
         })
       }
@@ -191,7 +384,8 @@ export function Hero({ ready = true }: HeroProps) {
             trigger: hero,
             start: 'top top',
             end: '55% top',
-            scrub: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
           },
         })
       }
@@ -205,7 +399,8 @@ export function Hero({ ready = true }: HeroProps) {
             trigger: hero,
             start: 'top top',
             end: '50% top',
-            scrub: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
           },
         })
       }
@@ -220,7 +415,8 @@ export function Hero({ ready = true }: HeroProps) {
             trigger: hero,
             start: 'top top',
             end: '50% top',
-            scrub: true,
+            scrub: 1,
+            invalidateOnRefresh: true,
           },
         })
       }
@@ -259,69 +455,177 @@ export function Hero({ ready = true }: HeroProps) {
         />
       </svg>
 
-      {/* ── BACKGROUND CHARACTER SILHOUETTES (Flanking Left, Pure <img> Only) ── */}
-      <div ref={leftGroupRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-[2]" aria-hidden="true">
-        {SILHOUETTES.filter((s) => s.side === 'left').map((s) => (
-          <div
-            key={s.id}
-            ref={(el) => {
-              charWrapperRefs.current[s.id] = el
-            }}
-            className={`absolute pointer-events-none ${s.className} hero-float-anim`}
-            style={{
-              animationDuration: `${s.floatDuration}s`,
-              animationDelay: `${s.floatDelay}s`,
-            }}
-          >
-            <img
-              src={s.src}
-              alt=""
-              onLoad={(e) => handleImageLoad(e, s.src)}
-              onError={(e) => {
-                console.warn(`[Hero] Silhouette image missing or failed to load: ${s.src}`)
-                e.currentTarget.style.display = 'none'
-              }}
-              className="hero-silhouette-img w-full h-full"
-              style={{
-                opacity: s.opacity,
-                filter: `grayscale(0.55) brightness(0.8) contrast(1.05) drop-shadow(0 0 14px ${s.accentColor}55) drop-shadow(0 0 28px ${s.accentColor}25)`,
-              }}
-            />
-          </div>
-        ))}
-      </div>
+      {/* ── BACKGROUND CHARACTER SILHOUETTES: LEFT SLOTS (Up to 4 slots) ── */}
+      {silhouettesEnabled && (
+        <div ref={leftGroupRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-[2]" aria-hidden="true">
+          {SLOTS.filter((s) => s.side === 'left').map((slot) => {
+            const slotIndex = SLOTS.findIndex((s) => s.id === slot.id)
+            const state = slotStates[slotIndex] || {
+              current: INITIAL_POOL[slotIndex % INITIAL_POOL.length],
+              incoming: null,
+              isFading: false,
+            }
+            const char = state.current
+            const incoming = state.incoming
 
-      {/* ── BACKGROUND CHARACTER SILHOUETTES (Flanking Right, Pure <img> Only) ── */}
-      <div ref={rightGroupRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-[2]" aria-hidden="true">
-        {SILHOUETTES.filter((s) => s.side === 'right').map((s) => (
-          <div
-            key={s.id}
-            ref={(el) => {
-              charWrapperRefs.current[s.id] = el
-            }}
-            className={`absolute pointer-events-none ${s.className} hero-float-anim`}
-            style={{
-              animationDuration: `${s.floatDuration}s`,
-              animationDelay: `${s.floatDelay}s`,
-            }}
-          >
-            <img
-              src={s.src}
-              alt=""
-              onLoad={(e) => handleImageLoad(e, s.src)}
-              onError={(e) => {
-                console.warn(`[Hero] Silhouette image missing or failed to load: ${s.src}`)
-                e.currentTarget.style.display = 'none'
-              }}
-              className="hero-silhouette-img w-full h-full"
-              style={{
-                opacity: s.opacity,
-                filter: `grayscale(0.55) brightness(0.8) contrast(1.05) drop-shadow(0 0 14px ${s.accentColor}55) drop-shadow(0 0 28px ${s.accentColor}25)`,
-              }}
-            />
-          </div>
-        ))}
-      </div>
+            return (
+              <div
+                key={slot.id}
+                ref={(el) => {
+                  slotWrapperRefs.current[slot.id] = el
+                }}
+                className={`absolute pointer-events-none ${slot.className} hero-float-anim`}
+                style={{
+                  animationDuration: `${slot.floatDuration}s`,
+                  animationDelay: `${slot.floatDelay}s`,
+                }}
+              >
+                {/* Pre-blurred glow sprite (hardware composited instead of runtime drop-shadow) */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 pointer-events-none rounded-full"
+                  style={{
+                    background: `radial-gradient(ellipse 65% 75% at 50% 35%, ${char.accentColor}35 0%, transparent 72%)`,
+                    opacity: state.isFading ? 0 : slot.opacity * 0.7,
+                    transform: 'scale(1.2)',
+                    transition: 'opacity 1.8s ease-in-out',
+                  }}
+                />
+
+                {/* Current Character */}
+                <img
+                  src={char.src}
+                  alt=""
+                  width={600}
+                  height={600}
+                  decoding="async"
+                  loading={slot.id === 'slot-L0' ? 'eager' : 'lazy'}
+                  onError={() => handleImageError(char.src, char.name)}
+                  className="hero-silhouette-img hero-slot-char w-full h-full"
+                  style={{
+                    opacity: state.isFading ? 0 : slot.opacity,
+                  }}
+                />
+
+                {/* Incoming Character for crossfade */}
+                {incoming && (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 pointer-events-none rounded-full"
+                      style={{
+                        background: `radial-gradient(ellipse 65% 75% at 50% 35%, ${incoming.accentColor}35 0%, transparent 72%)`,
+                        opacity: state.isFading ? slot.opacity * 0.7 : 0,
+                        transform: 'scale(1.2)',
+                        transition: 'opacity 1.8s ease-in-out',
+                      }}
+                    />
+                    <img
+                      src={incoming.src}
+                      alt=""
+                      width={600}
+                      height={600}
+                      decoding="async"
+                      loading="lazy"
+                      onError={() => handleImageError(incoming.src, incoming.name)}
+                      className="hero-silhouette-img hero-slot-char absolute inset-0 w-full h-full"
+                      style={{
+                        opacity: state.isFading ? slot.opacity : 0,
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── BACKGROUND CHARACTER SILHOUETTES: RIGHT SLOTS (Up to 4 slots) ── */}
+      {silhouettesEnabled && (
+        <div ref={rightGroupRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-[2]" aria-hidden="true">
+          {SLOTS.filter((s) => s.side === 'right').map((slot) => {
+            const slotIndex = SLOTS.findIndex((s) => s.id === slot.id)
+            const state = slotStates[slotIndex] || {
+              current: INITIAL_POOL[slotIndex % INITIAL_POOL.length],
+              incoming: null,
+              isFading: false,
+            }
+            const char = state.current
+            const incoming = state.incoming
+
+            return (
+              <div
+                key={slot.id}
+                ref={(el) => {
+                  slotWrapperRefs.current[slot.id] = el
+                }}
+                className={`absolute pointer-events-none ${slot.className} hero-float-anim`}
+                style={{
+                  animationDuration: `${slot.floatDuration}s`,
+                  animationDelay: `${slot.floatDelay}s`,
+                }}
+              >
+                {/* Pre-blurred glow sprite (hardware composited instead of runtime drop-shadow) */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 pointer-events-none rounded-full"
+                  style={{
+                    background: `radial-gradient(ellipse 65% 75% at 50% 35%, ${char.accentColor}35 0%, transparent 72%)`,
+                    opacity: state.isFading ? 0 : slot.opacity * 0.7,
+                    transform: 'scale(1.2)',
+                    transition: 'opacity 1.8s ease-in-out',
+                  }}
+                />
+
+                {/* Current Character */}
+                <img
+                  src={char.src}
+                  alt=""
+                  width={600}
+                  height={600}
+                  decoding="async"
+                  loading="lazy"
+                  onError={() => handleImageError(char.src, char.name)}
+                  className="hero-silhouette-img hero-slot-char w-full h-full"
+                  style={{
+                    opacity: state.isFading ? 0 : slot.opacity,
+                  }}
+                />
+
+                {/* Incoming Character for crossfade */}
+                {incoming && (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 pointer-events-none rounded-full"
+                      style={{
+                        background: `radial-gradient(ellipse 65% 75% at 50% 35%, ${incoming.accentColor}35 0%, transparent 72%)`,
+                        opacity: state.isFading ? slot.opacity * 0.7 : 0,
+                        transform: 'scale(1.2)',
+                        transition: 'opacity 1.8s ease-in-out',
+                      }}
+                    />
+                    <img
+                      src={incoming.src}
+                      alt=""
+                      width={600}
+                      height={600}
+                      decoding="async"
+                      loading="lazy"
+                      onError={() => handleImageError(incoming.src, incoming.name)}
+                      className="hero-silhouette-img hero-slot-char absolute inset-0 w-full h-full"
+                      style={{
+                        opacity: state.isFading ? slot.opacity : 0,
+                      }}
+                    />
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* ── CENTERED HERO CONTENT (All fits cleanly inside the first screen) ── */}
       <div
@@ -353,9 +657,9 @@ export function Hero({ ready = true }: HeroProps) {
           {EVENT.hostedBy} PRESENTS
         </p>
 
-        {/* 2. Huge HACK-A-SOL on ONE line */}
+        {/* 2. Huge HACK-A-SOL on ONE line: only the letter "A" is red (#e23636) */}
         <h1 className="hero-hackasol-title select-none my-1">
-          HACK-A-SOL
+          HACK-<span className="text-[#e23636]">A</span>-SOL
         </h1>
 
         {/* 3. 5.0 between two thin horizontal lines */}

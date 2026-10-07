@@ -26,8 +26,8 @@ import * as THREE from 'three'
 import { type Track } from '../data/tracks'
 import MODELS_MANIFEST from '../data/models.json'
 
-// -- Draco decoder path ---------------------------------------------------
-useGLTF.setDecoderPath('/draco/')
+// -- Draco decoder path (disabled: images only in chapters)
+// useGLTF.setDecoderPath('/draco/')
 
 // -- Model manifest -------------------------------------------------------
 const available: string[] = (MODELS_MANIFEST as { available: string[] }).available ?? []

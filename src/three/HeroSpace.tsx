@@ -11,12 +11,14 @@
  * - Clean unmount when Tracks section is active (scrollProgress >= 0.15).
  */
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { perfStore } from '../utils/perfStore'
+import { scrollStore } from '../utils/scrollStore'
 
 interface HeroSpaceProps {
-  scrollProgress: number
+  scrollProgress?: number
   velocity?: number
 }
 
@@ -42,10 +44,15 @@ function createEmberTexture(): THREE.CanvasTexture {
   return tex
 }
 
-export function HeroSpace({ scrollProgress, velocity = 0 }: HeroSpaceProps) {
+export function HeroSpace({ scrollProgress: _sp, velocity: _v }: HeroSpaceProps) {
   const { size } = useThree()
   const groupRef = useRef<THREE.Group>(null)
   const embersRef = useRef<THREE.Points>(null)
+
+  const [enabled, setEnabled] = useState(true)
+  useEffect(() => {
+    return perfStore.subscribe((t) => setEnabled(t.particlesEnvironments))
+  }, [])
 
   const reducedMotion = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -87,10 +94,12 @@ export function HeroSpace({ scrollProgress, velocity = 0 }: HeroSpaceProps) {
   // ── Frame Animation Loop ──
   useFrame((state, delta) => {
     const t = state.clock.getElapsedTime()
-    const h = THREE.MathUtils.clamp(scrollProgress / 0.14, 0, 1)
+    const liveScroll = scrollStore.getScrollProgress()
+    const liveVel = scrollStore.getVelocity()
+    const h = THREE.MathUtils.clamp(liveScroll / 0.14, 0, 1)
 
     // Smooth velocity decay (~300ms)
-    const targetVel = reducedMotion ? 0 : Math.abs(velocity)
+    const targetVel = reducedMotion ? 0 : Math.abs(liveVel)
     smoothVelRef.current = THREE.MathUtils.lerp(smoothVelRef.current, targetVel, Math.min(1, delta * 3.5))
     const velEffect = Math.min(2.0, smoothVelRef.current * 0.12)
 
@@ -132,8 +141,9 @@ export function HeroSpace({ scrollProgress, velocity = 0 }: HeroSpaceProps) {
     }
   })
 
-  // Unmount completely when Tracks section is active
-  if (scrollProgress >= 0.12) {
+  // Unmount completely when Tracks section is active or toggled OFF
+  const currentScroll = scrollStore.getScrollProgress()
+  if (!enabled || currentScroll >= 0.12) {
     return null
   }
 

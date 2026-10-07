@@ -25,10 +25,10 @@ import { fileURLToPath } from 'node:url'
 const __dir = fileURLToPath(new URL('.', import.meta.url))
 const root = resolve(__dir, '..')
 
-const INPUT_DIR  = join(root, 'assets-raw', 'models')
+const INPUT_DIR = join(root, 'assets-raw', 'models')
 const OUTPUT_DIR = join(root, 'public', 'models')
-const MANIFEST   = join(root, 'src', 'data', 'models.json')
-const MAX_BYTES  = 3 * 1024 * 1024  // 3 MB
+const MANIFEST = join(root, 'src', 'data', 'models.json')
+const MAX_BYTES = 3 * 1024 * 1024  // 3 MB
 
 // Ensure output dir exists
 if (!existsSync(OUTPUT_DIR)) mkdirSync(OUTPUT_DIR, { recursive: true })
@@ -79,7 +79,7 @@ function optimise(input, output, texSize, simplify = false) {
 const results = []
 
 for (const file of inputs) {
-  const inputPath  = join(INPUT_DIR, file)
+  const inputPath = join(INPUT_DIR, file)
   const outputPath = join(OUTPUT_DIR, file)
   const beforeSize = statSync(inputPath).size
 
@@ -100,7 +100,7 @@ for (const file of inputs) {
   results.push({
     file,
     beforeKB: Math.round(beforeSize / 1024),
-    afterKB:  Math.round(afterSize / 1024),
+    afterKB: Math.round(afterSize / 1024),
     ok,
   })
 }
@@ -110,9 +110,9 @@ console.log('\n┌────────────────────�
 console.log('│ File                             │ Before   │ After    │ OK?    │')
 console.log('├──────────────────────────────────┼──────────┼──────────┼────────┤')
 for (const r of results) {
-  const name   = r.file.padEnd(32).slice(0, 32)
+  const name = r.file.padEnd(32).slice(0, 32)
   const before = `${r.beforeKB} KB`.padStart(8)
-  const after  = `${r.afterKB} KB`.padStart(8)
+  const after = `${r.afterKB} KB`.padStart(8)
   const status = r.ok ? '  ✓   ' : '  ✗   '
   console.log(`│ ${name} │ ${before} │ ${after} │${status}│`)
 }

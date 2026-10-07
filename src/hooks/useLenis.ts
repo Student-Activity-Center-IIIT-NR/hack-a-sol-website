@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/hooks/useLenis.ts  (Phase 3h — velocity tracking)
  * ─────────────────────────────────────────────────────────────────────────────
  * Initialises Lenis smooth scroll and syncs its RAF loop with GSAP ticker.
@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react"
 import Lenis from "lenis"
 import gsap from "gsap"
 import ScrollTrigger from "gsap/ScrollTrigger"
+import { scrollStore } from "../utils/scrollStore"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -34,23 +35,25 @@ export function useLenis(wheelMultiplier = 0.7) {
     lenisRef.current = lenis
 
     // Sync Lenis RAF with GSAP ticker so ScrollTrigger works correctly
-    gsap.ticker.add((time) => {
+    const updateLenis = (time: number) => {
       lenis.raf(time * 1000)
-    })
-
+    }
+    gsap.ticker.add(updateLenis)
     gsap.ticker.lagSmoothing(0)
 
     // Keep ScrollTrigger in sync with Lenis scroll position
     lenis.on("scroll", ScrollTrigger.update)
 
-    // Track velocity for environment effects
+    // Track velocity for environment effects in non-reactive scrollStore
     lenis.on("scroll", (e: { velocity: number }) => {
-      velocityRef.current = Math.abs(e.velocity ?? 0)
+      const v = Math.abs(e.velocity ?? 0)
+      velocityRef.current = v
+      scrollStore.updateVelocity(v)
     })
 
     return () => {
       lenis.destroy()
-      gsap.ticker.remove((time) => lenis.raf(time * 1000))
+      gsap.ticker.remove(updateLenis)
     }
   }, [])
 

@@ -53,10 +53,15 @@
 /* ── Clean character silhouette styling (NO background colors/boxes) ── */
 .hero-silhouette-img {
   object-fit: contain;
+  object-position: top center;
   pointer-events: none;
   user-select: none;
-  mask-image: radial-gradient(ellipse 85% 85% at 50% 40%, black 55%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 85% 85% at 50% 40%, black 55%, transparent 100%);
+}
+
+/* ── Smooth Crossfade Transitions for Rotating Slots ── */
+.hero-slot-char {
+  transition: opacity 1.8s ease-in-out;
+  will-change: opacity;
 }
 
 /* ── Gentle floating animation ── */

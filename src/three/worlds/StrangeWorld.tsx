@@ -12,9 +12,10 @@
 import { useRef, useMemo } from "react"
 import { useFrame } from "@react-three/fiber"
 import * as THREE from "three"
+import { scrollStore } from "../../utils/scrollStore"
 
 interface StrangeWorldProps {
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   velocity?: number
 }
@@ -77,7 +78,7 @@ const MANDALA_RINGS = [
   { r: 2.5, tube: 0.007, tilt: [Math.PI / 3, 0, Math.PI / 5] as [number,number,number], speed: -0.4 },
 ]
 
-export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: StrangeWorldProps) {
+export function StrangeWorld({ chapterProgress: _c, active, velocity: _v }: StrangeWorldProps) {
   const groupRef  = useRef<THREE.Group>(null)
   const vortexRef = useRef<THREE.Points>(null)
   const ringRefs  = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
@@ -85,14 +86,19 @@ export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: Stran
 
   const sparkTex  = useMemo(() => createGoldSparkTexture(), [])
   const vortex    = useMemo(() => makeVortexSparks(), [])
-  const a         = globalA(c)
+
+  const c = _c ?? scrollStore.getChapterProgress()
+  const a = globalA(c)
 
   const charX = 1.6 // Character on right for even track index
 
   useFrame((state, delta) => {
     timeRef.current += delta
     const t = timeRef.current
-    const velBoost = Math.min(1.5, Math.abs(velocity) * 2.5)
+    const liveC = scrollStore.getChapterProgress()
+    const liveA = globalA(liveC)
+    const liveVel = scrollStore.getVelocity()
+    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
     const orbitSpeed = 1.0 + velBoost * 2.2
 
     if (groupRef.current) {
@@ -100,12 +106,12 @@ export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: Stran
       const tx = active ? -state.pointer.y * 0.14 : 0
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
-      const dollyZ = c < 0.22 ? -2.5 * (1 - enterT(c)) : 0
+      const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
     // Tightening factor: c goes from 0.2 to 0.7
-    const tightenFrac = ss(norm(c, 0.2, 0.7)) // 0 at c<=0.2, 1 at c>=0.7
+    const tightenFrac = ss(norm(liveC, 0.2, 0.7)) // 0 at c<=0.2, 1 at c>=0.7
     const radiusMultiplier = 1.0 - tightenFrac * 0.62 // Tightens from 100% down to 38%
 
     // Golden sparks along spiral vortex
@@ -123,7 +129,7 @@ export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: Stran
 
       const vMat = vortexRef.current.material as THREE.PointsMaterial
       if (vMat) {
-        vMat.opacity = 0.85 * a
+        vMat.opacity = 0.85 * liveA
       }
     }
 
@@ -132,7 +138,7 @@ export function StrangeWorld({ chapterProgress: c, active, velocity = 0 }: Stran
       if (!r.current) return
       const def = MANDALA_RINGS[i]
       const delay = (i / MANDALA_RINGS.length) * 0.30
-      const ringA = ss(Math.max(0, Math.min(1, (a - delay) / (1 - delay + 0.001))))
+      const ringA = ss(Math.max(0, Math.min(1, (liveA - delay) / (1 - delay + 0.001))))
       r.current.scale.setScalar(ringA)
       r.current.rotation.z += delta * def.speed * (1 + velBoost)
     })
