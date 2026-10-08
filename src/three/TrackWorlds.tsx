@@ -13,16 +13,12 @@ import { TRACKS } from "../data/tracks"
 import { IronManWorld }      from "./worlds/IronManWorld"
 import { CapWorld }          from "./worlds/CapWorld"
 import { BlackPantherWorld } from "./worlds/BlackPantherWorld"
-import { UltronWorld }       from "./worlds/UltronWorld"
-import { StrangeWorld }      from "./worlds/StrangeWorld"
 import { perfStore }         from "../utils/perfStore"
 
 const ENVIRONMENTS = [
   IronManWorld,
   CapWorld,
   BlackPantherWorld,
-  UltronWorld,
-  StrangeWorld,
 ] as const
 
 interface TrackWorldsProps {

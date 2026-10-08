@@ -14,17 +14,17 @@
 
 import { useEffect, useRef, useMemo, useState } from "react"
 import { TRACKS } from "../data/tracks"
+import { scrollStore } from "../utils/scrollStore"
 
 interface MarvelOverlayProps {
   activeTrackIndex: number
-  chapterProgress:  number
+  chapterProgress?: number
   sectionProgress:  number
   velocity?:        number
 }
 
 export function MarvelOverlay({
   activeTrackIndex,
-  chapterProgress,
   sectionProgress,
   velocity = 0,
 }: MarvelOverlayProps) {
@@ -35,21 +35,30 @@ export function MarvelOverlay({
 
   // Crack glitch flash: trigger when chapterProgress crosses EXIT threshold
   const [crackVisible, setCrackVisible] = useState(false)
-  const prevCpRef = useRef(chapterProgress)
+  const prevCpRef = useRef(0)
   const crackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (reducedMotion) return
-    const prevC = prevCpRef.current
-    const c = chapterProgress
-    // Trigger on EXIT crossing: 0.78 → higher
-    if (prevC < 0.78 && c >= 0.78) {
-      setCrackVisible(true)
-      if (crackTimer.current) clearTimeout(crackTimer.current)
-      crackTimer.current = setTimeout(() => setCrackVisible(false), 320)
+    let raf: number
+    const tick = () => {
+      const c = scrollStore.getChapterProgress()
+      const prevC = prevCpRef.current
+      // Trigger on EXIT crossing: 0.78 -> higher
+      if (prevC < 0.78 && c >= 0.78) {
+        setCrackVisible(true)
+        if (crackTimer.current) clearTimeout(crackTimer.current)
+        crackTimer.current = setTimeout(() => setCrackVisible(false), 320)
+      }
+      prevCpRef.current = c
+      raf = requestAnimationFrame(tick)
     }
-    prevCpRef.current = c
-  }, [chapterProgress, reducedMotion])
+    raf = requestAnimationFrame(tick)
+    return () => {
+      cancelAnimationFrame(raf)
+      if (crackTimer.current) clearTimeout(crackTimer.current)
+    }
+  }, [reducedMotion])
 
   // Determine if we are in the tracks zone
   const inTracks = sectionProgress > 0 && sectionProgress < 1
@@ -64,6 +73,7 @@ export function MarvelOverlay({
   return (
     <div
       aria-hidden="true"
+      data-marvel-overlay="true"
       className="pointer-events-none fixed inset-0 overflow-hidden"
       style={{ zIndex: 2 }}
     >

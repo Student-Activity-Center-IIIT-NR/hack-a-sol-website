@@ -31,10 +31,6 @@ const PrimitiveGeometry = ({ type }: { type: TrackPrimitiveType }) => {
       return <torusGeometry args={[1.2, 0.4, 16, 64]} />
     case 'octahedron':
       return <octahedronGeometry args={[1.5, 0]} />
-    case 'dodecahedron':
-      return <dodecahedronGeometry args={[1.3, 0]} />
-    case 'torusKnot':
-      return <torusKnotGeometry args={[1, 0.35, 128, 16]} />
   }
 }
 
@@ -58,7 +54,6 @@ export function TrackModel({ primitive, color, active }: TrackModelProps) {
         emissiveIntensity={active ? 0.6 : 0.1}
         metalness={0.7}
         roughness={0.2}
-        wireframe={primitive === 'dodecahedron'} // Ultron → red wireframe
       />
     </mesh>
   )

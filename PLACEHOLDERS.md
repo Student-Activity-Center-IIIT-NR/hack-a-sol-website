@@ -10,4 +10,4 @@ The following character assets located in `src/assets/hero-characters/` are **TE
 | `image-removebg-preview.png` | Spider-Man (Web Slinger with Shield) | TEMPORARY | `#EF4444` (Crimson Red) |
 | `wp7494946-removebg-preview.png` | Hawkeye (Master Marksman) | TEMPORARY | `#A855F7` (Hawkeye Violet) |
 
-> **Note**: Official track champion art assets for AI/ML (Iron Man), Cybersecurity (Captain America), Web3 (Black Panther), Robonyx (Ultron), and CodeRun (Doctor Strange) reside in `/public/characters/`.
+> **Note**: Official track champion art assets for AI/ML (Iron Man), Cybersecurity (Captain America), and Web3 (Black Panther) reside in `/public/characters/`.

@@ -62,7 +62,7 @@ export const TIMELINE = [
   { label: 'Registration Opens',   date: 'TBA' },
   { label: 'Registration Closes',  date: 'TBA' },
   { label: 'Team Announcement',    date: 'TBA' },
-  { label: 'Hackathon Day 1 & Buildathon Setup', date: 'TBA' },
+  { label: 'Hackathon Day 1 Setup', date: 'TBA' },
   { label: 'Hackathon Day 2 + Project Demos', date: 'TBA' },
   { label: 'Prize Ceremony',       date: 'TBA' },
 ] as const

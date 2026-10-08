@@ -15,8 +15,8 @@
  */
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import gsap from 'gsap'
 import { type Track } from '../data/tracks'
+import { scrollStore } from '../utils/scrollStore'
 
 // -- smoothstep ------------------------------------------------------------
 function ss(t: number): number {
@@ -36,9 +36,10 @@ function charEnterFrac(c: number): number {
 function exitFrac(c:  number): number { return ss(norm(c, 0.78, 1.0))  }
 
 function phaseOp(c: number): number {
+  if (c < 0.08)  return 0
   if (c < 0.22)  return charEnterFrac(c)
   if (c <= 0.78) return 1
-  return 1 - exitFrac(c)
+  return Math.max(0, 1 - exitFrac(c))
 }
 
 function phaseSc(c: number): number {
@@ -62,7 +63,6 @@ function HUDRings({ c, vis }: { c: string; vis: boolean }) {
     <div className="absolute inset-0 pointer-events-none" style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.6s' }}>
       <div className="absolute inset-8 rounded-full border border-dashed" style={{ borderColor: c + '40', animation: 'char-cw 14s linear infinite' }} />
       <div className="absolute inset-20 rounded-full border" style={{ borderColor: c + '55', borderStyle: 'dotted', animation: 'char-ccw 9s linear infinite' }} />
-      <div className="absolute inset-0" style={{ background: `repeating-linear-gradient(0deg,transparent,transparent 3px,${c}09 3px,${c}09 4px)`, animation: 'char-scan 4s linear infinite' }} />
     </div>
   )
 }
@@ -85,30 +85,6 @@ function CrystalShards({ c, vis }: { c: string; vis: boolean }) {
         <div key={i} className="absolute bottom-0"
           style={{ left: `${left}%`, width: '5px', height: `${35 + i * 12}px`, background: `linear-gradient(to top,${c}bb,${c}00)`, clipPath: 'polygon(50% 0%,0% 100%,100% 100%)', animation: vis ? `char-shard ${1.4 + i * 0.18}s ${i * 0.12}s ease-out infinite` : 'none', transform: `rotate(${(i % 2 === 0 ? -1 : 1) * (4 + i * 3)}deg)` }} />
       ))}
-    </div>
-  )
-}
-
-function GlitchGrid({ c, vis }: { c: string; vis: boolean }) {
-  return (
-    <div className="absolute inset-0 pointer-events-none" style={{ opacity: vis ? 0.55 : 0, transition: 'opacity 0.6s' }}>
-      <div className="absolute inset-0" style={{ backgroundImage: `linear-gradient(${c}22 1px,transparent 1px),linear-gradient(90deg,${c}22 1px,transparent 1px)`, backgroundSize: '42px 42px', animation: vis ? 'char-glitch 3.2s step-end infinite' : 'none' }} />
-      <div className="absolute inset-0" style={{ background: `repeating-linear-gradient(0deg,transparent,transparent 7px,${c}12 7px,${c}12 9px)` }} />
-    </div>
-  )
-}
-
-function MandalaRing({ c, vis }: { c: string; vis: boolean }) {
-  return (
-    <div className="absolute inset-0 pointer-events-none flex items-center justify-center" style={{ opacity: vis ? 1 : 0, transition: 'opacity 0.6s' }}>
-      <svg viewBox="0 0 200 200" className="absolute w-full h-full" style={{ animation: 'char-cw 22s linear infinite' }}>
-        {Array.from({ length: 12 }, (_, i) => {
-          const a = (i * 30 * Math.PI) / 180
-          return <line key={i} x1={100 + 82 * Math.cos(a)} y1={100 + 82 * Math.sin(a)} x2={100 + 62 * Math.cos(a)} y2={100 + 62 * Math.sin(a)} stroke={c} strokeWidth="1.5" strokeOpacity="0.45" />
-        })}
-        <circle cx="100" cy="100" r="82" fill="none" stroke={c} strokeWidth="0.5" strokeOpacity="0.3" />
-        <circle cx="100" cy="100" r="62" fill="none" stroke={c} strokeWidth="0.5" strokeOpacity="0.3" />
-      </svg>
     </div>
   )
 }
@@ -156,7 +132,7 @@ export interface CharacterArtProps {
   track: Track
   trackIndex: number
   /** Chapter progress 0..1 within this track's chapter */
-  chapterProgress: number
+  chapterProgress?: number
   active: boolean
   debugMode?: boolean
 }
@@ -164,7 +140,7 @@ export interface CharacterArtProps {
 export function CharacterArt({
   track,
   trackIndex,
-  chapterProgress,
+  chapterProgress: _propCp,
   active,
   debugMode = false,
 }: CharacterArtProps) {
@@ -172,13 +148,41 @@ export function CharacterArt({
   const effectiveVisual = !hasImage ? 'model' : (track.visual ?? 'image')
   if (effectiveVisual === 'model') return null
 
-  const c = chapterProgress
+  const wrapRef       = useRef<HTMLDivElement>(null)
+  const imgRef        = useRef<HTMLImageElement>(null)
+  const charGlowRef   = useRef<HTMLDivElement>(null)
+  const accentRingRef = useRef<HTMLDivElement>(null)
+  const sigRef        = useRef<HTMLDivElement>(null)
+  const sparksRef     = useRef<HTMLDivElement>(null)
+  const exitSparksRef = useRef<HTMLDivElement>(null)
+  const debugChipRef  = useRef<HTMLDivElement>(null)
 
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const imgRef  = useRef<HTMLImageElement>(null)
+  const initialSrc = track.imagePath ?? `/characters/${track.id}.webp`
+  const [src, setSrc] = useState(initialSrc)
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
   const [loaded,   setLoaded]   = useState(false)
   const [imgError, setImgError] = useState(false)
   const tiltRef = useRef({ rx: 0, ry: 0 })
+
+  useEffect(() => {
+    const s = track.imagePath ?? `/characters/${track.id}.webp`
+    setSrc(s)
+    setFallbackAttempted(false)
+    setImgError(false)
+    setLoaded(false)
+  }, [track.id, track.imagePath])
+
+  const handleImgError = useCallback(() => {
+    if (!fallbackAttempted && src.endsWith('.webp')) {
+      const pngFallback = src.replace(/\.webp$/, '.png')
+      console.warn(`[CharacterArt] WebP failed for "${track.id}", falling back to PNG: ${pngFallback}`)
+      setFallbackAttempted(true)
+      setSrc(pngFallback)
+    } else {
+      setImgError(true)
+      console.error(`[CharacterArt] 404: Image failed to load: ${src} for track "${track.id}"`)
+    }
+  }, [fallbackAttempted, src, track.id])
 
   const artOnRight    = trackIndex % 2 === 0
   const reducedMotion = useMemo(
@@ -205,58 +209,69 @@ export function CharacterArt({
     return () => window.removeEventListener('mousemove', onMouseMove)
   }, [onMouseMove])
 
-  // GSAP RAF loop
+  // Continuous rAF loop driven by scrollStore
   useEffect(() => {
-    if (!imgRef.current || imgError) return
-    const el = imgRef.current
     let raf: number
 
     const tick = () => {
-      if (reducedMotion || isMobile) {
-        gsap.set(el, { opacity: active ? phaseOp(c) : 0, clearProps: 'x,y,scale,rotateX,rotateY' })
-      } else {
-        const inHold  = c >= 0.22 && c <= 0.78
-        const floatY  = active && inHold ? Math.sin(performance.now() / 1900) * 8 : 0
-        const drift   = inHold ? (c - 0.50) * 14 : 0
+      const liveC = scrollStore.getChapterProgress()
+      const inHold = active && liveC >= 0.22 && liveC <= 0.78
+      const isExit = active && liveC > 0.78
 
-        gsap.set(el, {
-          opacity:    phaseOp(c),
-          scale:      phaseSc(c),
-          x:         `${phaseTransX(c, artOnRight)}vw`,
-          translateX: drift,
-          y:          floatY,
-          rotateX:    active && inHold ? tiltRef.current.rx : 0,
-          rotateY:    active && inHold ? tiltRef.current.ry : 0,
-          transformOrigin: '50% 100%',
-        })
+      // Update accessory layers
+      if (charGlowRef.current) {
+        charGlowRef.current.style.opacity = inHold ? '0.8' : isExit ? '0.35' : '0'
       }
+      if (accentRingRef.current) {
+        accentRingRef.current.style.opacity = inHold ? '1' : '0'
+      }
+      if (sigRef.current) {
+        sigRef.current.style.opacity = inHold ? '1' : '0'
+      }
+      if (sparksRef.current) {
+        sparksRef.current.style.opacity = inHold ? '1' : '0'
+      }
+      if (exitSparksRef.current) {
+        exitSparksRef.current.style.opacity = isExit ? '1' : '0'
+      }
+
+      if (imgRef.current && !imgError) {
+        const el = imgRef.current
+        const op = active ? phaseOp(liveC) : 0
+        el.style.opacity = op.toFixed(4)
+
+        if (reducedMotion || isMobile) {
+          el.style.transform = 'none'
+        } else {
+          const sc = phaseSc(liveC)
+          const tx = phaseTransX(liveC, artOnRight)
+          const floatY = inHold ? Math.sin(performance.now() / 1900) * 8 : 0
+          const drift  = inHold ? (liveC - 0.50) * 14 : 0
+          const rx     = inHold ? tiltRef.current.rx : 0
+          const ry     = inHold ? tiltRef.current.ry : 0
+
+          el.style.transform = `translateX(${tx}vw) translateX(${drift.toFixed(2)}px) translateY(${floatY.toFixed(2)}px) scale(${sc.toFixed(4)}) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`
+        }
+      }
+
+      if (debugChipRef.current) {
+        debugChipRef.current.textContent = `${imgError ? 'ERR ' : loaded ? 'OK ' : '... '} ${src} | c=${liveC.toFixed(3)}`
+      }
+
       raf = requestAnimationFrame(tick)
     }
 
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [c, active, artOnRight, imgError, reducedMotion, isMobile])
+  }, [active, artOnRight, imgError, loaded, reducedMotion, isMobile, src])
 
-  // Missing image warning
-  useEffect(() => {
-    if (imgError) {
-      const src = track.imagePath ?? `/characters/${track.id}.webp`
-      console.warn(`[CharacterArt] Missing art for "${track.id}": ${src}`)
-    }
-  }, [imgError, track.id, track.imagePath])
-
-  const src    = track.imagePath ?? `/characters/${track.id}.webp`
-  const isHold = active && c >= 0.22 && c <= 0.78
-  const isExit = active && c > 0.78
-  const ac     = track.accentColor
+  const ac = track.accentColor
 
   const SigEffect = () => {
-    const p = { c: ac, vis: isHold }
+    const p = { c: ac, vis: true }
     if (track.id === 'aiml')     return <HUDRings      {...p} />
     if (track.id === 'cybersec') return <ShieldRings   {...p} />
     if (track.id === 'web3')     return <CrystalShards {...p} />
-    if (track.id === 'robonyx')  return <GlitchGrid    {...p} />
-    if (track.id === 'coderun')  return <MandalaRing   {...p} />
     return null
   }
 
@@ -272,20 +287,21 @@ export function CharacterArt({
       {/* Slow-rotating accent ring (hold phase) */}
       <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 1 }}>
         <div
+          ref={accentRingRef}
           className="absolute rounded-full border border-dashed"
           style={{
             width:       '62%',
             height:      '62%',
             borderColor: ac + '28',
             animation:   'char-cw 26s linear infinite',
-            opacity:     isHold ? 1 : 0,
+            opacity:     0,
             transition:  'opacity 0.4s',
           }}
         />
       </div>
 
       {/* Signature effect */}
-      <div className="absolute inset-0" style={{ zIndex: 2 }}>
+      <div ref={sigRef} className="absolute inset-0" style={{ zIndex: 2, opacity: 0, transition: 'opacity 0.4s' }}>
         <SigEffect />
       </div>
 
@@ -294,6 +310,7 @@ export function CharacterArt({
         <div className="absolute inset-0 flex items-end justify-center" style={{ zIndex: 3 }}>
           {/* Pre-blurred glow sprite instead of drop-shadow */}
           <div
+            ref={charGlowRef}
             aria-hidden="true"
             className="absolute pointer-events-none rounded-full"
             style={{
@@ -301,7 +318,7 @@ export function CharacterArt({
               height: '34vw',
               bottom: '12%',
               background: `radial-gradient(ellipse 65% 65% at 50% 50%, ${ac}50 0%, ${ac}25 40%, transparent 72%)`,
-              opacity: isHold ? 0.8 : isExit ? 0.35 : 0,
+              opacity: 0,
               transform: 'scale(1.1)',
               transition: 'opacity 0.5s ease',
               willChange: 'opacity',
@@ -309,6 +326,7 @@ export function CharacterArt({
           />
           <img
             ref={imgRef}
+            data-character-img="true"
             src={src}
             alt={`${track.character} character art`}
             width={666}
@@ -316,7 +334,7 @@ export function CharacterArt({
             decoding="async"
             loading="lazy"
             onLoad={() => setLoaded(true)}
-            onError={() => setImgError(true)}
+            onError={handleImgError}
             style={{
               height:          '80vh',
               maxWidth:        '100%',
@@ -324,30 +342,31 @@ export function CharacterArt({
               objectFit:       'contain',
               objectPosition:  'bottom center',
               opacity:         0,
-              willChange:      'transform',
+              willChange:      'transform, opacity',
+              transformOrigin: '50% 100%',
             }}
           />
         </div>
       )}
 
       {/* Hold sparks */}
-      <div className="absolute inset-0" style={{ zIndex: 4 }}>
-        <Sparks c={ac} vis={isHold} />
+      <div ref={sparksRef} className="absolute inset-0" style={{ zIndex: 4, opacity: 0, transition: 'opacity 0.4s' }}>
+        <Sparks c={ac} vis={true} />
       </div>
 
       {/* Exit burst sparks */}
-      <div className="absolute inset-0" style={{ zIndex: 5 }}>
-        <ExitSparks c={ac} active={isExit} />
+      <div ref={exitSparksRef} className="absolute inset-0" style={{ zIndex: 5, opacity: 0, transition: 'opacity 0.3s' }}>
+        <ExitSparks c={ac} active={true} />
       </div>
 
       {/* Debug chip */}
       {debugMode && (
         <div
+          ref={debugChipRef}
           className="absolute top-3 left-3 font-mono text-[9px] px-2 py-0.5 rounded border"
           style={{ zIndex: 50, borderColor: ac + '55', color: ac, background: 'rgba(5,5,8,0.92)' }}
         >
-          {imgError ? '? ' : loaded ? '? ' : '. '}
-          {src}{imgError ? ' (missing)' : ''} | c={c.toFixed(3)}
+          {imgError ? 'ERR ' : loaded ? 'OK ' : '... '} {src}
         </div>
       )}
 

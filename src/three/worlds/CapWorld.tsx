@@ -4,10 +4,10 @@
  * cybersec — "SHIELD Ops Room / Digital Defense"
  *
  * Per-track signature:
- * - Radar ping rings expanding from the character (at x ≈ -1.6).
+ * - Expanding defense rings expanding from the character (at x ≈ -1.6).
  * - Hex-shaped sparks bursting outward.
- * - Red & blue tactical radar sweep.
- * - Zero hard red sphere meshes (completely removed).
+ * - Static hex firewall grid, rings, nodes and particles.
+ * - Zero hard red sphere meshes.
  */
 
 import { useRef, useMemo } from "react"
@@ -65,29 +65,6 @@ function createHexSparkTexture(): THREE.CanvasTexture {
   return tex
 }
 
-// Red / Blue tactical radar sweep shader
-const radarVert = /* glsl */ `
-  varying vec2 vUv;
-  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-`
-
-const radarFrag = /* glsl */ `
-  varying vec2 vUv;
-  uniform float uAngle;
-  uniform float uOpacity;
-  void main() {
-    vec2 c = vUv - 0.5;
-    float dist = length(c);
-    float ang  = atan(c.y, c.x);
-    float diff = mod(ang - uAngle + 6.2832, 6.2832);
-    float sweep = smoothstep(1.4, 0.0, diff) * (1.0 - smoothstep(0.42, 0.50, dist));
-
-    // Dynamic red & blue sweep
-    vec3 col = mix(vec3(0.94, 0.27, 0.27), vec3(0.23, 0.51, 0.96), sin(ang * 2.0 + uAngle) * 0.5 + 0.5);
-    gl_FragColor = vec4(col, sweep * 0.45 * uOpacity);
-  }
-`
-
 const SPARK_COUNT = 72
 function makeHexSparks() {
   const pos = new Float32Array(SPARK_COUNT * 3)
@@ -111,8 +88,6 @@ function makeHexSparks() {
 
 export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorldProps) {
   const groupRef     = useRef<THREE.Group>(null)
-  const radarRef     = useRef<THREE.Mesh>(null)
-  const radarMatRef  = useRef<THREE.ShaderMaterial>(null)
   const pingRingsRef = [useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null)]
   const sparksRef    = useRef<THREE.Points>(null)
   const timeRef      = useRef(0)
@@ -130,9 +105,7 @@ export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorld
     const t = timeRef.current
     const liveC = scrollStore.getChapterProgress()
     const liveA = globalA(liveC)
-    const liveVel = scrollStore.getVelocity()
-    const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
-    const spinMul  = 1 + velBoost * 2
+
 
     if (groupRef.current) {
       const ty = active ? state.pointer.x * 0.22 : 0
@@ -143,13 +116,7 @@ export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorld
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
-    // Radar sweep
-    if (radarMatRef.current) {
-      radarMatRef.current.uniforms.uAngle.value = (t * 1.6 * spinMul) % (Math.PI * 2)
-      radarMatRef.current.uniforms.uOpacity.value = liveA
-    }
-
-    // Expanding radar ping rings around character
+    // Expanding defense ping rings around character
     pingRingsRef.forEach((ringRef, i) => {
       if (!ringRef.current) return
       const cycle = (t * 0.45 + i * 0.33) % 1
@@ -181,23 +148,7 @@ export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorld
 
   return (
     <group ref={groupRef}>
-      {/* Tactical radar sweep disk centered at character */}
-      <mesh ref={radarRef} position={[charX, 0, -0.9]} rotation={[0, 0, 0]}>
-        <circleGeometry args={[2.6, 64]} />
-        <shaderMaterial
-          ref={radarMatRef}
-          vertexShader={radarVert}
-          fragmentShader={radarFrag}
-          uniforms={{ uAngle: { value: 0 }, uOpacity: { value: 0 } }}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          side={THREE.DoubleSide}
-          toneMapped={false}
-        />
-      </mesh>
-
-      {/* Radar ping rings expanding from character */}
+      {/* Defense ping rings expanding from character */}
       {pingRingsRef.map((ref, i) => (
         <mesh key={i} ref={ref} position={[charX, 0, -0.8]}>
           <ringGeometry args={[0.96, 1.0, 6]} />

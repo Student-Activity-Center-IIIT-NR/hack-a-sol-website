@@ -22,8 +22,6 @@ export type TrackPrimitiveType =
   | 'icosahedron'
   | 'torus'
   | 'octahedron'
-  | 'dodecahedron'
-  | 'torusKnot'
 
 /** Optional per-model transform overrides applied after auto-fit centering. */
 export interface ModelTransform {
@@ -129,36 +127,6 @@ export const TRACKS: Track[] = [
     imagePath: '/characters/web3.webp',
     primitive: 'octahedron',
     icon: '🌿',
-    visual: 'image',
-    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
-  },
-  {
-    id: 'robonyx',
-    name: 'Robonyx (Buildathon)',
-    character: 'Ultron',
-    tagline: 'Forge the Autonomous Machines of Tomorrow',
-    description:
-      'The ultimate buildathon track — design, prototype, and program autonomous robotics, drones, and embedded hardware platforms. Forge what machines can become.',
-    accentColor: '#F87171',
-    modelPath: '/models/robonyx.glb',
-    imagePath: '/characters/robonyx.webp',
-    primitive: 'dodecahedron',
-    icon: '⚙️',
-    visual: 'image',
-    modelTransform: { yawOffset: Math.PI, scale: 1.0 },
-  },
-  {
-    id: 'coderun',
-    name: 'CodeRun (DSA / Competitive Programming contest)',
-    character: 'Doctor Strange',
-    tagline: 'See Every Possible Solution',
-    description:
-      'A high-octane DSA and competitive programming contest. Bend time, peer through infinite algorithmic timelines, and engineer the optimal solution.',
-    accentColor: '#F59E0B',
-    modelPath: '/models/coderun.glb',
-    imagePath: '/characters/coderun.webp',
-    primitive: 'torusKnot',
-    icon: '✨',
     visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
   },

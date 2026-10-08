@@ -1,4 +1,4 @@
 {
-  "available": ["aiml", "coderun", "cybersec", "robonyx", "web3"],
+  "available": ["aiml", "cybersec", "web3"],
   "oversized": []
 }

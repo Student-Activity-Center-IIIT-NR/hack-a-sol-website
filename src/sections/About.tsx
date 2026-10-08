@@ -40,11 +40,11 @@ export function About() {
             across {TRACKS.length} specialised tracks.
           </p>
           <p className="font-body text-white/40 text-base leading-relaxed mb-6">
-            From neural architectures and cyber-fortresses to green Web3 protocols, autonomous robotics,
-            and competitive algorithmic problem-solving — if you can imagine it, you can build it here.
+            From neural architectures and cyber-fortresses to green Web3 protocols —
+            if you can imagine it, you can build it here.
           </p>
 
-          {/* Dynamic Track Badges — all 5 tracks */}
+          {/* Dynamic Track Badges */}
           <div className="flex flex-wrap gap-2 mb-8">
             {TRACKS.map((t) => (
               <a

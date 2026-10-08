@@ -6,9 +6,9 @@
  * - Huge "HACK-A-SOL" on ONE line (white-space: nowrap, clamp(3rem, 12vw, 11rem))
  * - "5.0" between two thin horizontal lines
  * - "MARVEL" comic-style title treatment (skewed red slab, halftone dots, offset shadow)
- * - Description: "The flagship hackathon of IIIT Naya Raipur returns. 5 specialised tracks. 5 Marvel champions. One multiverse to conquer."
+ * - Description: "The flagship hackathon of IIIT Naya Raipur returns. 3 specialised tracks. 3 Marvel champions. One multiverse to conquer."
  * - Two centered magnetic buttons: COMING SOON and BECOME A SPONSOR
- * - Background: 5 character silhouettes (/characters/<id>.png) as pure grayscale <img> elements
+ * - Background: character silhouettes as pure grayscale <img> elements
  *   flanking the left and right, center column clear, with mouse parallax and scroll outward drift/fade.
  * - Fits within the first viewport at 1920x1080 and 1366x768.
  */
@@ -35,14 +35,20 @@ interface CharacterItem {
   accentColor: string
 }
 
-// 5 core track champions from /public/characters/ (with baked silhouette effects)
+// 3 core track champions from /public/characters/ (with baked silhouette effects)
 const TRACK_CHARACTERS: CharacterItem[] = [
   { id: 'aiml', name: 'Iron Man', src: '/characters/aiml-silhouette.webp', accentColor: '#60A5FA' },
   { id: 'web3', name: 'Black Panther', src: '/characters/web3-silhouette.webp', accentColor: '#A855F7' },
   { id: 'cybersec', name: 'Captain America', src: '/characters/cybersec-silhouette.webp', accentColor: '#EF4444' },
-  { id: 'coderun', name: 'Doctor Strange', src: '/characters/coderun-silhouette.webp', accentColor: '#F59E0B' },
-  { id: 'robonyx', name: 'Ultron', src: '/characters/robonyx-silhouette.webp', accentColor: '#F87171' },
 ]
+
+// The Hero character de-dupe skip-list: contains only the 3 remaining track ids/names
+const TRACK_SKIP_LIST = ['aiml', 'cybersec', 'web3', 'ironman', 'iron-man', 'captain', 'cap', 'america', 'panther']
+
+function isTrackDuplicate(filename: string): boolean {
+  const lower = filename.toLowerCase()
+  return TRACK_SKIP_LIST.some((k) => lower.includes(k))
+}
 
 // Helper to extract clean hero name and accent color from asset filename
 function getCharacterMeta(filename: string): { name: string; accent: string } {
@@ -74,22 +80,27 @@ function getCharacterMeta(filename: string): { name: string; accent: string } {
   }
 }
 
-// 2. Automatically load all WebP images from src/assets/hero-characters/*.webp
+// 2. Automatically load all WebP images from src/assets/hero-characters/*.webp (excluding track duplicates)
 const assetModules = import.meta.glob<string>(
   '../assets/hero-characters/*.webp',
   { eager: true, query: '?url', import: 'default' }
 )
 
-const ASSET_CHARACTERS: CharacterItem[] = Object.entries(assetModules).map(([path, url]) => {
-  const filename = path.split('/').pop()?.replace(/\.(png|webp)$/i, '') || 'hero'
-  const { name, accent } = getCharacterMeta(filename)
-  return {
-    id: `asset-${filename}`,
-    name,
-    src: url,
-    accentColor: accent,
-  }
-})
+const ASSET_CHARACTERS: CharacterItem[] = Object.entries(assetModules)
+  .filter(([path]) => {
+    const filename = path.split('/').pop()?.replace(/\.(png|webp)$/i, '') || ''
+    return !isTrackDuplicate(filename)
+  })
+  .map(([path, url]) => {
+    const filename = path.split('/').pop()?.replace(/\.(png|webp)$/i, '') || 'hero'
+    const { name, accent } = getCharacterMeta(filename)
+    return {
+      id: `asset-${filename}`,
+      name,
+      src: url,
+      accentColor: accent,
+    }
+  })
 
 // Combined character pool
 const INITIAL_POOL: CharacterItem[] = [...TRACK_CHARACTERS, ...ASSET_CHARACTERS]
@@ -680,7 +691,7 @@ export function Hero({ ready = true }: HeroProps) {
 
         {/* 5. Centered Description */}
         <p className="font-body text-xs sm:text-sm md:text-base text-white/70 max-w-xl mx-auto my-3 sm:my-4 leading-relaxed font-light px-4">
-          The flagship hackathon of {EVENT.hostedBy} returns. 5 specialised tracks. 5 Marvel champions. One multiverse to conquer.
+          The flagship hackathon of {EVENT.hostedBy} returns. 3 specialised tracks. 3 Marvel champions. One multiverse to conquer.
         </p>
 
         {/* 6. Two centered buttons: COMING SOON and BECOME A SPONSOR */}
