@@ -96,9 +96,9 @@ export function MarvelOverlay({
         />
       )}
 
-      {/* Corner HUD text: top-left */}
+      {/* Corner HUD text: top-left (hidden to prevent navbar overlap) */}
       <div
-        className="absolute top-6 left-6 font-mono text-[10px] tracking-[0.3em] uppercase select-none"
+        className="hidden absolute top-6 left-6 font-mono text-[10px] tracking-[0.3em] uppercase select-none"
         style={{ color: `${accent}50`, opacity: inTracks ? 1 : 0, transition: "opacity 0.5s" }}
       >
         <div>EARTH-616</div>
@@ -114,9 +114,9 @@ export function MarvelOverlay({
         <div style={{ color: `${accent}25` }}>SYS:{String(activeTrackIndex + 1).padStart(2, "0")}</div>
       </div>
 
-      {/* Corner HUD text: bottom-left */}
+      {/* Corner HUD text: bottom-left (hidden to prevent overlap with bottom volume text) */}
       <div
-        className="absolute bottom-6 left-6 font-mono text-[9px] tracking-[0.25em] uppercase select-none"
+        className="hidden absolute bottom-6 left-6 font-mono text-[9px] tracking-[0.25em] uppercase select-none"
         style={{ color: `${accent}35` }}
       >
         <div>HACK-A-SOL 5.0</div>
