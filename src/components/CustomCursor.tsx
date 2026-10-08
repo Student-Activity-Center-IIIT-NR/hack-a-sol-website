@@ -21,10 +21,13 @@ export function CustomCursor() {
   const magneticTarget = useRef<{ x: number; y: number } | null>(null)
   const rafRef    = useRef<number | null>(null)
 
+  const [hasMoved, setHasMoved] = useState(false)
+
   useEffect(() => {
     if (typeof window === 'undefined' || window.matchMedia('(pointer: coarse)').matches) return
 
     const onMove = (e: MouseEvent) => {
+      setHasMoved(true)
       raw.current.x = e.clientX
       raw.current.y = e.clientY
 
@@ -83,7 +86,7 @@ export function CustomCursor() {
   const size = isMagnetic ? 64 : (hovering ? 48 : 32)
 
   return (
-    <>
+    <div className={`transition-opacity duration-300 ${hasMoved ? 'opacity-100' : 'opacity-0'}`}>
       {/* Laser Center Dot */}
       <div
         ref={dotRef}
@@ -105,7 +108,7 @@ export function CustomCursor() {
         <div
           className={`w-full h-full rounded-full border border-dashed transition-all duration-300 relative ${
             hovering
-              ? 'border-marvel-red/80 shadow-[0_0_16px_rgba(226,54,54,0.4)] rotate-45'
+              ? 'border-marvel-red/80 shadow-[0_0_16px_rgba(226,54,54,0.4)]'
               : 'border-white/30'
           }`}
         >
@@ -119,6 +122,6 @@ export function CustomCursor() {
           <div className="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-0.5 bg-marvel-red/80" />
         </div>
       </div>
-    </>
+    </div>
   )
 }

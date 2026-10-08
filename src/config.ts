@@ -11,8 +11,24 @@ import { TRACKS } from './data/tracks'
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
-/** Optional priority filename keywords for Hero inner column character slots */
+/** Optional priority filename keywords for Hero character slots (FRONT then BACK) */
 export const HERO_PRIORITY: string[] = []
+
+/** Maximum allowable body overlap fraction (FRONT over BACK figure width) */
+export const HERO_MAX_BODY_OVERLAP = 0.30
+
+/** Poster-style Wing Layout parameters for Hero characters */
+export const HERO_LAYOUT = {
+  frontHeightVh: 60,
+  backHeightVh: 52,
+  bustHeightVh: 28,
+  frontOpacity: 0.55,
+  backOpacity: 0.42,
+  bustInnerOpacity: 0.40,
+  bustOuterOpacity: 0.38,
+  maxBodyOverlap: HERO_MAX_BODY_OVERLAP,
+  edgeBleedVw: 2,
+} as const
 
 export const EVENT = {
   name: 'Hack-A-Sol 5.0',

@@ -1,22 +1,29 @@
 /**
  * src/sections/Hero.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Centered Comic Marvel Multiverse Hero Section:
+ * Centered Comic Marvel Multiverse Hero Section — Poster-Style Wing Wall:
  * - Small red spaced text: "IIIT NAYA RAIPUR PRESENTS"
  * - Huge "HACK-A-SOL" on ONE line (white-space: nowrap, clamp(3rem, 12vw, 11rem))
  * - "5.0" between two thin horizontal lines
  * - "MARVEL" comic-style title treatment (skewed red slab, halftone dots, offset shadow)
  * - Description: "The flagship hackathon of IIIT Naya Raipur returns. 3 specialised tracks. 3 Marvel champions. One multiverse to conquer."
  * - Two centered magnetic buttons: COMING SOON and BECOME A SPONSOR
- * - Background: Honeycomb wall of character silhouettes flanking left and right,
- *   strictly outside the 24vw-76vw center no-go zone, zero overlap, bottom-center contained.
+ *
+ * Poster-Style Wing Layout:
+ * - Symmetrical left wing (0–26vw) & right wing (74–100vw).
+ * - Per wing: FRONT (60vh), BACK (52vh, z behind FRONT), BUST-INNER (28vh), BUST-OUTER (28vh).
+ * - Head box = top 35% of trimmed figure. Overlap with any head box is strictly 0.
+ * - Body overlap (FRONT over BACK) <= HERO_MAX_BODY_OVERLAP (0.30).
+ * - Automatic resolution: outward shift (1vw steps), scale down (4% steps), or fallback drop.
+ * - Bottom 12vh gradient to black blends figures seamlessly.
  * - Mouse parallax & float clamped to <= 6px. Outward drift/fade on scroll.
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
-import { EVENT, HERO_PRIORITY } from '../config'
+import { useControls, button } from 'leva'
+import { EVENT, HERO_PRIORITY, HERO_MAX_BODY_OVERLAP, HERO_LAYOUT } from '../config'
 import { perfStore } from '../utils/perfStore'
 import './hero.css'
 
@@ -100,200 +107,182 @@ const DISCOVERED_ASSET_CHARACTERS: RawCharacterItem[] = Array.from(assetMap.entr
 
 const CANDIDATE_POOL: RawCharacterItem[] = [...TRACK_CHARACTERS, ...DISCOVERED_ASSET_CHARACTERS]
 
-// ── 2. Honeycomb Slot Grid Definition (10 Slots Total) ──
-export interface HoneycombSlotDef {
+// ── 2. Wing Slot Definition ──
+export type SlotRole = 'front' | 'back' | 'bust-inner' | 'bust-outer'
+
+export interface WingSlotDef {
   id: string
   name: string
   side: 'left' | 'right'
-  columnType: 'outer' | 'inner'
-  isInner: boolean
-  xVw: number // Left coordinate in vw (0..100)
-  yVh: number // Top coordinate in vh (0..100)
-  wVw: number // Width in vw
-  hVh: number // Height in vh
-  depth: number // Parallax multiplier
-  scale: number // Depth look
-  baseOpacity: number // Depth look
-  brightnessFactor: number // Depth look
+  role: SlotRole
+  xVw: number        // Left coordinate in vw (0..100)
+  yVh: number        // Top coordinate in vh (0..100)
+  wVw: number        // Width in vw
+  hVh: number        // Height in vh
+  anchor: 'bottom' | 'top'
+  zIndex: number     // 1: back, 2: bust, 3: front
+  baseOpacity: number
+  brightnessFactor: number
+  scale: number
+  depth: number      // Parallax multiplier
   floatDuration: number
   floatDelay: number
 }
 
-// Mirrored Honeycomb Grid with strict positive gaps and center no-go zone (24vw - 76vw)
-export const HONEYCOMB_SLOTS: HoneycombSlotDef[] = [
-  // Outer Column Left (x: 2vw - 12vw, w: 10vw)
+// Base Slot Geometry (Desktop >= 1280px)
+// Left wing: x 0-26vw, Right wing: mirror 74-100vw
+export const BASE_WING_SLOTS: WingSlotDef[] = [
+  // 1. FRONT L (x: 6-24vw, h: 60vh, bottom-anchored, opacity: 0.55, z: 3)
   {
-    id: 'outer-L1',
-    name: 'Outer L1',
+    id: 'front-L',
+    name: 'Front Left',
     side: 'left',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 2,
-    yVh: 8,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.35,
-    scale: 0.92,
-    baseOpacity: 0.40,
-    brightnessFactor: 0.85,
-    floatDuration: 7.2,
+    role: 'front',
+    xVw: 6,
+    yVh: 40,
+    wVw: 18,
+    hVh: 60,
+    anchor: 'bottom',
+    zIndex: 3,
+    baseOpacity: 0.55,
+    brightnessFactor: 1.0,
+    scale: 1.0,
+    depth: 0.6,
+    floatDuration: 6.8,
+    floatDelay: 0.1,
+  },
+  // 2. FRONT R (x: 76-94vw, h: 60vh, bottom-anchored, opacity: 0.55, z: 3)
+  {
+    id: 'front-R',
+    name: 'Front Right',
+    side: 'right',
+    role: 'front',
+    xVw: 76,
+    yVh: 40,
+    wVw: 18,
+    hVh: 60,
+    anchor: 'bottom',
+    zIndex: 3,
+    baseOpacity: 0.55,
+    brightnessFactor: 1.0,
+    scale: 1.0,
+    depth: 0.6,
+    floatDuration: 7.1,
     floatDelay: 0.4,
   },
-  // Outer Column Right (x: 88vw - 98vw, w: 10vw)
+  // 3. BACK L (x: -2-14vw, h: 52vh, bottom-anchored, opacity: 0.42, brightness: x0.85, z: 1)
   {
-    id: 'outer-R1',
-    name: 'Outer R1',
-    side: 'right',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 88,
-    yVh: 8,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.35,
-    scale: 0.92,
-    baseOpacity: 0.40,
-    brightnessFactor: 0.85,
-    floatDuration: 7.5,
-    floatDelay: 0.6,
-  },
-  {
-    id: 'outer-L2',
-    name: 'Outer L2',
+    id: 'back-L',
+    name: 'Back Left',
     side: 'left',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 2,
-    yVh: 37,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.40,
-    scale: 0.92,
-    baseOpacity: 0.40,
+    role: 'back',
+    xVw: -2,
+    yVh: 48,
+    wVw: 16,
+    hVh: 52,
+    anchor: 'bottom',
+    zIndex: 1,
+    baseOpacity: 0.42,
     brightnessFactor: 0.85,
+    scale: 1.0,
+    depth: 0.4,
     floatDuration: 8.0,
-    floatDelay: 1.1,
-  },
-  {
-    id: 'outer-R2',
-    name: 'Outer R2',
-    side: 'right',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 88,
-    yVh: 37,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.40,
-    scale: 0.92,
-    baseOpacity: 0.40,
-    brightnessFactor: 0.85,
-    floatDuration: 8.3,
-    floatDelay: 1.3,
-  },
-  {
-    id: 'outer-L3',
-    name: 'Outer L3',
-    side: 'left',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 2,
-    yVh: 66,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.45,
-    scale: 0.92,
-    baseOpacity: 0.40,
-    brightnessFactor: 0.85,
-    floatDuration: 7.8,
-    floatDelay: 1.7,
-  },
-  {
-    id: 'outer-R3',
-    name: 'Outer R3',
-    side: 'right',
-    columnType: 'outer',
-    isInner: false,
-    xVw: 88,
-    yVh: 66,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.45,
-    scale: 0.92,
-    baseOpacity: 0.40,
-    brightnessFactor: 0.85,
-    floatDuration: 8.1,
-    floatDelay: 1.9,
-  },
-  // Inner Column Left (x: 13vw - 23vw, w: 10vw) - shifted half row
-  {
-    id: 'inner-L1',
-    name: 'Inner L1',
-    side: 'left',
-    columnType: 'inner',
-    isInner: true,
-    xVw: 13,
-    yVh: 22,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.55,
-    scale: 1.0,
-    baseOpacity: 0.50,
-    brightnessFactor: 1.0,
-    floatDuration: 7.0,
-    floatDelay: 0.2,
-  },
-  // Inner Column Right (x: 77vw - 87vw, w: 10vw) - shifted half row
-  {
-    id: 'inner-R1',
-    name: 'Inner R1',
-    side: 'right',
-    columnType: 'inner',
-    isInner: true,
-    xVw: 77,
-    yVh: 22,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.55,
-    scale: 1.0,
-    baseOpacity: 0.50,
-    brightnessFactor: 1.0,
-    floatDuration: 7.3,
-    floatDelay: 0.5,
-  },
-  {
-    id: 'inner-L2',
-    name: 'Inner L2',
-    side: 'left',
-    columnType: 'inner',
-    isInner: true,
-    xVw: 13,
-    yVh: 51,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.50,
-    scale: 1.0,
-    baseOpacity: 0.50,
-    brightnessFactor: 1.0,
-    floatDuration: 8.4,
     floatDelay: 0.8,
   },
+  // 4. BACK R (x: 86-102vw, h: 52vh, bottom-anchored, opacity: 0.42, brightness: x0.85, z: 1)
   {
-    id: 'inner-R2',
-    name: 'Inner R2',
+    id: 'back-R',
+    name: 'Back Right',
     side: 'right',
-    columnType: 'inner',
-    isInner: true,
-    xVw: 77,
-    yVh: 51,
-    wVw: 10,
-    hVh: 27,
-    depth: 0.50,
+    role: 'back',
+    xVw: 86,
+    yVh: 48,
+    wVw: 16,
+    hVh: 52,
+    anchor: 'bottom',
+    zIndex: 1,
+    baseOpacity: 0.42,
+    brightnessFactor: 0.85,
     scale: 1.0,
-    baseOpacity: 0.50,
-    brightnessFactor: 1.0,
-    floatDuration: 8.6,
-    floatDelay: 1.0,
+    depth: 0.4,
+    floatDuration: 8.3,
+    floatDelay: 1.1,
+  },
+  // 5. BUST-INNER L (x: 12-24.5vw, y: 8-36vh, h: 28vh, top-aligned, opacity: 0.40, z: 2)
+  {
+    id: 'bust-inner-L',
+    name: 'Bust Inner Left',
+    side: 'left',
+    role: 'bust-inner',
+    xVw: 12,
+    yVh: 8,
+    wVw: 12.5,
+    hVh: 28,
+    anchor: 'top',
+    zIndex: 2,
+    baseOpacity: 0.40,
+    brightnessFactor: 0.9,
+    scale: 1.0,
+    depth: 0.5,
+    floatDuration: 7.4,
+    floatDelay: 0.5,
+  },
+  // 6. BUST-INNER R (x: 75.5-88vw, y: 8-36vh, h: 28vh, top-aligned, opacity: 0.40, z: 2)
+  {
+    id: 'bust-inner-R',
+    name: 'Bust Inner Right',
+    side: 'right',
+    role: 'bust-inner',
+    xVw: 75.5,
+    yVh: 8,
+    wVw: 12.5,
+    hVh: 28,
+    anchor: 'top',
+    zIndex: 2,
+    baseOpacity: 0.40,
+    brightnessFactor: 0.9,
+    scale: 1.0,
+    depth: 0.5,
+    floatDuration: 7.6,
+    floatDelay: 0.7,
+  },
+  // 7. BUST-OUTER L (x: 0-12vw, y: 8-36vh, h: 28vh, top-aligned, opacity: 0.38, z: 2)
+  {
+    id: 'bust-outer-L',
+    name: 'Bust Outer Left',
+    side: 'left',
+    role: 'bust-outer',
+    xVw: 0,
+    yVh: 8,
+    wVw: 12,
+    hVh: 28,
+    anchor: 'top',
+    zIndex: 2,
+    baseOpacity: 0.38,
+    brightnessFactor: 0.9,
+    scale: 1.0,
+    depth: 0.35,
+    floatDuration: 8.5,
+    floatDelay: 1.3,
+  },
+  // 8. BUST-OUTER R (x: 88-100vw, y: 8-36vh, h: 28vh, top-aligned, opacity: 0.38, z: 2)
+  {
+    id: 'bust-outer-R',
+    name: 'Bust Outer Right',
+    side: 'right',
+    role: 'bust-outer',
+    xVw: 88,
+    yVh: 8,
+    wVw: 12,
+    hVh: 28,
+    anchor: 'top',
+    zIndex: 2,
+    baseOpacity: 0.38,
+    brightnessFactor: 0.9,
+    scale: 1.0,
+    depth: 0.35,
+    floatDuration: 8.7,
+    floatDelay: 1.5,
   },
 ]
 
@@ -424,6 +413,13 @@ interface SlotState {
   isFading: boolean
 }
 
+interface PlacedSlot {
+  slot: WingSlotDef
+  state: SlotState
+  adjustedX: number
+  adjustedScale: number
+}
+
 export function Hero({ ready = true }: HeroProps) {
   const heroRef = useRef<HTMLElement>(null)
   const leftGroupRef = useRef<HTMLDivElement>(null)
@@ -439,20 +435,73 @@ export function Hero({ ready = true }: HeroProps) {
     return perfStore.subscribe((t) => setSilhouettesEnabled(t.heroSilhouettes))
   }, [])
 
-  // Check URL query params for ?debug=1&hero=boxes
-  const [showHeroBoxes, setShowHeroBoxes] = useState(false)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const search = window.location.search
-      setShowHeroBoxes(search.includes('hero=boxes'))
-    }
-  }, [])
+  // Check URL query parameters
+  const isDebugUrl = typeof window !== 'undefined' && window.location.search.includes('debug=1')
+  const isHeroTune = typeof window !== 'undefined' && window.location.search.includes('hero=tune')
+  const showHeroBoxes = typeof window !== 'undefined' && (window.location.search.includes('hero=boxes') || (isDebugUrl && window.location.search.includes('hero=boxes')))
 
-  const [activeSlots, setActiveSlots] = useState<{ slot: HoneycombSlotDef; state: SlotState }[]>([])
+  // Leva Tuner Controls (?debug=1&hero=tune)
+  const tuneValues = useControls(
+    'Hero Poster Wall Tuner',
+    {
+      frontHeightVh:   { value: HERO_LAYOUT.frontHeightVh, min: 40, max: 75, step: 1, label: 'Front H (vh)' },
+      backHeightVh:    { value: HERO_LAYOUT.backHeightVh,  min: 35, max: 65, step: 1, label: 'Back H (vh)' },
+      bustHeightVh:    { value: HERO_LAYOUT.bustHeightVh,  min: 20, max: 40, step: 1, label: 'Bust H (vh)' },
+      frontOpacity:    { value: HERO_LAYOUT.frontOpacity,  min: 0.2, max: 1.0, step: 0.05, label: 'Front Opacity' },
+      backOpacity:     { value: HERO_LAYOUT.backOpacity,   min: 0.2, max: 1.0, step: 0.05, label: 'Back Opacity' },
+      maxBodyOverlap:  { value: HERO_LAYOUT.maxBodyOverlap,min: 0.0, max: 0.6, step: 0.02, label: 'Max Body Overlap' },
+      edgeBleedVw:     { value: HERO_LAYOUT.edgeBleedVw,   min: 0, max: 5, step: 0.5, label: 'Edge Bleed (vw)' },
+      'Copy values': button(() => {
+        const out = `export const HERO_LAYOUT = ${JSON.stringify(
+          {
+            frontHeightVh: tuneValues.frontHeightVh,
+            backHeightVh: tuneValues.backHeightVh,
+            bustHeightVh: tuneValues.bustHeightVh,
+            frontOpacity: tuneValues.frontOpacity,
+            backOpacity: tuneValues.backOpacity,
+            bustInnerOpacity: HERO_LAYOUT.bustInnerOpacity,
+            bustOuterOpacity: HERO_LAYOUT.bustOuterOpacity,
+            maxBodyOverlap: tuneValues.maxBodyOverlap,
+            edgeBleedVw: tuneValues.edgeBleedVw,
+          },
+          null,
+          2
+        )} as const`
+        navigator.clipboard?.writeText(out).catch(() => {})
+        console.log('[Hero Tuner] Copied HERO_LAYOUT config:\n', out)
+      }),
+    },
+    { render: () => isHeroTune }
+  )
+
+  const activeLayout = useMemo(() => {
+    if (isHeroTune) {
+      return {
+        frontHeightVh: tuneValues.frontHeightVh,
+        backHeightVh: tuneValues.backHeightVh,
+        bustHeightVh: tuneValues.bustHeightVh,
+        frontOpacity: tuneValues.frontOpacity,
+        backOpacity: tuneValues.backOpacity,
+        maxBodyOverlap: tuneValues.maxBodyOverlap,
+        edgeBleedVw: tuneValues.edgeBleedVw,
+      }
+    }
+    return {
+      frontHeightVh: HERO_LAYOUT.frontHeightVh,
+      backHeightVh: HERO_LAYOUT.backHeightVh,
+      bustHeightVh: HERO_LAYOUT.bustHeightVh,
+      frontOpacity: HERO_LAYOUT.frontOpacity,
+      backOpacity: HERO_LAYOUT.backOpacity,
+      maxBodyOverlap: HERO_MAX_BODY_OVERLAP,
+      edgeBleedVw: HERO_LAYOUT.edgeBleedVw,
+    }
+  }, [isHeroTune, tuneValues])
+
+  const [activeSlots, setActiveSlots] = useState<PlacedSlot[]>([])
   const extraRotationQueueRef = useRef<ProcessedCharacter[]>([])
   const rotateSlotCounterRef = useRef(0)
 
-  // 1. Process candidate images on mount
+  // 1. Process candidate images on mount & resolve layer rules
   useEffect(() => {
     let cancelled = false
     async function loadAll() {
@@ -473,40 +522,60 @@ export function Hero({ ready = true }: HeroProps) {
         else normalChars.push(char)
       })
 
-      // Combine with priority characters placed first in inner columns if available
+      // Combine: Priority heroes go first into FRONT then BACK, followed by sorted heroes
       const orderedPool = [...priorityChars, ...normalChars]
 
-      // Keep both sides symmetric: if usable count is odd, reserve last one for rotation pool
-      const usableCount = orderedPool.length % 2 === 0 ? orderedPool.length : orderedPool.length - 1
-      const initialAssigned = orderedPool.slice(0, Math.min(HONEYCOMB_SLOTS.length, usableCount))
+      // Fill symmetric pairs only (front L/R, back L/R, bust-inner L/R, bust-outer L/R)
+      const usablePairsCount = Math.floor(orderedPool.length / 2) * 2
+      const initialAssigned = orderedPool.slice(0, Math.min(BASE_WING_SLOTS.length, usablePairsCount))
       const extras = orderedPool.slice(initialAssigned.length)
       extraRotationQueueRef.current = extras
 
-      // Map to slots in standard fill order: outer L1, R1, L2, R2, L3, R3, then inner L1, R1, L2, R2
-      const slotList: { slot: HoneycombSlotDef; state: SlotState }[] = []
+      // Map to initial slots in fill order
+      const initialPlaced: PlacedSlot[] = []
       initialAssigned.forEach((char, i) => {
-        if (HONEYCOMB_SLOTS[i]) {
-          slotList.push({
-            slot: HONEYCOMB_SLOTS[i],
+        if (BASE_WING_SLOTS[i]) {
+          const slot = { ...BASE_WING_SLOTS[i] }
+          // Apply active layout heights & opacities
+          if (slot.role === 'front') {
+            slot.hVh = activeLayout.frontHeightVh
+            slot.yVh = 100 - activeLayout.frontHeightVh
+            slot.baseOpacity = activeLayout.frontOpacity
+          } else if (slot.role === 'back') {
+            slot.hVh = activeLayout.backHeightVh
+            slot.yVh = 100 - activeLayout.backHeightVh
+            slot.baseOpacity = activeLayout.backOpacity
+          } else {
+            slot.hVh = activeLayout.bustHeightVh
+          }
+
+          initialPlaced.push({
+            slot,
             state: {
               current: char,
               incoming: null,
               isFading: false,
             },
+            adjustedX: slot.xVw,
+            adjustedScale: slot.scale,
           })
         }
       })
 
-      setActiveSlots(slotList)
+      // ── Layering & Collision Resolution ──
+      // Head box = top 35% of trimmed box. Overlap with head box MUST be 0.
+      // Body overlap (FRONT over BACK) allowed up to activeLayout.maxBodyOverlap (0.30)
+      const resolved = resolveLayeringRules(initialPlaced, activeLayout)
+      setActiveSlots(resolved)
     }
 
     loadAll()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [activeLayout])
 
-  // 2. Extras rotation: rotate extras into OUTER slots with 1.2s crossfade every ~7s
+  // 2. Extras rotation: rotate extras into BUST slots only with 1.2s crossfade every ~6s
   useEffect(() => {
     if (extraRotationQueueRef.current.length === 0 || activeSlots.length === 0) return
 
@@ -516,14 +585,14 @@ export function Hero({ ready = true }: HeroProps) {
     const interval = setInterval(() => {
       if (extraRotationQueueRef.current.length === 0) return
 
-      // Find outer slot indices
-      const outerIndices: number[] = []
+      // Find bust slot indices
+      const bustIndices: number[] = []
       activeSlots.forEach((item, idx) => {
-        if (!item.slot.isInner) outerIndices.push(idx)
+        if (item.slot.role.startsWith('bust')) bustIndices.push(idx)
       })
-      if (outerIndices.length === 0) return
+      if (bustIndices.length === 0) return
 
-      const targetOuterIndex = outerIndices[rotateSlotCounterRef.current % outerIndices.length]
+      const targetIndex = bustIndices[rotateSlotCounterRef.current % bustIndices.length]
       rotateSlotCounterRef.current++
 
       const incomingCandidate = extraRotationQueueRef.current.shift()
@@ -531,11 +600,11 @@ export function Hero({ ready = true }: HeroProps) {
 
       setActiveSlots((prev) => {
         const next = [...prev]
-        if (next[targetOuterIndex]) {
-          next[targetOuterIndex] = {
-            ...next[targetOuterIndex],
+        if (next[targetIndex]) {
+          next[targetIndex] = {
+            ...next[targetIndex],
             state: {
-              ...next[targetOuterIndex].state,
+              ...next[targetIndex].state,
               incoming: incomingCandidate,
               isFading: true,
             },
@@ -548,15 +617,15 @@ export function Hero({ ready = true }: HeroProps) {
       setTimeout(() => {
         setActiveSlots((prev) => {
           const next = [...prev]
-          if (next[targetOuterIndex] && next[targetOuterIndex].state.incoming) {
-            const oldCurrent = next[targetOuterIndex].state.current
+          if (next[targetIndex] && next[targetIndex].state.incoming) {
+            const oldCurrent = next[targetIndex].state.current
             // Return old character to rotation pool
             extraRotationQueueRef.current.push(oldCurrent)
 
-            next[targetOuterIndex] = {
-              ...next[targetOuterIndex],
+            next[targetIndex] = {
+              ...next[targetIndex],
               state: {
-                current: next[targetOuterIndex].state.incoming!,
+                current: next[targetIndex].state.incoming!,
                 incoming: null,
                 isFading: false,
               },
@@ -565,98 +634,123 @@ export function Hero({ ready = true }: HeroProps) {
           return next
         })
       }, 1200)
-    }, 7000)
+    }, 6000)
 
     return () => clearInterval(interval)
   }, [activeSlots])
 
-  // 3. Overlap check & debug self-check calculation
+  // 3. Diagnostics & self-check overlap metrics
   const [debugMetrics, setDebugMetrics] = useState<{
-    figureBoxes: { slotId: string; charName: string; slotBox: { x: number; y: number; w: number; h: number }; figBox: { x: number; y: number; w: number; h: number } }[]
-    maxPairwiseOverlap: number
-    maxNoGoOverlap: number
-  }>({ figureBoxes: [], maxPairwiseOverlap: 0, maxNoGoOverlap: 0 })
+    figureBoxes: {
+      slotId: string
+      charName: string
+      slotBox: { x: number; y: number; w: number; h: number }
+      figBox: { x: number; y: number; w: number; h: number }
+      headBox: { x: number; y: number; w: number; h: number }
+      zIndex: number
+    }[]
+    maxHeadOverlap: number
+    maxBodyOverlapFraction: number
+    maxCenterZoneIntrusion: number
+  }>({ figureBoxes: [], maxHeadOverlap: 0, maxBodyOverlapFraction: 0, maxCenterZoneIntrusion: 0 })
 
   const runSelfCheck = useCallback(() => {
     if (typeof window === 'undefined' || activeSlots.length === 0) return
 
     const vw = window.innerWidth
     const vh = window.innerHeight
-    const noGoLeft = 0.24 * vw
-    const noGoRight = 0.76 * vw
 
-    let maxNoGoOverlap = 0
-    let maxPairwiseOverlap = 0
-
-    const computedBoxes = activeSlots.map(({ slot, state }) => {
+    const computedBoxes = activeSlots.map(({ slot, state, adjustedX, adjustedScale }) => {
       const char = state.current
-      const slotX = (slot.xVw / 100) * vw
+      const slotX = (adjustedX / 100) * vw
       const slotY = (slot.yVh / 100) * vh
       const slotW = (slot.wVw / 100) * vw
       const slotH = (slot.hVh / 100) * vh
 
-      // Scale to fit ("contain") inside slot box aligned bottom-center
-      const s = Math.min(slotW / char.trimW, slotH / char.trimH) * slot.scale
+      const s = Math.min(slotW / char.trimW, slotH / char.trimH) * adjustedScale
       const figW = char.trimW * s
       const figH = char.trimH * s
       const figX = slotX + (slotW - figW) / 2
-      const figY = slotY + (slotH - figH) // aligned bottom-center
+      const figY = slot.anchor === 'top' ? slotY : slotY + (slotH - figH) // bottom-center or top-center
+
+      // Head box: top 35% of trimmed figure box
+      const headH = figH * 0.35
+      const headBox = { x: figX, y: figY, w: figW, h: headH }
 
       return {
         slotId: slot.id,
+        role: slot.role,
+        side: slot.side,
         charName: char.name,
+        zIndex: slot.zIndex,
         slotBox: { x: slotX, y: slotY, w: slotW, h: slotH },
         figBox: { x: figX, y: figY, w: figW, h: figH },
+        headBox,
       }
     })
 
-    // 1. Center no-go zone intersection
+    let maxHeadOverlap = 0
+    let maxBodyOverlapFraction = 0
+    let maxCenterZoneIntrusion = 0
+
+    // 1. Center text zone check (26vw to 74vw: 0vw at title band y:28-46vh, <=4vw elsewhere)
+    const centerLeft = 0.26 * vw
+    const centerRight = 0.74 * vw
+    const titleBandTop = 0.28 * vh
+    const titleBandBottom = 0.46 * vh
+
     computedBoxes.forEach(({ slotId, charName, figBox }) => {
-      const right = figBox.x + figBox.w
-      const bottom = figBox.y + figBox.h
-      const xOverlap = Math.max(0, Math.min(right, noGoRight) - Math.max(figBox.x, noGoLeft))
-      const yOverlap = Math.max(0, Math.min(bottom, vh) - Math.max(figBox.y, 0))
-      const area = xOverlap * yOverlap
-      if (area > 0) {
-        maxNoGoOverlap = Math.max(maxNoGoOverlap, area)
-        console.warn(`[Hero Overlap Check] ${slotId} (${charName}) intersects center no-go zone by ${area.toFixed(1)} px²!`)
+      const figRight = figBox.x + figBox.w
+      const figBottom = figBox.y + figBox.h
+      const xOverlap = Math.max(0, Math.min(figRight, centerRight) - Math.max(figBox.x, centerLeft))
+      if (xOverlap > 0) {
+        const inTitleBand = Math.max(0, Math.min(figBottom, titleBandBottom) - Math.max(figBox.y, titleBandTop)) > 0
+        const intrusionVw = (xOverlap / vw) * 100
+        if (inTitleBand && intrusionVw > 0) {
+          maxCenterZoneIntrusion = Math.max(maxCenterZoneIntrusion, intrusionVw)
+          console.warn(`[Hero Center Intrusion] ${slotId} (${charName}) entered title band center zone by ${intrusionVw.toFixed(2)}vw!`)
+        } else if (!inTitleBand && intrusionVw > 4) {
+          maxCenterZoneIntrusion = Math.max(maxCenterZoneIntrusion, intrusionVw - 4)
+          console.warn(`[Hero Center Intrusion] ${slotId} (${charName}) entered center zone by ${intrusionVw.toFixed(2)}vw (>4vw allowed)!`)
+        }
       }
     })
 
-    // 2. Pairwise overlaps between figures
+    // 2. Head Box & Body Overlap Check across all pairs
     for (let i = 0; i < computedBoxes.length; i++) {
-      for (let j = i + 1; j < computedBoxes.length; j++) {
-        const a = computedBoxes[i].figBox
-        const b = computedBoxes[j].figBox
-        const aRight = a.x + a.w
-        const aBottom = a.y + a.h
-        const bRight = b.x + b.w
-        const bBottom = b.y + b.h
+      for (let j = 0; j < computedBoxes.length; j++) {
+        if (i === j) continue
+        const a = computedBoxes[i]
+        const b = computedBoxes[j]
 
-        const xOverlap = Math.max(0, Math.min(aRight, bRight) - Math.max(a.x, b.x))
-        const yOverlap = Math.max(0, Math.min(aBottom, bBottom) - Math.max(a.y, b.y))
-        const area = xOverlap * yOverlap
-        if (area > 0) {
-          maxPairwiseOverlap = Math.max(maxPairwiseOverlap, area)
-          console.warn(
-            `[Hero Overlap Check] Overlap between ${computedBoxes[i].slotId} (${computedBoxes[i].charName}) and ${computedBoxes[j].slotId} (${computedBoxes[j].charName}): ${area.toFixed(1)} px²!`
-          )
+        // Check if figure A overlaps figure B's head box
+        const hOverlapX = Math.max(0, Math.min(a.figBox.x + a.figBox.w, b.headBox.x + b.headBox.w) - Math.max(a.figBox.x, b.headBox.x))
+        const hOverlapY = Math.max(0, Math.min(a.figBox.y + a.figBox.h, b.headBox.y + b.headBox.h) - Math.max(a.figBox.y, b.headBox.y))
+        const headOverlapArea = hOverlapX * hOverlapY
+        if (headOverlapArea > 0) {
+          maxHeadOverlap = Math.max(maxHeadOverlap, headOverlapArea)
+          console.warn(`[Hero Head Collision] ${a.slotId} (${a.charName}) covers head box of ${b.slotId} (${b.charName}) by ${headOverlapArea.toFixed(1)} px²!`)
+        }
+
+        // Check Body Overlap: FRONT over BACK
+        if (a.role === 'front' && b.role === 'back' && a.side === b.side) {
+          const bodyOverlapX = Math.max(0, Math.min(a.figBox.x + a.figBox.w, b.figBox.x + b.figBox.w) - Math.max(a.figBox.x, b.figBox.x))
+          const fraction = bodyOverlapX / b.figBox.w
+          maxBodyOverlapFraction = Math.max(maxBodyOverlapFraction, fraction)
+          if (fraction > activeLayout.maxBodyOverlap) {
+            console.warn(`[Hero Body Overlap] ${a.slotId} over ${b.slotId} exceeds limit: ${(fraction * 100).toFixed(1)}% > ${(activeLayout.maxBodyOverlap * 100).toFixed(1)}%`)
+          }
         }
       }
     }
 
-    if (maxPairwiseOverlap === 0 && maxNoGoOverlap === 0) {
-      console.log(
-        `[Hero Overlap Check] SUCCESS: Pairwise Overlap = 0 px², Center No-Go Overlap = 0 px² across ${computedBoxes.length} characters.`
-      )
-    }
-
     setDebugMetrics({
       figureBoxes: computedBoxes,
-      maxPairwiseOverlap,
-      maxNoGoOverlap,
+      maxHeadOverlap,
+      maxBodyOverlapFraction,
+      maxCenterZoneIntrusion,
     })
-  }, [activeSlots])
+  }, [activeSlots, activeLayout])
 
   useEffect(() => {
     runSelfCheck()
@@ -802,27 +896,29 @@ export function Hero({ ready = true }: HeroProps) {
         />
       </svg>
 
-      {/* ── HONEYCOMB WALL: LEFT SLOTS ── */}
+      {/* ── WING WALL: LEFT WING SLOTS ── */}
       {silhouettesEnabled && (
         <div ref={leftGroupRef} className="absolute inset-0 pointer-events-none z-[2]" aria-hidden="true">
           {activeSlots
             .filter(({ slot }) => slot.side === 'left')
-            .map(({ slot, state }) => {
+            .map(({ slot, state, adjustedX, adjustedScale }) => {
               const char = state.current
               const incoming = state.incoming
 
               // Responsive slot visibility:
-              // - inner columns: >= 1280px (hidden xl:block)
-              // - outer-L1, outer-L2: >= 1024px (hidden lg:block)
-              // - outer-L3: mobile bottom-left corner (<1024px) or desktop slot (>=1024px)
-              let responsiveClass = 'hidden xl:block'
-              if (!slot.isInner) {
-                if (slot.id === 'outer-L3') {
-                  responsiveClass = 'block max-lg:!top-auto max-lg:!bottom-[2vh] max-lg:!left-[2vw] max-lg:!w-[28vw] max-lg:!max-w-[140px] max-lg:!h-[20vh]'
-                } else {
-                  responsiveClass = 'hidden lg:block'
-                }
+              // - Busts: hidden below 1280px (hidden xl:block)
+              // - Back: hidden below 1024px (hidden lg:block)
+              // - Front: desktop 60vh, tablet 50vh, mobile 36vh corner
+              let responsiveClass = ''
+              if (slot.role.startsWith('bust')) {
+                responsiveClass = 'hidden xl:block'
+              } else if (slot.role === 'back') {
+                responsiveClass = 'hidden lg:block lg:max-xl:!h-[44vh] lg:max-xl:!top-auto lg:max-xl:!bottom-0'
+              } else if (slot.role === 'front') {
+                responsiveClass = 'block max-lg:!top-auto max-lg:!bottom-0 max-lg:!left-0 max-lg:!w-[34vw] max-lg:!max-w-[190px] max-lg:!h-[36vh] lg:max-xl:!h-[50vh] lg:max-xl:!top-auto lg:max-xl:!bottom-0'
               }
+
+              const isBust = slot.role.startsWith('bust')
 
               return (
                 <div
@@ -833,10 +929,11 @@ export function Hero({ ready = true }: HeroProps) {
                   }}
                   className={`absolute pointer-events-none hero-float-anim overflow-hidden ${responsiveClass}`}
                   style={{
-                    left: `${slot.xVw}vw`,
+                    left: `${adjustedX}vw`,
                     top: `${slot.yVh}vh`,
                     width: `${slot.wVw}vw`,
                     height: `${slot.hVh}vh`,
+                    zIndex: slot.zIndex,
                     animationDuration: `${slot.floatDuration}s`,
                     animationDelay: `${slot.floatDelay}s`,
                   }}
@@ -846,7 +943,7 @@ export function Hero({ ready = true }: HeroProps) {
                     aria-hidden="true"
                     className="absolute inset-0 pointer-events-none rounded-full"
                     style={{
-                      background: `radial-gradient(ellipse 65% 75% at 50% 50%, ${char.accentColor}30 0%, transparent 70%)`,
+                      background: `radial-gradient(ellipse 65% 75% at 50% 50%, ${char.accentColor}25 0%, transparent 70%)`,
                       opacity: state.isFading ? 0 : slot.baseOpacity * 0.7,
                       transform: 'scale(1.15)',
                       transition: 'opacity 1.2s ease-in-out',
@@ -861,11 +958,11 @@ export function Hero({ ready = true }: HeroProps) {
                     height={char.trimH}
                     decoding="async"
                     loading="eager"
-                    className="hero-silhouette-img hero-slot-char w-full h-full"
+                    className={`${isBust ? 'hero-silhouette-img-bust' : 'hero-silhouette-img'} hero-slot-char w-full h-full`}
                     style={{
                       opacity: state.isFading ? 0 : slot.baseOpacity,
-                      transform: `scale(${slot.scale})`,
-                      transformOrigin: 'bottom center',
+                      transform: `scale(${adjustedScale})`,
+                      transformOrigin: slot.anchor === 'top' ? 'top center' : 'bottom center',
                       filter: `brightness(${char.brightnessMultiplier * slot.brightnessFactor})`,
                     }}
                   />
@@ -879,11 +976,11 @@ export function Hero({ ready = true }: HeroProps) {
                       height={incoming.trimH}
                       decoding="async"
                       loading="lazy"
-                      className="hero-silhouette-img hero-slot-char absolute inset-0 w-full h-full"
+                      className={`${isBust ? 'hero-silhouette-img-bust' : 'hero-silhouette-img'} hero-slot-char absolute inset-0 w-full h-full`}
                       style={{
                         opacity: state.isFading ? slot.baseOpacity : 0,
-                        transform: `scale(${slot.scale})`,
-                        transformOrigin: 'bottom center',
+                        transform: `scale(${adjustedScale})`,
+                        transformOrigin: slot.anchor === 'top' ? 'top center' : 'bottom center',
                         filter: `brightness(${incoming.brightnessMultiplier * slot.brightnessFactor})`,
                       }}
                     />
@@ -894,27 +991,29 @@ export function Hero({ ready = true }: HeroProps) {
         </div>
       )}
 
-      {/* ── HONEYCOMB WALL: RIGHT SLOTS ── */}
+      {/* ── WING WALL: RIGHT WING SLOTS ── */}
       {silhouettesEnabled && (
         <div ref={rightGroupRef} className="absolute inset-0 pointer-events-none z-[2]" aria-hidden="true">
           {activeSlots
             .filter(({ slot }) => slot.side === 'right')
-            .map(({ slot, state }) => {
+            .map(({ slot, state, adjustedX, adjustedScale }) => {
               const char = state.current
               const incoming = state.incoming
 
               // Responsive slot visibility:
-              // - inner columns: >= 1280px (hidden xl:block)
-              // - outer-R1, outer-R2: >= 1024px (hidden lg:block)
-              // - outer-R3: mobile bottom-right corner (<1024px) or desktop slot (>=1024px)
-              let responsiveClass = 'hidden xl:block'
-              if (!slot.isInner) {
-                if (slot.id === 'outer-R3') {
-                  responsiveClass = 'block max-lg:!top-auto max-lg:!bottom-[2vh] max-lg:!right-[2vw] max-lg:!left-auto max-lg:!w-[28vw] max-lg:!max-w-[140px] max-lg:!h-[20vh]'
-                } else {
-                  responsiveClass = 'hidden lg:block'
-                }
+              // - Busts: hidden below 1280px (hidden xl:block)
+              // - Back: hidden below 1024px (hidden lg:block)
+              // - Front: desktop 60vh, tablet 50vh, mobile 36vh corner
+              let responsiveClass = ''
+              if (slot.role.startsWith('bust')) {
+                responsiveClass = 'hidden xl:block'
+              } else if (slot.role === 'back') {
+                responsiveClass = 'hidden lg:block lg:max-xl:!h-[44vh] lg:max-xl:!top-auto lg:max-xl:!bottom-0'
+              } else if (slot.role === 'front') {
+                responsiveClass = 'block max-lg:!top-auto max-lg:!bottom-0 max-lg:!right-0 max-lg:!left-auto max-lg:!w-[34vw] max-lg:!max-w-[190px] max-lg:!h-[36vh] lg:max-xl:!h-[50vh] lg:max-xl:!top-auto lg:max-xl:!bottom-0'
               }
+
+              const isBust = slot.role.startsWith('bust')
 
               return (
                 <div
@@ -925,10 +1024,11 @@ export function Hero({ ready = true }: HeroProps) {
                   }}
                   className={`absolute pointer-events-none hero-float-anim overflow-hidden ${responsiveClass}`}
                   style={{
-                    left: `${slot.xVw}vw`,
+                    left: `${adjustedX}vw`,
                     top: `${slot.yVh}vh`,
                     width: `${slot.wVw}vw`,
                     height: `${slot.hVh}vh`,
+                    zIndex: slot.zIndex,
                     animationDuration: `${slot.floatDuration}s`,
                     animationDelay: `${slot.floatDelay}s`,
                   }}
@@ -938,7 +1038,7 @@ export function Hero({ ready = true }: HeroProps) {
                     aria-hidden="true"
                     className="absolute inset-0 pointer-events-none rounded-full"
                     style={{
-                      background: `radial-gradient(ellipse 65% 75% at 50% 50%, ${char.accentColor}30 0%, transparent 70%)`,
+                      background: `radial-gradient(ellipse 65% 75% at 50% 50%, ${char.accentColor}25 0%, transparent 70%)`,
                       opacity: state.isFading ? 0 : slot.baseOpacity * 0.7,
                       transform: 'scale(1.15)',
                       transition: 'opacity 1.2s ease-in-out',
@@ -953,11 +1053,11 @@ export function Hero({ ready = true }: HeroProps) {
                     height={char.trimH}
                     decoding="async"
                     loading="eager"
-                    className="hero-silhouette-img hero-slot-char w-full h-full"
+                    className={`${isBust ? 'hero-silhouette-img-bust' : 'hero-silhouette-img'} hero-slot-char w-full h-full`}
                     style={{
                       opacity: state.isFading ? 0 : slot.baseOpacity,
-                      transform: `scale(${slot.scale})`,
-                      transformOrigin: 'bottom center',
+                      transform: `scale(${adjustedScale})`,
+                      transformOrigin: slot.anchor === 'top' ? 'top center' : 'bottom center',
                       filter: `brightness(${char.brightnessMultiplier * slot.brightnessFactor})`,
                     }}
                   />
@@ -971,11 +1071,11 @@ export function Hero({ ready = true }: HeroProps) {
                       height={incoming.trimH}
                       decoding="async"
                       loading="lazy"
-                      className="hero-silhouette-img hero-slot-char absolute inset-0 w-full h-full"
+                      className={`${isBust ? 'hero-silhouette-img-bust' : 'hero-silhouette-img'} hero-slot-char absolute inset-0 w-full h-full`}
                       style={{
                         opacity: state.isFading ? slot.baseOpacity : 0,
-                        transform: `scale(${slot.scale})`,
-                        transformOrigin: 'bottom center',
+                        transform: `scale(${adjustedScale})`,
+                        transformOrigin: slot.anchor === 'top' ? 'top center' : 'bottom center',
                         filter: `brightness(${incoming.brightnessMultiplier * slot.brightnessFactor})`,
                       }}
                     />
@@ -986,34 +1086,39 @@ export function Hero({ ready = true }: HeroProps) {
         </div>
       )}
 
+      {/* ── BOTTOM GRADIENT TO BLACK (12vh) ── */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[12vh] bg-gradient-to-t from-[#050508] to-transparent pointer-events-none z-[3]"
+        aria-hidden="true"
+      />
+
       {/* ── DEBUG RECTANGLES & METRICS (?debug=1&hero=boxes) ── */}
       {showHeroBoxes && (
         <div className="fixed inset-0 pointer-events-none z-[9999]" aria-hidden="true">
-          {/* Center No-Go Zone (24vw - 76vw) */}
+          {/* Center Text Safe Zone (26vw - 74vw) */}
           <div
             className="absolute top-0 bottom-0 border-x border-dashed border-red-500/50 bg-red-500/5 flex flex-col items-center justify-between py-6"
-            style={{ left: '24vw', width: '52vw' }}
+            style={{ left: '26vw', width: '48vw' }}
           >
-            <span className="font-mono text-[10px] text-red-400 bg-black/80 px-2 py-0.5 rounded border border-red-500/40">
-              CENTER NO-GO ZONE (24vw — 76vw)
+            <span className="font-mono text-[10px] text-red-400 bg-black/90 px-2 py-0.5 rounded border border-red-500/40">
+              CENTER ZONE (26vw — 74vw)
             </span>
-            <span className="font-mono text-[9px] text-red-400/80 bg-black/80 px-2 py-0.5 rounded">
-              Overlap: {debugMetrics.maxNoGoOverlap.toFixed(1)} px²
+            {/* Title Band Highlight (28vh - 46vh) */}
+            <div
+              className="w-full border-y border-red-500/40 bg-red-500/10 flex items-center justify-center"
+              style={{ height: '18vh', marginTop: '28vh' }}
+            >
+              <span className="font-mono text-[9px] text-red-300 bg-black/80 px-2 py-0.5 rounded">
+                TITLE BAND (28-46vh, 0vw INTRUSION)
+              </span>
+            </div>
+            <span className="font-mono text-[9px] text-red-400/80 bg-black/90 px-2 py-0.5 rounded">
+              Intrusion: {debugMetrics.maxCenterZoneIntrusion.toFixed(1)}vw
             </span>
           </div>
 
-          {/* Top Navbar Reservation (top 8vh) */}
-          <div
-            className="absolute top-0 left-0 right-0 border-b border-dashed border-amber-500/50 bg-amber-500/5 flex items-center justify-center"
-            style={{ height: '8vh' }}
-          >
-            <span className="font-mono text-[10px] text-amber-400 bg-black/80 px-2 py-0.5 rounded border border-amber-500/40">
-              NAVBAR SAFE ZONE (Top 8vh)
-            </span>
-          </div>
-
-          {/* Slot and Figure Boxes */}
-          {debugMetrics.figureBoxes.map(({ slotId, charName, slotBox, figBox }) => (
+          {/* Slot, Figure, and Head Boxes */}
+          {debugMetrics.figureBoxes.map(({ slotId, charName, slotBox, figBox, headBox, zIndex }) => (
             <div key={slotId}>
               {/* Cyan dashed slot box */}
               <div
@@ -1026,7 +1131,7 @@ export function Hero({ ready = true }: HeroProps) {
                 }}
               >
                 <span className="absolute -top-4 left-0 font-mono text-[8.5px] text-cyan-300 bg-black/90 px-1 rounded whitespace-nowrap">
-                  {slotId}
+                  {slotId} (z-{zIndex})
                 </span>
               </div>
 
@@ -1044,19 +1149,34 @@ export function Hero({ ready = true }: HeroProps) {
                   {charName} ({Math.round(figBox.w)}x{Math.round(figBox.h)})
                 </span>
               </div>
+
+              {/* Amber solid head box (top 35% of trimmed figure) */}
+              <div
+                className="absolute border-2 border-amber-400 bg-amber-400/15 pointer-events-none"
+                style={{
+                  left: `${headBox.x}px`,
+                  top: `${headBox.y}px`,
+                  width: `${headBox.w}px`,
+                  height: `${headBox.h}px`,
+                }}
+              >
+                <span className="absolute top-0 right-0 font-mono text-[7.5px] text-amber-200 bg-black/90 px-0.5 rounded whitespace-nowrap">
+                  HEAD (35%)
+                </span>
+              </div>
             </div>
           ))}
 
           {/* Diagnostics summary HUD banner */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-black/95 text-emerald-400 font-mono text-[10px] px-4 py-1.5 rounded-full border border-emerald-500/50 shadow-2xl flex items-center gap-4">
-            <span>PAIRWISE OVERLAP: <b>{debugMetrics.maxPairwiseOverlap.toFixed(1)} px²</b></span>
-            <span>NO-GO OVERLAP: <b>{debugMetrics.maxNoGoOverlap.toFixed(1)} px²</b></span>
-            <span>ACTIVE HEROES: <b>{activeSlots.length}</b></span>
+            <span>HEAD OVERLAP: <b className={debugMetrics.maxHeadOverlap === 0 ? 'text-emerald-400' : 'text-red-400'}>{debugMetrics.maxHeadOverlap.toFixed(1)} px²</b></span>
+            <span>BODY OVERLAP: <b className={debugMetrics.maxBodyOverlapFraction <= activeLayout.maxBodyOverlap ? 'text-emerald-400' : 'text-amber-400'}>{(debugMetrics.maxBodyOverlapFraction * 100).toFixed(1)}%</b> / {(activeLayout.maxBodyOverlap * 100).toFixed(0)}%</span>
+            <span>HEROES: <b>{activeSlots.length}</b></span>
           </div>
         </div>
       )}
 
-      {/* ── CENTERED HERO CONTENT (All fits cleanly inside the first screen) ── */}
+      {/* ── CENTERED HERO CONTENT ── */}
       <div
         ref={textGroupRef}
         className="relative z-10 text-center max-w-4xl mx-auto flex flex-col items-center justify-center my-auto w-full px-2"
@@ -1068,16 +1188,6 @@ export function Hero({ ready = true }: HeroProps) {
           style={{
             background:
               'radial-gradient(ellipse 70% 65% at 50% 50%, rgba(5, 5, 8, 0.88) 0%, rgba(5, 5, 8, 0.55) 55%, transparent 100%)',
-          }}
-        />
-        {/* Optional slot: render /brand/official-logo.svg only if that file exists */}
-        <img
-          src="/brand/official-logo.svg"
-          alt=""
-          aria-hidden="true"
-          className="h-7 w-auto mb-2 object-contain"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none'
           }}
         />
 
@@ -1137,4 +1247,92 @@ export function Hero({ ready = true }: HeroProps) {
       </div>
     </section>
   )
+}
+
+// ── 4. Layering Rules Solver (Poster Style) ──
+function resolveLayeringRules(
+  initialSlots: PlacedSlot[],
+  layout: { maxBodyOverlap: number; edgeBleedVw: number }
+): PlacedSlot[] {
+  const result: PlacedSlot[] = initialSlots.map((s) => ({ ...s }))
+
+  // Mock viewport width/height for resolution (standard 1920x1080)
+  const vw = 1920
+  const vh = 1080
+
+  function getBoxes(slots: PlacedSlot[]) {
+    return slots.map(({ slot, state, adjustedX, adjustedScale }) => {
+      const char = state.current
+      const slotX = (adjustedX / 100) * vw
+      const slotY = (slot.yVh / 100) * vh
+      const slotW = (slot.wVw / 100) * vw
+      const slotH = (slot.hVh / 100) * vh
+
+      const s = Math.min(slotW / char.trimW, slotH / char.trimH) * adjustedScale
+      const figW = char.trimW * s
+      const figH = char.trimH * s
+      const figX = slotX + (slotW - figW) / 2
+      const figY = slot.anchor === 'top' ? slotY : slotY + (slotH - figH)
+
+      return {
+        id: slot.id,
+        role: slot.role,
+        side: slot.side,
+        char,
+        figBox: { x: figX, y: figY, w: figW, h: figH },
+        headBox: { x: figX, y: figY, w: figW, h: figH * 0.35 },
+      }
+    })
+  }
+
+  // Iterate over Left and Right wings to resolve collisions between FRONT and BACK
+  for (const side of ['left', 'right'] as const) {
+    const frontIdx = result.findIndex((s) => s.slot.side === side && s.slot.role === 'front')
+    const backIdx = result.findIndex((s) => s.slot.side === side && s.slot.role === 'back')
+
+    if (frontIdx === -1 || backIdx === -1) continue
+
+    const backSlot = result[backIdx]
+
+    let resolved = false
+    const maxOutwardShiftVw = layout.edgeBleedVw
+
+    // Step 1: Shift BACK figure outward in 1vw steps
+    for (let shiftStep = 0; shiftStep <= maxOutwardShiftVw; shiftStep++) {
+      const shiftDirection = side === 'left' ? -1 : 1
+      backSlot.adjustedX = backSlot.slot.xVw + shiftStep * shiftDirection
+
+      // Step 2: If still colliding, shrink in 4% steps (down to 76%)
+      for (let shrinkStep = 0; shrinkStep <= 6; shrinkStep++) {
+        backSlot.adjustedScale = backSlot.slot.scale * Math.pow(0.96, shrinkStep)
+
+        const boxes = getBoxes(result)
+        const bFront = boxes.find((b) => b.id === result[frontIdx].slot.id)!
+        const bBack = boxes.find((b) => b.id === backSlot.slot.id)!
+
+        // Check head overlap: Front covering Back's head
+        const headOverlapX = Math.max(0, Math.min(bFront.figBox.x + bFront.figBox.w, bBack.headBox.x + bBack.headBox.w) - Math.max(bFront.figBox.x, bBack.headBox.x))
+        const headOverlapY = Math.max(0, Math.min(bFront.figBox.y + bFront.figBox.h, bBack.headBox.y + bBack.headBox.h) - Math.max(bFront.figBox.y, bBack.headBox.y))
+        const headOverlap = headOverlapX * headOverlapY
+
+        // Check body overlap: Front over Back body
+        const bodyOverlapX = Math.max(0, Math.min(bFront.figBox.x + bFront.figBox.w, bBack.figBox.x + bBack.figBox.w) - Math.max(bFront.figBox.x, bBack.figBox.x))
+        const bodyOverlapFraction = bodyOverlapX / bBack.figBox.w
+
+        if (headOverlap === 0 && bodyOverlapFraction <= layout.maxBodyOverlap) {
+          resolved = true
+          break
+        }
+      }
+      if (resolved) break
+    }
+
+    // Step 3: If rule fails, drop lowest priority hero from the slot (log it)
+    if (!resolved) {
+      console.warn(`[Hero Layering] Failed to resolve overlap for ${backSlot.slot.id} (${backSlot.state.current.name}) — dropping hero from slot.`)
+      result.splice(backIdx, 1)
+    }
+  }
+
+  return result
 }
