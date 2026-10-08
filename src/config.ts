@@ -11,23 +11,23 @@ import { TRACKS } from './data/tracks'
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
-/** Optional priority filename keywords for Hero character slots (FRONT then BACK) */
+/** Optional priority filename keywords for Hero character slots */
 export const HERO_PRIORITY: string[] = []
 
-/** Maximum allowable body overlap fraction (FRONT over BACK figure width) */
-export const HERO_MAX_BODY_OVERLAP = 0.30
+/** Maximum allowable total frame overlap fraction */
+export const HERO_MAX_OVERLAP = 0.25
 
-/** Poster-style Wing Layout parameters for Hero characters */
+/** Uniform bust crowd layout parameters for Hero characters */
 export const HERO_LAYOUT = {
-  frontHeightVh: 60,
-  backHeightVh: 52,
-  bustHeightVh: 28,
-  frontOpacity: 0.55,
-  backOpacity: 0.42,
-  bustInnerOpacity: 0.40,
-  bustOuterOpacity: 0.38,
-  maxBodyOverlap: HERO_MAX_BODY_OVERLAP,
-  edgeBleedVw: 2,
+  innerHeightVh: 32,
+  outerHeightVh: 28,
+  innerCenterX: 22,
+  outerCenterX: 10,
+  outerTops: [10, 38, 66] as [number, number, number],
+  innerTops: [22, 50, 74] as [number, number, number],
+  innerOpacity: 0.50,
+  outerOpacity: 0.40,
+  maxOverlap: HERO_MAX_OVERLAP,
 } as const
 
 export const EVENT = {
