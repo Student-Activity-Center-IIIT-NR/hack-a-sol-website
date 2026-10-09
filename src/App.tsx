@@ -77,7 +77,7 @@ export default function App() {
   , [])
 
   // Dim the 3D canvas behind non-track sections (sponsor / faq / footer)
-  const canvasDimmed = scrollProgress > 0.72
+  const canvasDimmed = scrollProgress > 0.78
 
   // Smooth velocity for environment (decays to 0 when scroll stops)
   const smoothedVelocity = (() => {

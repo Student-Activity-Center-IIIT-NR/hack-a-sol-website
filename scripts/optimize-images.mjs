@@ -2,7 +2,7 @@
  * scripts/optimize-images.mjs
  * ─────────────────────────────────────────────────────────────────────────────
  * Converts every PNG in:
- *   - public/characters
+ *   - public/characters (aiml, cybersec, web3, policy, open)
  *   - src/assets/hero-characters
  * to WebP, max 1200px tall, target 150-250 KB.
  *

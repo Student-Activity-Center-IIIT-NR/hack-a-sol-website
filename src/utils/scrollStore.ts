@@ -72,27 +72,27 @@ class ScrollStore {
   public updateScroll(progress: number): void {
     this.state.scrollProgress = progress
 
-    // Hero ends around ~0.14, Tracks active around ~0.08..0.75
+    // Hero ends around ~0.14, Tracks active around ~0.06..0.82
     const isHero = progress < 0.14
-    const isTracks = progress >= 0.08 && progress <= 0.75
+    const isTracks = (this.state.sectionProgress > 0 && this.state.sectionProgress < 1) || (progress >= 0.06 && progress <= 0.80)
 
     if (isHero !== this.zoneState.hero || isTracks !== this.zoneState.tracks) {
       this.zoneState = { hero: isHero, tracks: isTracks }
       this.zoneListeners.forEach((fn) => fn(this.zoneState))
     }
 
-    // Beyond 0.76 is sponsor/tiers/timeline/faq/footer where 3D is not in view
-    const inHeroOrTracks = progress <= 0.76
+    // Beyond 0.82 is sponsor/tiers/timeline/faq/footer where 3D is not in view
+    const inHeroOrTracks = progress <= 0.82
     if (inHeroOrTracks !== this.state.inHeroOrTracks) {
       this.state.inHeroOrTracks = inHeroOrTracks
       this.inViewListeners.forEach((fn) => fn(inHeroOrTracks))
     }
 
-    // Canvas dimming past 0.72 - DOM class update without React re-renders
+    // Canvas dimming past 0.78 - DOM class update without React re-renders
     if (typeof document !== 'undefined') {
       const el = document.getElementById('canvas-wrapper')
       if (el) {
-        if (progress > 0.72) {
+        if (progress > 0.78) {
           el.classList.add('canvas-dimmed')
         } else {
           el.classList.remove('canvas-dimmed')

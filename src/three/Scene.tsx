@@ -7,7 +7,7 @@
 
 import { useRef, useEffect, useState, useMemo } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
-import { Stars, PerformanceMonitor, AdaptiveDpr } from "@react-three/drei"
+import { Stars, PerformanceMonitor, AdaptiveDpr, Preload } from "@react-three/drei"
 import * as THREE from "three"
 
 import { TRACKS } from "../data/tracks"
@@ -37,9 +37,18 @@ const ACCENT_COLORS = TRACKS.map(t => new THREE.Color(t.accentColor).multiplySca
 const NEUTRAL       = new THREE.Color("#0A0A0F")
 
 export function Scene({ activeTrackIndex = 0 }: SceneProps) {
-  const { camera, scene, set } = useThree()
+  const { camera, scene, gl, set } = useThree()
   const { getCameraTransform } = useScrollCamera()
   const mouseRef = useRef({ x: 0, y: 0 })
+
+  // Warm-up: pre-compile all shaders and upload textures to prevent scroll jank
+  useEffect(() => {
+    try {
+      gl.compile(scene, camera)
+    } catch {
+      // safe fallback
+    }
+  }, [gl, scene, camera])
 
   const [zone, setZone] = useState(() => scrollStore.getZone())
 
@@ -146,6 +155,7 @@ export function Scene({ activeTrackIndex = 0 }: SceneProps) {
         </>
       )}
 
+      <Preload all />
       <PostFX />
     </>
   )

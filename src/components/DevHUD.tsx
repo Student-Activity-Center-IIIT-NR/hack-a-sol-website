@@ -17,16 +17,16 @@ interface DevHUDProps {
 
 function getSectionLabel(p: number): string {
   if (p < 0.05) return 'Hero'
-  if (p < 0.15) return 'About'
-  if (p < 0.70) {
-    const idx = Math.min(TRACKS.length - 1, Math.max(0, Math.floor(((p - 0.15) / 0.55) * TRACKS.length)))
+  if (p < 0.12) return 'About'
+  if (p < 0.78) {
+    const idx = Math.min(TRACKS.length - 1, Math.max(0, Math.floor(((p - 0.12) / 0.66) * TRACKS.length)))
     return `Tracks — ${TRACKS[idx]?.name ?? '?'}`
   }
-  if (p < 0.76) return 'Why Sponsor Us'
-  if (p < 0.82) return 'Sponsor Tiers'
-  if (p < 0.88) return 'Timeline'
-  if (p < 0.93) return 'FAQ'
-  if (p < 0.97) return 'Contact'
+  if (p < 0.83) return 'Why Sponsor Us'
+  if (p < 0.88) return 'Sponsor Tiers'
+  if (p < 0.92) return 'Timeline'
+  if (p < 0.96) return 'FAQ'
+  if (p < 0.98) return 'Contact'
   return 'Footer'
 }
 

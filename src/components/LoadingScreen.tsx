@@ -2,13 +2,16 @@
  * src/components/LoadingScreen.tsx
  * ─────────────────────────────────────────────────────────────────────────────
  * Marvel-style loading screen shown on initial page load.
- * Fades out once the app is ready (onComplete callback).
  *
- * Visuals: red/black Marvel comic panel flash, logo reveal, progress bar.
+ * Performance requirement:
+ * - Preload and decode every chapter image and all-tracks grid image
+ *   using img.decode() or createImageBitmap so scroll encounters ZERO image decode lag.
+ * - Fades out once the app and assets are ready (onComplete callback).
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { EVENT } from '../config'
+import { TRACKS } from '../data/tracks'
 
 interface LoadingScreenProps {
   onComplete: () => void
@@ -17,10 +20,51 @@ interface LoadingScreenProps {
 export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0)
   const [exiting, setExiting] = useState(false)
+  const [assetsDecoded, setAssetsDecoded] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Preload and decode all track images during loading
   useEffect(() => {
-    // Simulate loading progress
+    let cancelled = false
+
+    async function preloadTrackImages() {
+      const promises = TRACKS.map(async (track) => {
+        const imagePath = track.imagePath ?? `/characters/${track.id}.webp`
+        try {
+          const img = new Image()
+          img.src = imagePath
+          if (typeof img.decode === 'function') {
+            await img.decode()
+          }
+        } catch {
+          // Fallback to png if webp failed or proceed gracefully
+          try {
+            const pngPath = imagePath.replace(/\.webp$/, '.png')
+            const imgPng = new Image()
+            imgPng.src = pngPath
+            if (typeof imgPng.decode === 'function') {
+              await imgPng.decode()
+            }
+          } catch {
+            // Non-blocking: missing image will render premium fallback
+          }
+        }
+      })
+
+      await Promise.allSettled(promises)
+      if (!cancelled) {
+        setAssetsDecoded(true)
+      }
+    }
+
+    preloadTrackImages()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    // Increment loading progress
     intervalRef.current = setInterval(() => {
       setProgress((p) => {
         if (p >= 100) {
@@ -28,18 +72,19 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
           // Small delay before exit animation
           setTimeout(() => {
             setExiting(true)
-            setTimeout(onComplete, 800)
-          }, 300)
+            setTimeout(onComplete, 700)
+          }, 250)
           return 100
         }
-        // Eased increment: fast at first, slow near 100
+        // Eased increment: fast at first, slow near 100 until assets decoded
         const remaining = 100 - p
-        return p + Math.max(0.5, remaining * 0.06)
+        const boost = assetsDecoded ? 0.09 : 0.04
+        return p + Math.max(0.6, remaining * boost)
       })
     }, 40)
 
     return () => clearInterval(intervalRef.current!)
-  }, [onComplete])
+  }, [assetsDecoded, onComplete])
 
   return (
     <div
@@ -81,7 +126,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         {/* Progress bar */}
         <div className="w-64 sm:w-96 mx-auto">
           <div className="flex justify-between text-xs text-white/30 font-body mb-2">
-            <span>INITIALISING SYSTEMS</span>
+            <span>PRELOADING MULTIVERSE ASSETS</span>
             <span>{Math.floor(progress)}%</span>
           </div>
           <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">

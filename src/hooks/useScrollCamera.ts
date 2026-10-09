@@ -17,6 +17,7 @@
 
 import { useMemo, useRef } from 'react'
 import { CatmullRomCurve3, Vector3 } from 'three'
+import { TRACKS } from '../data/tracks'
 
 // ---------------------------------------------------------------------------
 // Legacy world anchor positions — kept for reference only; TrackWorlds no
@@ -108,7 +109,7 @@ export function getTrackLocalT(scrollProgress: number, trackIndex: number): numb
   const TRACKS_START = 0.15
   const TRACKS_END   = 0.70
   const total = TRACKS_END - TRACKS_START
-  const perTrack = total / 5
+  const perTrack = total / TRACKS.length
   const tStart = TRACKS_START + trackIndex * perTrack
   const tEnd   = tStart + perTrack
   return Math.max(0, Math.min(1, (scrollProgress - tStart) / (tEnd - tStart)))

@@ -10,7 +10,14 @@ The following character assets located in `src/assets/hero-characters/` are **TE
 | `image-removebg-preview.png` | Spider-Man (Web Slinger with Shield) | TEMPORARY | `#EF4444` (Crimson Red) |
 | `wp7494946-removebg-preview.png` | Hawkeye (Master Marksman) | TEMPORARY | `#A855F7` (Hawkeye Violet) |
 
-> **Note**: Official track champion art assets for AI/ML (Iron Man), Cybersecurity (Captain America), and Web3 (Black Panther) reside in `/public/characters/`.
+## Track Champion Art Assets
+
+| File | Character / Track | Status | Intended Accent |
+| :--- | :--- | :--- | :--- |
+| `public/characters/policy.png` (or `.webp`) | Daredevil (Policy-thon) | TEMPORARY | `#eab308` (Gold) |
+| `public/characters/open.png` (or `.webp`) | Spider-Man (Open) | TEMPORARY | `#14b8a6` (Teal) |
+
+> **Note**: Official track champion art assets for AI/ML (Iron Man), Cybersecurity (Captain America), and Web3 (Black Panther) reside in `/public/characters/`. Temporary assets for Policy-thon and Open are also in `/public/characters/`.
 
 ## Hero Crowd Wall Background
 

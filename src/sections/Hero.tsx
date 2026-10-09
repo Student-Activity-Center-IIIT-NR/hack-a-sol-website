@@ -238,7 +238,7 @@ export function Hero({ ready = true }: HeroProps) {
         {/* 5. Description & CTAs with generous breathing room */}
         <div ref={descRef} className="mt-3 sm:mt-4 max-w-xl mx-auto w-full">
           <p className="font-body text-xs sm:text-sm md:text-base text-white/90 max-w-lg mx-auto mb-4 sm:mb-5 leading-relaxed font-normal px-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]">
-            The flagship hackathon of {EVENT.hostedBy} returns. 3 specialised tracks. 3 Marvel champions. One multiverse to conquer.
+            The flagship hackathon of {EVENT.hostedBy} returns. 5 specialised tracks. 5 Marvel champions. One multiverse to conquer.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
             <a
