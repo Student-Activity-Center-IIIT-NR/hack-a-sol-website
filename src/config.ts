@@ -11,23 +11,20 @@ import { TRACKS } from './data/tracks'
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
-/** Optional priority filename keywords for Hero character slots */
-export const HERO_PRIORITY: string[] = []
+/** Hero background visual defaults */
+export const HERO_WALL = {
+  scale:     1.02,
+  opacity:   0.38,
+  centerDim: 0.30,
+} as const
 
-/** Maximum allowable total frame overlap fraction */
-export const HERO_MAX_OVERLAP = 0.25
-
-/** Uniform bust crowd layout parameters for Hero characters */
-export const HERO_LAYOUT = {
-  innerHeightVh: 32,
-  outerHeightVh: 28,
-  innerCenterX: 22,
-  outerCenterX: 10,
-  outerTops: [10, 38, 66] as [number, number, number],
-  innerTops: [22, 50, 74] as [number, number, number],
-  innerOpacity: 0.50,
-  outerOpacity: 0.40,
-  maxOverlap: HERO_MAX_OVERLAP,
+/** Hero parallax scroll knobs */
+export const HERO_WALL_SCROLL = {
+  bgScaleEnd:    1.12,
+  bgShiftPercent: 12,
+  textShiftPx:   -70,
+  textFadeEnd:   0.75,
+  mouseParallax: 16,
 } as const
 
 export const EVENT = {

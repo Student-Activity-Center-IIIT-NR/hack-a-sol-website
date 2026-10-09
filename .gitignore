@@ -4,3 +4,4 @@ dist
 .env.local
 # Raw unoptimised assets — optimise with npm run optimize:models then commit /public/models/
 assets-raw/
+

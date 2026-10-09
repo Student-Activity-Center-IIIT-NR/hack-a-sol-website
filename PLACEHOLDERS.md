@@ -11,3 +11,11 @@ The following character assets located in `src/assets/hero-characters/` are **TE
 | `wp7494946-removebg-preview.png` | Hawkeye (Master Marksman) | TEMPORARY | `#A855F7` (Hawkeye Violet) |
 
 > **Note**: Official track champion art assets for AI/ML (Iron Man), Cybersecurity (Captain America), and Web3 (Black Panther) reside in `/public/characters/`.
+
+## Hero Crowd Wall Background
+
+| File | Status | Notes |
+| :--- | :--- | :--- |
+| `src/assets/hero-wall/20356117-removebg-preview.png` | **TEMPORARY** — Replace before public launch | Source crowd PNG (632×395px, upscaled). Baked into 4 WebP layers in `public/hero/` by `scripts/prepare-hero-wall.mjs`. Replace with a high-res (≥ 1600px wide) crowd or team image; re-run `npm run prepare:hero` after replacing. |
+
+> **Warning**: Source is only 632px wide — a ≥ 1600px original will produce significantly sharper results.

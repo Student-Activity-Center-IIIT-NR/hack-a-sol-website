@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/prepare-hero-wall.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "prepare:hero": "node scripts/prepare-hero-wall.mjs",
     "optimize:models": "node scripts/optimize-models.mjs",
     "optimize:images": "node scripts/optimize-images.mjs"
   },
