@@ -1,0 +1,52 @@
+{
+  "aiml": {
+    "sourceHeight": 345,
+    "sourceWidth": 622,
+    "trimmedWidth": 422,
+    "trimmedHeight": 328,
+    "finalWidth": 470,
+    "finalHeight": 348,
+    "aspect": 1.287,
+    "luminanceMultiplier": 1.3
+  },
+  "cybersec": {
+    "sourceHeight": 395,
+    "sourceWidth": 632,
+    "trimmedWidth": 465,
+    "trimmedHeight": 387,
+    "finalWidth": 513,
+    "finalHeight": 407,
+    "aspect": 1.202,
+    "luminanceMultiplier": 1.15
+  },
+  "web3": {
+    "sourceHeight": 375,
+    "sourceWidth": 666,
+    "trimmedWidth": 507,
+    "trimmedHeight": 353,
+    "finalWidth": 555,
+    "finalHeight": 373,
+    "aspect": 1.436,
+    "luminanceMultiplier": 1.3
+  },
+  "policy": {
+    "sourceHeight": 707,
+    "sourceWidth": 353,
+    "trimmedWidth": 337,
+    "trimmedHeight": 597,
+    "finalWidth": 385,
+    "finalHeight": 617,
+    "aspect": 0.564,
+    "luminanceMultiplier": 1.3
+  },
+  "open": {
+    "sourceHeight": 666,
+    "sourceWidth": 375,
+    "trimmedWidth": 360,
+    "trimmedHeight": 509,
+    "finalWidth": 408,
+    "finalHeight": 529,
+    "aspect": 0.707,
+    "luminanceMultiplier": 1.3
+  }
+}

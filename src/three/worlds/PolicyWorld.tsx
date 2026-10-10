@@ -4,15 +4,13 @@
  * policy — "Policy-thon / Daredevil"
  *
  * Requirements:
- * - Instanced golden pillars rising from the floor (staggered).
- * - Floating document sheets drifting with parallax.
- * - Scales-of-justice ring behind the character (x ≈ -1.6 for odd index).
+ * - NO yellow bars or pillars (removed completely).
+ * - Hell's Kitchen dark rooftop skyline silhouette at the bottom.
+ * - Gentle golden/crimson embers drifting upward.
+ * - Elegant scales-of-justice aura ring behind character on the right (CHAR_X = 1.6).
  * - Faint "§" glyph particles.
- * - One gavel-strike shockwave ring (a single expanding ring, NOT a sweep) when chapter enters.
- * - Generic shapes only, no copyrighted logos.
- * - ENTER / HOLD / EXIT phases driven by chapterProgress c, activeIndex, and Lenis velocity.
- * - Under ~1000 particles/triangles, soft glow sprites, capped on-screen size.
- * - Strict: NO radar, radar-sense, sweep, or rotating light-beam effect.
+ * - One gavel-strike shockwave ring on chapter entry (single expanding ring, NO sweep).
+ * - Strict visible={active} and early useFrame return when !active to prevent leakage.
  */
 
 import { useRef, useMemo } from "react"
@@ -27,8 +25,8 @@ interface PolicyWorldProps {
 }
 
 const GOLD      = new THREE.Color("#EAB308")
-const GOLD_DIM  = new THREE.Color("#854D0E")
-const CHAR_X    = -1.6 // Track index 3: text on right, character on left
+const CRIMSON   = new THREE.Color("#DC2626")
+const CHAR_X    = 1.6 // Consistent right side character anchor
 
 function ss(t: number) {
   const c = Math.max(0, Math.min(1, t))
@@ -53,16 +51,14 @@ function createSectionGlyphTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext("2d")
   if (ctx) {
     ctx.clearRect(0, 0, 64, 64)
-    // Soft radial aura behind glyph
     const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 30)
-    grad.addColorStop(0, "rgba(234, 179, 8, 0.35)")
-    grad.addColorStop(0.6, "rgba(202, 138, 4, 0.12)")
+    grad.addColorStop(0, "rgba(234, 179, 8, 0.4)")
+    grad.addColorStop(0.6, "rgba(220, 38, 38, 0.15)")
     grad.addColorStop(1, "rgba(0, 0, 0, 0)")
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, 64, 64)
 
-    // Render "§" glyph
-    ctx.font = "bold 40px 'Cinzel', serif, Georgia"
+    ctx.font = "bold 38px 'Cinzel', serif, Georgia"
     ctx.fillStyle = "rgba(254, 240, 138, 0.95)"
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
@@ -74,74 +70,84 @@ function createSectionGlyphTexture(): THREE.CanvasTexture {
   return tex
 }
 
-// Pillar configuration (14 staggered pillars)
-const PILLAR_COUNT = 14
-function makePillarData() {
-  const data = []
-  for (let i = 0; i < PILLAR_COUNT; i++) {
-    const angle = (i / PILLAR_COUNT) * Math.PI * 2
-    const radius = 1.6 + (i % 3) * 0.9
-    const x = CHAR_X + Math.cos(angle) * radius * 1.3
-    const z = -1.4 + Math.sin(angle) * 1.1
-    const targetHeight = 1.6 + (i % 4) * 0.5
-    data.push({
-      x,
-      z,
-      targetHeight,
-      stagger: (i / PILLAR_COUNT) * 0.14,
-    })
+function createEmberTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas")
+  canvas.width = 64
+  canvas.height = 64
+  const ctx = canvas.getContext("2d")
+  if (ctx) {
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 30)
+    grad.addColorStop(0, "rgba(255, 255, 255, 1.0)")
+    grad.addColorStop(0.3, "rgba(234, 179, 8, 0.8)")
+    grad.addColorStop(0.7, "rgba(220, 38, 38, 0.25)")
+    grad.addColorStop(1, "rgba(0, 0, 0, 0)")
+    ctx.fillStyle = grad
+    ctx.fillRect(0, 0, 64, 64)
   }
-  return data
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.generateMipmaps = false
+  tex.minFilter = THREE.LinearFilter
+  return tex
 }
 
-// Floating documents (10 sheets)
-const DOC_COUNT = 10
-function makeDocumentData() {
-  return Array.from({ length: DOC_COUNT }, (_, i) => ({
-    x: CHAR_X + (Math.random() - 0.5) * 3.6,
-    y: -1.2 + Math.random() * 2.8,
-    z: -1.6 + Math.random() * 2.2,
-    rotX: Math.random() * Math.PI,
-    rotY: Math.random() * Math.PI,
-    rotSpeedX: 0.2 + (i % 3) * 0.15,
-    rotSpeedY: 0.25 + (i % 2) * 0.2,
-    driftSpeedY: 0.18 + Math.random() * 0.25,
-  }))
-}
-
-// Glyph particle points (40 particles)
-const GLYPH_COUNT = 40
-function makeGlyphParticles() {
-  const pos = new Float32Array(GLYPH_COUNT * 3)
-  const speeds = new Float32Array(GLYPH_COUNT)
-  for (let i = 0; i < GLYPH_COUNT; i++) {
-    pos[i * 3 + 0] = CHAR_X + (Math.random() - 0.5) * 4.0
-    pos[i * 3 + 1] = -2.2 + Math.random() * 4.4
-    pos[i * 3 + 2] = -1.8 + Math.random() * 2.4
-    speeds[i] = 0.25 + Math.random() * 0.35
+const EMBER_COUNT = 55
+function makeEmbers() {
+  const pos = new Float32Array(EMBER_COUNT * 3)
+  const speeds = new Float32Array(EMBER_COUNT)
+  for (let i = 0; i < EMBER_COUNT; i++) {
+    pos[i * 3 + 0] = CHAR_X + (Math.random() - 0.5) * 3.5
+    pos[i * 3 + 1] = -2.5 + Math.random() * 5.0
+    pos[i * 3 + 2] = -1.6 + Math.random() * 2.2
+    speeds[i] = 0.35 + Math.random() * 0.45
   }
   return { pos, speeds }
 }
 
+const GLYPH_COUNT = 30
+function makeGlyphParticles() {
+  const pos = new Float32Array(GLYPH_COUNT * 3)
+  const speeds = new Float32Array(GLYPH_COUNT)
+  for (let i = 0; i < GLYPH_COUNT; i++) {
+    pos[i * 3 + 0] = CHAR_X + (Math.random() - 0.5) * 3.0
+    pos[i * 3 + 1] = -2.0 + Math.random() * 4.2
+    pos[i * 3 + 2] = -1.4 + Math.random() * 1.8
+    speeds[i] = 0.2 + Math.random() * 0.25
+  }
+  return { pos, speeds }
+}
+
+// Hell's Kitchen skyline silhouette buildings
+const ROOFTOP_COUNT = 10
+function makeRooftops() {
+  return Array.from({ length: ROOFTOP_COUNT }, (_, i) => ({
+    x: -3.5 + i * 0.8,
+    y: -2.4 + (i % 3) * 0.2,
+    z: -2.5,
+    width: 0.65 + (i % 2) * 0.2,
+    height: 1.1 + (i % 4) * 0.3,
+  }))
+}
+
 export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: PolicyWorldProps) {
   const groupRef         = useRef<THREE.Group>(null)
-  const pillarsRef       = useRef<THREE.InstancedMesh>(null)
-  const docsGroupRef     = useRef<THREE.Group>(null)
+  const embersRef        = useRef<THREE.Points>(null)
   const glyphsRef        = useRef<THREE.Points>(null)
   const scalesRingRef    = useRef<THREE.Group>(null)
   const shockwaveRef     = useRef<THREE.Mesh>(null)
   const timeRef          = useRef(0)
 
+  const emberTex     = useMemo(() => createEmberTexture(), [])
   const glyphTex     = useMemo(() => createSectionGlyphTexture(), [])
-  const pillarData   = useMemo(() => makePillarData(), [])
-  const docData      = useMemo(() => makeDocumentData(), [])
+  const emberData    = useMemo(() => makeEmbers(), [])
   const glyphData    = useMemo(() => makeGlyphParticles(), [])
-  const dummy        = useMemo(() => new THREE.Object3D(), [])
+  const rooftops     = useMemo(() => makeRooftops(), [])
 
   const c = _c ?? scrollStore.getChapterProgress()
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (!active) return
+
     timeRef.current += delta
     const t = timeRef.current
     const liveC = scrollStore.getChapterProgress()
@@ -150,88 +156,56 @@ export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: Polic
     const velBoost = Math.min(1.5, Math.abs(liveVel || _v || 0) * 2.5)
 
     if (groupRef.current) {
-      const ty = active ? state.pointer.x * 0.22 : 0
-      const tx = active ? -state.pointer.y * 0.14 : 0
+      const ty = state.pointer.x * 0.22
+      const tx = -state.pointer.y * 0.14
       groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, ty, delta * 2)
       groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, tx, delta * 2)
       const dollyZ = liveC < 0.22 ? -2.5 * (1 - enterT(liveC)) : 0
       groupRef.current.position.z = THREE.MathUtils.lerp(groupRef.current.position.z, dollyZ, delta * 3)
     }
 
-    // 1. Instanced golden pillars rising from the floor (staggered during ENTER)
-    if (pillarsRef.current) {
-      pillarData.forEach((p, i) => {
-        const enterFrac = Math.max(0, Math.min(1, (liveC - p.stagger) / 0.18))
-        const riseProgress = ss(enterFrac)
-        // Pillar rises from y = -4.0 up to base floor y = -1.8
-        const floorY = -2.2
-        const heightScale = riseProgress * (1 - exitT(liveC))
-        const currentY = floorY + (p.targetHeight * heightScale) / 2
-        dummy.position.set(p.x, currentY, p.z)
-        dummy.scale.set(1, Math.max(0.001, heightScale), 1)
-        dummy.rotation.set(0, (i * Math.PI) / 4, 0)
-        dummy.updateMatrix()
-        pillarsRef.current!.setMatrixAt(i, dummy.matrix)
-      })
-      pillarsRef.current.instanceMatrix.needsUpdate = true
-
-      const mat = pillarsRef.current.material as THREE.MeshStandardMaterial
-      if (mat) {
-        mat.opacity = 0.72 * liveA
+    // Embers rising
+    if (embersRef.current?.geometry?.attributes?.position) {
+      const pos = embersRef.current.geometry.attributes.position.array as Float32Array
+      for (let i = 0; i < EMBER_COUNT; i++) {
+        pos[i * 3 + 1] += emberData.speeds[i] * (1 + velBoost) * delta
+        pos[i * 3 + 0] += Math.sin(t * 1.5 + i) * 0.003
+        if (pos[i * 3 + 1] > 2.5) {
+          pos[i * 3 + 1] = -2.5
+        }
       }
+      embersRef.current.geometry.attributes.position.needsUpdate = true
+      const eMat = embersRef.current.material as THREE.PointsMaterial
+      if (eMat) eMat.opacity = 0.7 * liveA
     }
 
-    // 2. Floating document sheets drifting with parallax
-    if (docsGroupRef.current) {
-      const children = docsGroupRef.current.children
-      docData.forEach((doc, i) => {
-        const mesh = children[i] as THREE.Mesh | undefined
-        if (!mesh) return
-        doc.y += doc.driftSpeedY * (1 + velBoost) * delta
-        if (doc.y > 2.2) doc.y = -1.8
-        mesh.position.set(doc.x, doc.y, doc.z)
-        mesh.rotation.set(
-          doc.rotX + t * doc.rotSpeedX,
-          doc.rotY + t * doc.rotSpeedY,
-          Math.sin(t * 0.8 + i) * 0.15
-        )
-      })
-    }
-
-    // 3. Scales of justice ring behind character gently balances
+    // Scales of justice ring gently rocks
     if (scalesRingRef.current) {
-      scalesRingRef.current.rotation.z = Math.sin(t * 1.4) * 0.05
-      scalesRingRef.current.scale.setScalar(0.85 + 0.15 * ss(norm(liveC, 0.05, 0.22)))
+      scalesRingRef.current.rotation.z = Math.sin(t * 1.3) * 0.05
     }
 
-    // 4. "§" glyph particles drifting upward
+    // Glyphs drifting
     if (glyphsRef.current?.geometry?.attributes?.position) {
-      const positions = glyphsRef.current.geometry.attributes.position.array as Float32Array
+      const pos = glyphsRef.current.geometry.attributes.position.array as Float32Array
       for (let i = 0; i < GLYPH_COUNT; i++) {
-        positions[i * 3 + 1] += glyphData.speeds[i] * (1 + velBoost * 1.5) * delta
-        if (positions[i * 3 + 1] > 2.4) {
-          positions[i * 3 + 1] = -2.2
+        pos[i * 3 + 1] += glyphData.speeds[i] * delta
+        if (pos[i * 3 + 1] > 2.2) {
+          pos[i * 3 + 1] = -2.0
         }
       }
       glyphsRef.current.geometry.attributes.position.needsUpdate = true
-
       const gMat = glyphsRef.current.material as THREE.PointsMaterial
-      if (gMat) {
-        gMat.opacity = 0.55 * liveA
-      }
+      if (gMat) gMat.opacity = 0.45 * liveA
     }
 
-    // 5. One gavel-strike shockwave ring on chapter enter (single expanding ring, NO sweep)
+    // Gavel shockwave ring
     if (shockwaveRef.current) {
-      if (liveC < 0.22 && active) {
+      if (liveC < 0.22) {
         const enterNorm = liveC / 0.22
-        const ringScale = 0.2 + enterNorm * 3.4
-        const ringAlpha = (1 - enterNorm) * 0.85 * liveA
+        const ringScale = 0.3 + enterNorm * 3.2
         shockwaveRef.current.scale.set(ringScale, ringScale, 1)
         const mat = shockwaveRef.current.material as THREE.MeshBasicMaterial
-        if (mat) {
-          mat.opacity = ringAlpha
-        }
+        if (mat) mat.opacity = (1 - enterNorm) * 0.75 * liveA
       } else {
         const mat = shockwaveRef.current.material as THREE.MeshBasicMaterial
         if (mat) mat.opacity = 0
@@ -240,74 +214,61 @@ export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: Polic
   })
 
   return (
-    <group ref={groupRef} visible={active || a > 0.001}>
-      {/* 1. Instanced Golden Pillars */}
-      <instancedMesh ref={pillarsRef} args={[undefined, undefined, PILLAR_COUNT]}>
-        <cylinderGeometry args={[0.14, 0.16, 2.4, 8]} />
-        <meshStandardMaterial
-          color={GOLD_DIM}
-          emissive={GOLD}
-          emissiveIntensity={0.35}
-          metalness={0.8}
-          roughness={0.25}
-          transparent
-          opacity={0.72 * a}
-        />
-      </instancedMesh>
-
-      {/* 2. Floating Document Sheets */}
-      <group ref={docsGroupRef}>
-        {docData.map((_, i) => (
-          <mesh key={i}>
-            <planeGeometry args={[0.32, 0.44]} />
-            <meshBasicMaterial
-              color="#FEF08A"
-              wireframe={i % 2 === 1}
-              transparent
-              opacity={0.32 * a}
-              side={THREE.DoubleSide}
-              depthWrite={false}
-              toneMapped={false}
-            />
+    <group ref={groupRef} visible={active}>
+      {/* 1. Dark Hell's Kitchen Rooftops Silhouette */}
+      <group position={[0, 0, 0]}>
+        {rooftops.map((r, i) => (
+          <mesh key={i} position={[r.x, r.y, r.z]}>
+            <planeGeometry args={[r.width, r.height]} />
+            <meshBasicMaterial color="#0A0808" transparent opacity={0.6 * a} depthWrite={false} />
           </mesh>
         ))}
       </group>
 
-      {/* 3. Scales of Justice Ring behind character */}
-      <group ref={scalesRingRef} position={[CHAR_X, 0.2, -0.9]}>
-        {/* Outer glowing halo ring */}
+      {/* 2. Scales of Justice Aura Ring behind Daredevil */}
+      <group ref={scalesRingRef} position={[CHAR_X, 0.0, -0.9]}>
         <mesh>
-          <torusGeometry args={[1.5, 0.022, 6, 48]} />
+          <torusGeometry args={[1.5, 0.02, 6, 48]} />
           <meshStandardMaterial
-            color={GOLD_DIM}
+            color="#78350F"
             emissive={GOLD}
-            emissiveIntensity={0.55}
-            metalness={0.8}
-            roughness={0.2}
+            emissiveIntensity={0.5}
+            metalness={0.7}
+            roughness={0.3}
             transparent
-            opacity={0.75 * a}
+            opacity={0.65 * a}
           />
         </mesh>
-        {/* Horizontal balance beam */}
         <mesh position={[0, 0, 0.02]}>
-          <boxGeometry args={[1.7, 0.03, 0.03]} />
-          <meshBasicMaterial color={GOLD} transparent opacity={0.65 * a} />
+          <boxGeometry args={[1.6, 0.025, 0.025]} />
+          <meshBasicMaterial color={GOLD} transparent opacity={0.6 * a} />
         </mesh>
-        {/* Central fulcrum */}
-        <mesh position={[0, 0.15, 0.02]}>
-          <coneGeometry args={[0.12, 0.3, 4]} />
-          <meshBasicMaterial color={GOLD} wireframe transparent opacity={0.6 * a} />
+        <mesh position={[-0.75, -0.4, 0.02]}>
+          <torusGeometry args={[0.22, 0.012, 4, 16]} />
+          <meshBasicMaterial color={GOLD} transparent opacity={0.5 * a} />
         </mesh>
-        {/* Left and right suspended scale pan rings */}
-        <mesh position={[-0.8, -0.45, 0.02]}>
-          <torusGeometry args={[0.26, 0.015, 4, 16]} />
-          <meshBasicMaterial color={GOLD} transparent opacity={0.55 * a} />
-        </mesh>
-        <mesh position={[0.8, -0.45, 0.02]}>
-          <torusGeometry args={[0.26, 0.015, 4, 16]} />
-          <meshBasicMaterial color={GOLD} transparent opacity={0.55 * a} />
+        <mesh position={[0.75, -0.4, 0.02]}>
+          <torusGeometry args={[0.22, 0.012, 4, 16]} />
+          <meshBasicMaterial color={GOLD} transparent opacity={0.5 * a} />
         </mesh>
       </group>
+
+      {/* 3. Golden / Crimson Embers drifting */}
+      <points ref={embersRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[emberData.pos, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          map={emberTex}
+          size={0.13}
+          sizeAttenuation
+          transparent
+          opacity={0.7 * a}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </points>
 
       {/* 4. "§" Glyph Particles */}
       <points ref={glyphsRef}>
@@ -316,17 +277,17 @@ export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: Polic
         </bufferGeometry>
         <pointsMaterial
           map={glyphTex}
-          size={0.22}
+          size={0.20}
           sizeAttenuation
           transparent
-          opacity={0.55 * a}
+          opacity={0.45 * a}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           toneMapped={false}
         />
       </points>
 
-      {/* 5. Gavel-Strike Shockwave Ring (Single expanding ring, NO sweep) */}
+      {/* 5. Gavel Strike Expanding Shockwave Ring (Single ring, NO sweep) */}
       <mesh ref={shockwaveRef} position={[CHAR_X, -0.7, -0.6]} rotation={[-Math.PI / 2.3, 0, 0]}>
         <ringGeometry args={[0.94, 1.0, 48]} />
         <meshBasicMaterial
@@ -340,9 +301,8 @@ export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: Polic
         />
       </mesh>
 
-      {/* Golden ambient glow point lights */}
-      <pointLight color={GOLD} intensity={a * 1.2} distance={11} decay={2} position={[CHAR_X, 0, 0]} />
-      <pointLight color="#CA8A04" intensity={a * 0.7} distance={8} decay={2} position={[CHAR_X + 1.2, 1.2, -0.5]} />
+      <pointLight color={GOLD}    intensity={a * 1.1} distance={11} decay={2} position={[CHAR_X, 0, 0]} />
+      <pointLight color={CRIMSON} intensity={a * 0.7} distance={9}  decay={2} position={[CHAR_X - 1.2, 1.2, 0]} />
     </group>
   )
 }

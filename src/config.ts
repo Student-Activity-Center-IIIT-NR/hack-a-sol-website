@@ -11,6 +11,48 @@ import { TRACKS } from './data/tracks'
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
+/**
+ * Shared Track Chapter layout numbers measured from reference chapters (aiml & web3).
+ * Single source of truth for all 5 track chapters.
+ */
+export const TRACK_LAYOUT = {
+  // Art box sizing & positioning
+  artHeightVh: 92, // ART_HEIGHT_VH = 92vh
+  maxArtWidthVw: 46, // clamped to at most 46vw
+  artBottomOffsetVh: -6, // bottom offset -6vh
+  artHalfWidth: '55%',
+
+  // Text column
+  textColumnWidth: '48%',
+  textColumnPaddingL: '5rem', // md:pl-20
+  textColumnPaddingR: '2rem', // md:pr-8
+  textColumnMaxWidth: '28rem', // max-w-md
+
+  // Glow disk & single signature ring
+  glowDiskSizeVw: 36,
+  glowDiskOpacity: 0.35,
+  signatureRingSizeVw: 36,
+  signatureRingBorderWidth: '2px',
+
+  // Big outlined character name watermark
+  watermarkFontSize: 'clamp(3rem, 9vw, 7.5rem)',
+  watermarkStrokeOpacity: '25',
+  watermarkLetterSpacing: '0.12em',
+
+  // Typography tokens
+  labelChipClass: 'font-body text-xs tracking-[0.5em] uppercase mb-4',
+  characterSubtitleClass: 'font-heading text-xl tracking-[0.4em] text-white/30 uppercase mb-2',
+  titleClass: 'font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-4',
+  taglineClass: 'font-body text-xl mb-6',
+  descriptionClass: 'font-body text-white/60 text-base leading-relaxed max-w-md mb-8',
+
+  // Left-rail position
+  leftRailPosition: 'absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20',
+
+  // Chapter badge position
+  chapterBadgeBottom: '5rem', // bottom-20
+} as const
+
 /** Hero background visual defaults */
 export const HERO_WALL = {
   scale:     1.02,

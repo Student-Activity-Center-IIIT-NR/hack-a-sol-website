@@ -140,6 +140,8 @@ export function IronManWorld({ chapterProgress: _c, active, velocity: _v }: Iron
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (!active) return
+
     const liveC = scrollStore.getChapterProgress()
     const liveA = globalA(liveC)
     const liveVel = scrollStore.getVelocity()
@@ -217,9 +219,9 @@ export function IronManWorld({ chapterProgress: _c, active, velocity: _v }: Iron
   })
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} visible={active}>
       {/* Concentric Arc Reactor Rings */}
-      <group position={[0.8, 0, -0.9]}>
+      <group position={[1.6, 0, -0.9]}>
         {RINGS.map((def, i) => (
           <mesh key={i} ref={ringRefs[i]} rotation={def.tilt}>
             <torusGeometry args={[def.r, def.tube, 6, 80]} />

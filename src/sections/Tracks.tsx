@@ -24,9 +24,10 @@ import React, { useEffect, useRef, useMemo, useState, useCallback } from "react"
 import { TRACKS, type Track } from "../data/tracks"
 import { CharacterArt } from "../components/CharacterArt"
 import { sound } from "../utils/audio"
-import { TRACK_SCROLL_VH } from "../config"
+import { TRACK_SCROLL_VH, TRACK_LAYOUT } from "../config"
 import { scrollStore } from "../utils/scrollStore"
 import { perfStore } from "../utils/perfStore"
+import { ArtTuner } from "../components/ArtTuner"
 
 function ss(t: number): number {
   const c = Math.max(0, Math.min(1, t))
@@ -67,6 +68,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
   characterImagesEnabled,
   onOpenGrid,
 }: ChapterSlideProps) {
+  // Unified layout across all chapters (mirrored on alternating sides)
   const artOnRight = index % 2 === 0
   const textOnLeft = index % 2 === 0
   const ac = track.accentColor
@@ -89,27 +91,29 @@ const ChapterSlide = React.memo(function ChapterSlide({
           "absolute inset-y-0 hidden md:flex flex-col items-center justify-center pointer-events-none " +
           (artOnRight ? "right-0" : "left-0")
         }
-        style={{ width: "55%", zIndex: 5 }}
+        style={{ width: TRACK_LAYOUT.artHalfWidth, zIndex: 5 }}
       >
         {/* Glow disk */}
         <div
           data-glow-disk="true"
-          className="absolute w-[36vw] h-[36vw] rounded-full pointer-events-none"
+          className="absolute rounded-full pointer-events-none"
           style={{
+            width: `${TRACK_LAYOUT.glowDiskSizeVw}vw`,
+            height: `${TRACK_LAYOUT.glowDiskSizeVw}vw`,
             background: `radial-gradient(circle, ${ac}35 0%, ${ac}15 45%, transparent 72%)`,
             transform: "scale(var(--glow-scale, 1))",
             transition: "background 0.5s ease",
           }}
         />
 
-        {/* Pulse ring on chapter enter */}
+        {/* The single signature ring */}
         <div
           data-pulse-ring="true"
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: "36vw",
-            height: "36vw",
-            border: `2px solid ${ac}`,
+            width: `${TRACK_LAYOUT.signatureRingSizeVw}vw`,
+            height: `${TRACK_LAYOUT.signatureRingSizeVw}vw`,
+            border: `${TRACK_LAYOUT.signatureRingBorderWidth} solid ${ac}`,
             opacity: "var(--pulse-op, 0)",
             transform: "scale(var(--pulse-scale, 1))",
           }}
@@ -120,10 +124,10 @@ const ChapterSlide = React.memo(function ChapterSlide({
           aria-hidden="true"
           className="absolute font-heading select-none text-center leading-none pointer-events-none"
           style={{
-            fontSize: "clamp(3rem, 9vw, 7.5rem)",
+            fontSize: TRACK_LAYOUT.watermarkFontSize,
             color: "transparent",
-            WebkitTextStroke: `1px ${ac}25`,
-            letterSpacing: "0.12em",
+            WebkitTextStroke: `1px ${ac}${TRACK_LAYOUT.watermarkStrokeOpacity}`,
+            letterSpacing: TRACK_LAYOUT.watermarkLetterSpacing,
             transform: "translateX(var(--name-x, 0px))",
             opacity: "var(--name-op, 1)",
             userSelect: "none",
@@ -139,6 +143,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
             trackIndex={index}
             active={isActive}
             debugMode={debugMode}
+            artOnRight={artOnRight}
           />
         )}
 
@@ -211,7 +216,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
           className="relative z-10 w-full px-6 md:px-0 mt-[45vh] md:mt-0"
         >
           <p
-            className="font-body text-xs tracking-[0.5em] uppercase mb-4"
+            className={TRACK_LAYOUT.labelChipClass}
             style={{
               color: ac,
               opacity: "var(--line-op-0, 1)",
@@ -221,7 +226,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
             {track.icon} Track {String(index + 1).padStart(2, "0")}
           </p>
           <p
-            className="font-heading text-xl tracking-[0.4em] text-white/30 uppercase mb-2"
+            className={TRACK_LAYOUT.characterSubtitleClass}
             style={{
               opacity: "var(--line-op-1, 1)",
               transform: "translateY(var(--line-y-1, 0px))",
@@ -230,7 +235,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
             {track.character}
           </p>
           <h2
-            className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-4"
+            className={TRACK_LAYOUT.titleClass}
             style={{
               opacity: "var(--line-op-2, 1)",
               transform: "translateY(var(--line-y-2, 0px)) skewX(var(--heading-skew, 0deg))",
@@ -240,7 +245,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
             {track.name}
           </h2>
           <p
-            className="font-body text-xl mb-6"
+            className={TRACK_LAYOUT.taglineClass}
             style={{
               color: ac,
               opacity: "var(--line-op-3, 1)",
@@ -250,7 +255,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
             {track.tagline}
           </p>
           <p
-            className="font-body text-white/60 text-base leading-relaxed max-w-md mb-8"
+            className={TRACK_LAYOUT.descriptionClass}
             style={{
               opacity: "var(--line-op-4, 1)",
               transform: "translateY(var(--line-y-4, 0px))",
@@ -520,7 +525,7 @@ export const Tracks = React.memo(function Tracks({
         />
 
         {/* Left Rail Dots (Derived from all tracks) */}
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-20">
+        <div className={TRACK_LAYOUT.leftRailPosition}>
           {TRACKS.map((track, i) => (
             <button
               key={track.id}
@@ -678,6 +683,8 @@ export const Tracks = React.memo(function Tracks({
             style={{ backdropFilter: "blur(8px)" }}
           />
         )}
+        {/* Character Art Tuner (?art=tune) */}
+        <ArtTuner />
       </div>
     </section>
   )

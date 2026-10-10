@@ -65,10 +65,10 @@ function createTealGlowTexture(): THREE.CanvasTexture {
   return tex
 }
 
-// ── Web Geometry Definitions ──
+// ── Web Geometry Definitions (capped <= 60% of art box size) ──
 const SPOKE_COUNT = 8
 const RING_COUNT  = 5
-const MAX_RADIUS  = 2.2
+const MAX_RADIUS  = 1.35
 
 // Total lines in web:
 // 8 radial spokes (8 lines) + 5 rings of 8 segments each (40 lines) = 48 lines = 96 vertices = 288 floats
@@ -137,6 +137,8 @@ export function OpenWorld({ chapterProgress: _c, active, velocity: _v }: OpenWor
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (!active) return
+
     timeRef.current += delta
     const t = timeRef.current
     const liveC = scrollStore.getChapterProgress()
@@ -278,8 +280,8 @@ export function OpenWorld({ chapterProgress: _c, active, velocity: _v }: OpenWor
   })
 
   return (
-    <group ref={groupRef} visible={active || a > 0.001}>
-      {/* 1. Spider Web (Progressive Radial & Concentric Lines) */}
+    <group ref={groupRef} visible={active}>
+      {/* 1. Spider Web (Capped <= 35% Opacity & <= 60% of Art Box) */}
       <lineSegments ref={webLinesRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[webLineBuffer, 3]} />
@@ -287,23 +289,23 @@ export function OpenWorld({ chapterProgress: _c, active, velocity: _v }: OpenWor
         <lineBasicMaterial
           color={TEAL_BRIGHT}
           transparent
-          opacity={0.58 * a}
+          opacity={0.32 * a}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </lineSegments>
 
-      {/* 2. Glowing Nodes at Web Intersections */}
+      {/* 2. Glowing Nodes at Web Intersections (Subtle) */}
       <points ref={webNodesRef}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[nodePosBuffer, 3]} />
         </bufferGeometry>
         <pointsMaterial
           map={softTex}
-          size={0.13}
+          size={0.10}
           sizeAttenuation
           transparent
-          opacity={0.8 * a}
+          opacity={0.35 * a}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           toneMapped={false}

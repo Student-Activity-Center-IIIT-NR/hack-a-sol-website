@@ -42,32 +42,42 @@ export function TrackWorlds({
 
   return (
     <group position={[0, 0, 0]}>
-      {/* All five environments created once and kept mounted permanently */}
-      <IronManWorld
-        active={activeTrackIndex === 0}
-        chapterProgress={activeTrackIndex === 0 ? chapterProgress : 0}
-        velocity={velocity}
-      />
-      <CapWorld
-        active={activeTrackIndex === 1}
-        chapterProgress={activeTrackIndex === 1 ? chapterProgress : 0}
-        velocity={velocity}
-      />
-      <BlackPantherWorld
-        active={activeTrackIndex === 2}
-        chapterProgress={activeTrackIndex === 2 ? chapterProgress : 0}
-        velocity={velocity}
-      />
-      <PolicyWorld
-        active={activeTrackIndex === 3}
-        chapterProgress={activeTrackIndex === 3 ? chapterProgress : 0}
-        velocity={velocity}
-      />
-      <OpenWorld
-        active={activeTrackIndex === 4}
-        chapterProgress={activeTrackIndex === 4 ? chapterProgress : 0}
-        velocity={velocity}
-      />
+      {/* All five environments created once and kept mounted permanently with strict visibility isolation */}
+      <group visible={activeTrackIndex === 0}>
+        <IronManWorld
+          active={activeTrackIndex === 0}
+          chapterProgress={activeTrackIndex === 0 ? chapterProgress : 0}
+          velocity={velocity}
+        />
+      </group>
+      <group visible={activeTrackIndex === 1}>
+        <CapWorld
+          active={activeTrackIndex === 1}
+          chapterProgress={activeTrackIndex === 1 ? chapterProgress : 0}
+          velocity={velocity}
+        />
+      </group>
+      <group visible={activeTrackIndex === 2}>
+        <BlackPantherWorld
+          active={activeTrackIndex === 2}
+          chapterProgress={activeTrackIndex === 2 ? chapterProgress : 0}
+          velocity={velocity}
+        />
+      </group>
+      <group visible={activeTrackIndex === 3}>
+        <PolicyWorld
+          active={activeTrackIndex === 3}
+          chapterProgress={activeTrackIndex === 3 ? chapterProgress : 0}
+          velocity={velocity}
+        />
+      </group>
+      <group visible={activeTrackIndex === 4}>
+        <OpenWorld
+          active={activeTrackIndex === 4}
+          chapterProgress={activeTrackIndex === 4 ? chapterProgress : 0}
+          velocity={velocity}
+        />
+      </group>
     </group>
   )
 }

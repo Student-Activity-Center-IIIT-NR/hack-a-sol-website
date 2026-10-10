@@ -82,6 +82,12 @@ export interface Track {
    * then copy the printed JSON here.
    */
   modelTransform?: ModelTransform
+  /** Optional per-track character art height override in vh */
+  artHeightVh?: number
+  /** Optional per-track character art horizontal offset in px */
+  artX?: number
+  /** Optional per-track character art vertical offset in px */
+  artY?: number
 }
 
 export const TRACKS: Track[] = [
@@ -136,7 +142,7 @@ export const TRACKS: Track[] = [
     character: 'Daredevil',
     tagline: 'Code Without Fear. Policy With Impact.',
     description:
-      'Create technology-driven solutions to address and influence public policies.',
+      'Create technology-driven solutions to address and influence public policies. Think like a fearless advocate and code for civic justice.',
     accentColor: '#eab308',
     modelPath: '/models/policy.glb',
     imagePath: '/characters/policy.webp',
@@ -144,6 +150,9 @@ export const TRACKS: Track[] = [
     icon: '⚖️',
     visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
+    artHeightVh: 87,
+    artX: -8,
+    artY: 80
   },
   {
     id: 'open',
@@ -151,7 +160,7 @@ export const TRACKS: Track[] = [
     character: 'Spider-Man',
     tagline: 'Swing Big. Build Anything.',
     description:
-      'Bring your most creative and original ideas to life in this free-form track.',
+      'Bring your most creative and original ideas to life in this free-form track. Swing beyond boundaries and build the unexpected.',
     accentColor: '#14b8a6',
     modelPath: '/models/open.glb',
     imagePath: '/characters/open.webp',
@@ -159,5 +168,17 @@ export const TRACKS: Track[] = [
     icon: '🕸️',
     visual: 'image',
     modelTransform: { yawOffset: Math.PI, scale: 1.0 },
+    artHeightVh: 71,
+    artX: 18,
+    artY: -41,
   },
 ]
+
+// Dev check: warn if any description is over 160 characters
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  TRACKS.forEach((t) => {
+    if (t.description.length > 160) {
+      console.warn(`[tracks.ts] WARNING: Track "${t.id}" description is over 160 chars (${t.description.length}): "${t.description}"`)
+    }
+  })
+}

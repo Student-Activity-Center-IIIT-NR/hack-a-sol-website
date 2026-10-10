@@ -95,6 +95,8 @@ export function BlackPantherWorld({ chapterProgress: _c, active, velocity: _v }:
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (!active) return
+
     timeRef.current += delta
     const t = timeRef.current
     const liveC = scrollStore.getChapterProgress()
