@@ -22,7 +22,7 @@ import * as THREE from "three"
 import { useLenis }           from "./hooks/useLenis"
 import { useScrollProgress }  from "./hooks/useScrollProgress"
 import { useTrackSection }    from "./hooks/useTrackSection"
-import { TRACK_SCROLL_VH }    from "./config"
+import { TRACK_SCROLL_VH, HERO_VARIANT } from "./config"
 
 import { Scene }          from "./three/Scene"
 import { Navbar }         from "./components/Navbar"
@@ -33,7 +33,8 @@ import { FloatingHUD }    from "./components/FloatingHUD"
 import { MarvelOverlay }  from "./components/MarvelOverlay"
 import { PerfPanel }      from "./components/PerfPanel"
 
-import { Hero }          from "./sections/Hero"
+import { Hero }             from "./sections/Hero"
+import { HeroMultiverse }   from "./sections/HeroMultiverse"
 import { About }         from "./sections/About"
 import { Tracks }        from "./sections/Tracks"
 import { WhySponsor }    from "./sections/WhySponsor"
@@ -133,7 +134,9 @@ export default function App() {
       {/* -- Scrollable HTML content --------------------------------------- */}
       <div id="scroll-content">
         <Navbar />
-        <Hero ready={!loading}/>
+        {HERO_VARIANT === 'multiverse'
+          ? <HeroMultiverse ready={!loading} />
+          : <Hero ready={!loading} />}
         <About />
         <Tracks
           activeIndex={activeIndex}

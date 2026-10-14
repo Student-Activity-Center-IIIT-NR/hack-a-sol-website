@@ -8,6 +8,21 @@
 
 import { TRACKS } from './data/tracks'
 
+/**
+ * HERO_VARIANT selects which hero section to render at the top of the page.
+ *
+ *   "multiverse" — Cinematic breach hero: fullscreen gateway shader,
+ *                  HUD orbit tags, left-aligned "Enter the Multiverse" text.
+ *                  (ported from commit d44a2a4; no extra HUD labels)
+ *
+ *   "wall"       — Marvel crowd-wall wallpaper hero with embers, HACK-A-SOL
+ *                  headline, and comic-style MARVEL slab.
+ *
+ * To switch back to the wall hero, change "multiverse" → "wall" here.
+ */
+export type HeroVariant = 'multiverse' | 'wall'
+export const HERO_VARIANT: HeroVariant = 'multiverse'
+
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
