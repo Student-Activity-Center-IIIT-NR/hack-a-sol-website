@@ -23,14 +23,6 @@ import { TRACKS } from './data/tracks'
 export type HeroVariant = 'multiverse' | 'wall'
 export const HERO_VARIANT: HeroVariant = 'multiverse'
 
-/**
- * Controls whether the rift hero shows silhouettes or just the rift.
- * "rift+silhouettes" — show both (default, requires prepared assets in public/hero/)
- * "rift"            — rift only (fallback when silhouette assets are not ready)
- */
-export type HeroVisual = 'rift+silhouettes' | 'rift'
-export const HERO_VISUAL: HeroVisual = 'rift+silhouettes'
-
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 
@@ -90,53 +82,6 @@ export const HERO_WALL_SCROLL = {
   textShiftPx:   -70,
   textFadeEnd:   0.75,
   mouseParallax: 16,
-} as const
-
-/**
- * Rift hero copy — all text shown in the hero text column.
- * Edit here to update wording without touching JSX.
- */
-export const HERO_COPY = {
-  eyebrow:  'IIIT NAYA RAIPUR PRESENTS',
-  kicker:   'HACK-A-SOL 5.0',
-  /** "5.0" portion of the kicker that renders in accent red */
-  kickerAccent: '5.0',
-  headlineTop: 'ENTER THE',
-  headlineMain: 'MULTIVERSE',
-  tagline: 'Assemble your team. Choose your universe. Build what comes next.',
-  primaryCTA: 'COMING SOON  →',
-  secondaryCTA: 'MEET THE CHAMPIONS',
-  /** href for the secondary CTA (scrolls to Tracks section) */
-  secondaryCTAHref: '#tracks',
-  /** Bottom-left status text */
-  bottomLeft: 'NOVEMBER 2026 (TBA)',
-  /** Bottom-right text at rest */
-  bottomRight: 'EARTH-616',
-  /** Bottom-right text when scroll progress > 0.5 */
-  bottomRightScroll: 'ENTERING THE MULTIVERSE',
-} as const
-
-/**
- * Rift hero visual tuning — override by pasting output from ?debug=1&hero=tune
- * "Copy values" button (shown in Leva panel when both params are present).
- */
-export const HERO_RIFT = {
-  /** x position of rift center as a vw fraction (e.g. 0.70 = 70vw) */
-  riftX: 0.70,
-  /** Final rift half-width in vw after intro animation */
-  riftWidthVw: 14,
-  /** Glow radius in px (layered-gradient simulation, no blur filter) */
-  riftGlowPx: 16,
-  /** Silhouette row height as vh fraction (e.g. 0.44 = 44vh) */
-  silhouetteHeightVh: 0.44,
-  /** Silhouette row bottom anchor offset from hero bottom (px) */
-  silhouetteBottomPx: 0,
-  /** Gap between silhouettes in px */
-  silhouetteGapPx: 24,
-  /** Text column width as vw fraction */
-  textColumnWidthVw: 0.44,
-  /** Headline clamp max size in vw */
-  headlineMaxVw: 7.2,
 } as const
 
 export const EVENT = {
