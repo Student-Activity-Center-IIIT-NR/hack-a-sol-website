@@ -23,6 +23,44 @@ import { TRACKS } from './data/tracks'
 export type HeroVariant = 'multiverse' | 'wall'
 export const HERO_VARIANT: HeroVariant = 'multiverse'
 
+/**
+ * HERO_VISUAL selects which 3D visual to render in the multiverse hero.
+ * "portal"  — the arc-reactor dimensional gateway (default, always restored).
+ * "rift"    — experimental; not currently maintained.
+ * "silhouettes" — experimental; not currently maintained.
+ */
+export type HeroVisual = 'portal' | 'rift' | 'silhouettes'
+export const HERO_VISUAL: HeroVisual = 'portal'
+
+/**
+ * All copy for the multiverse hero, in one place.
+ * Update here to change any visible text without touching JSX.
+ */
+export const HERO_COPY = {
+  /** Mono eyebrow above the event name */
+  eyebrow: 'IIIT NAYA RAIPUR PRESENTS',
+  /** Large event name — "5.0" gets the red accent via JSX */
+  kickerBase: 'HACK-A-SOL',
+  kickerEdition: '5.0',
+  /** Two-line headline rendered as <h1> */
+  headlineLine1: 'ENTER THE',
+  headlineLine2: 'MULTIVERSE',
+  /** Single-line supporting tagline */
+  tagline: 'Assemble your team. Choose your universe. Build what comes next.',
+  /** Primary CTA button label */
+  ctaPrimary: 'COMING SOON  →',
+  /** Secondary text-link label */
+  ctaSecondary: 'MEET THE CHAMPIONS',
+  /** anchor href for secondary link */
+  ctaSecondaryHref: '#tracks',
+} as const
+
+/**
+ * When false the "Become a sponsor" link is not rendered in the hero.
+ * Flip to true once sponsorship page is ready.
+ */
+export const HERO_SHOW_SPONSOR_LINK = false
+
 /** Scroll length per track chapter in vh units */
 export const TRACK_SCROLL_VH = 280
 

@@ -49,15 +49,16 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
         transition: 'transform 0.15s ease-out',
       }}
     >
-      {/* ── Screen Corner Brackets (HUD) ── */}
-      <div className="absolute top-20 left-8 w-4 h-4 border-t border-l border-white/20" />
-      <div className="absolute top-20 right-8 w-4 h-4 border-t border-r border-white/20" />
-      <div className="absolute bottom-14 left-8 w-4 h-4 border-b border-l border-white/20" />
-      <div className="absolute bottom-14 right-8 w-4 h-4 border-b border-r border-white/20" />
+      {/* ── Screen Corner Brackets (HUD) — FIX 5d: 24px inside viewport ── */}
+      <div className="absolute top-20 left-6 w-4 h-4 border-t border-l border-white/20" />
+      <div className="absolute top-20 right-6 w-4 h-4 border-t border-r border-white/20" />
+      <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/20" />
+      <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/20" />
 
       {/* ── Top-Left: One Small Dim Corner Label (Zero Stacking) ── */}
+      {/* FIX 5c: hidden while hero is active AND while tracks are active */}
       <div
-        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 transition-opacity duration-500 ${inTracksSection ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 transition-opacity duration-500 ${(inHeroSection || inTracksSection) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-marvel-red/80 animate-pulse" />
         <span className="text-white/60 font-semibold">MULTIVERSE SECTOR 05</span>

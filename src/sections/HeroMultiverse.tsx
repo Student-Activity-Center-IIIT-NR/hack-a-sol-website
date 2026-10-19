@@ -9,28 +9,26 @@
  * "VARIANT // 07", no "DIMENSIONAL LOCK", no "ENERGY // 097.4%",
  * no "TIMELINE // ACTIVE").
  *
- * Architecture notes vs. the current repo:
- * - This section owns its OWN small WebGL canvas (hero only). It is isolated
- *   from the site-wide R3F canvas so adding it requires zero changes to
- *   Scene.tsx or the Canvas in App.tsx.
+ * Architecture notes:
+ * - This section owns its OWN small WebGL canvas (hero only). Isolated from
+ *   the site-wide R3F canvas — zero changes to Scene.tsx or App.tsx canvas.
  * - The canvas is paused via IntersectionObserver when scrolled out of view.
  * - All hero layers are unmounted once the hero is scrolled past.
  * - All classes are scoped under .hm-hero — no conflict with the crowd-wall
  *   hero or any other section.
- * - FloatingHUD hides its corner labels while the Hero is active (controlled
- *   by scrollProgress < 0.08 in FloatingHUD.tsx — already the case).
- * - Config values come from src/config.ts (EVENT.*).
- *
- * Switch back to the crowd-wall hero by setting
- *   HERO_VARIANT = "wall"
- * in src/config.ts.
+ * - HERO_VARIANT switch in src/config.ts controls which hero renders.
+ * - All copy comes from HERO_COPY in src/config.ts.
+ * - HERO_SHOW_SPONSOR_LINK gates the sponsor link.
+ * - Track-colored orbs: one per track (5) from src/data/tracks.ts.
+ * - Bottom HUD: left = date, right = "EARTH-616" crossfades to
+ *   "ENTERING THE MULTIVERSE" when hero scroll progress > 0.5.
  */
 
-import { useEffect, useLayoutEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
-import { EVENT } from '../config'
+import { EVENT, HERO_COPY, HERO_SHOW_SPONSOR_LINK } from '../config'
+import { TRACKS } from '../data/tracks'
 import { initHero } from '../three/hero-multiverse/HeroSceneMultiverse'
 import type { HeroMultiverseHandle } from '../three/hero-multiverse/HeroSceneMultiverse'
 import './hero-multiverse/HeroMultiverse.css'
@@ -42,15 +40,15 @@ interface HeroMultiverseProps {
   ready: boolean
 }
 
-/** Positions a HUD orbit-tag relative to the gateway, in units of its outer radius. */
-const at = (tx: number, ty: number) => ({ '--tx': tx, '--ty': ty }) as CSSProperties
-
 export function HeroMultiverse({ ready }: HeroMultiverseProps) {
-  const rootRef    = useRef<HTMLElement>(null)
-  const canvasRef  = useRef<HTMLDivElement>(null)
-  const xyRef      = useRef<HTMLSpanElement>(null)
-  const heroRef    = useRef<HeroMultiverseHandle | null>(null)
-  const playedRef  = useRef(false)
+  const rootRef   = useRef<HTMLElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const heroRef   = useRef<HeroMultiverseHandle | null>(null)
+  const playedRef = useRef(false)
+
+  /** 0..1 scroll progress through the hero section (for crossfade HUD). */
+  const [scrollProg, setScrollProg] = useState(0)
+  const hudRightEntering = scrollProg > 0.5
 
   // Apply hidden start states before first paint so nothing flashes.
   useLayoutEffect(() => {
@@ -75,7 +73,7 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
     }
   }, [])
 
-  // Always-on live bits: pointer coordinate readout + text parallax.
+  // Always-on live bits: pointer-driven text parallax.
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -84,20 +82,11 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
       ? gsap.quickTo(textEl, 'x', { duration: 1.4, ease: 'power3.out' })
       : null
 
-    const pad = (v: number, m: number) =>
-      ((v / m) * 100).toFixed(2).padStart(5, '0')
-
     const onMove = (e: PointerEvent) => {
-      if (xyRef.current) {
-        xyRef.current.textContent = `X ${pad(e.clientX, innerWidth)} Y ${pad(e.clientY, innerHeight)}`
-      }
       moveX?.((e.clientX / innerWidth - 0.5) * -12)
     }
     window.addEventListener('pointermove', onMove)
-
-    return () => {
-      window.removeEventListener('pointermove', onMove)
-    }
+    return () => window.removeEventListener('pointermove', onMove)
   }, [])
 
   // Opening sequence: plays once the loading screen is gone.
@@ -113,7 +102,7 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
         // HUD bar fades in first
         .to('.hm-hero .hm-hud', { opacity: 1, duration: 1.4 }, 1.0)
-        // Pre-headline labels
+        // Pre-headline labels (eyebrow, kicker)
         .to('.hm-hero .fade.pre', { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 2.0)
         // Headline lines rise
         .to('.hm-hero .ln > span', { yPercent: 0, duration: 0.9, stagger: 0.14, ease: 'expo.out' }, 2.2)
@@ -129,7 +118,10 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
         start: 'top top',
         end: 'bottom top',
         scrub: true,
-        onUpdate: (s) => hero.setScroll(s.progress),
+        onUpdate: (s) => {
+          hero.setScroll(s.progress)
+          setScrollProg(s.progress)
+        },
       })
       gsap.to('.hm-hero .hm-text, .hm-hero .hm-tags', {
         yPercent: -10,
@@ -152,41 +144,47 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
       id="hero"
       ref={rootRef}
       className="hm-hero"
-      aria-label={`${EVENT.name} — Enter the Multiverse`}
+      aria-label={`${EVENT.name} — ${HERO_COPY.headlineLine1} ${HERO_COPY.headlineLine2}`}
     >
       {/* ── WebGL gateway canvas (own context, paused when out of view) ── */}
       <div ref={canvasRef} className="hm-canvas" aria-hidden="true" />
 
-      {/* ── Orbit HUD tags around the portal ── */}
+      {/* ── Track-colored orbital orbs (one per track) ── */}
       <div className="hm-tags" aria-hidden="true">
-        <div className="hm-tag"   style={at(0.72, -0.7)}>
-          <i /><p>DIMENSION // 616<br /><span>REALITY // DETECTED</span></p>
-        </div>
-        <div className="hm-tag l" style={at(-0.8, -0.62)}>
-          <i /><p>CALIBRATION // 98.7%<br /><span>ENERGY FLOW // STABLE</span></p>
-        </div>
-        <div className="hm-tag l" style={at(-0.78, 0.62)}>
-          <i /><p>SIGNAL // DETECTED<br /><span>SECTOR // A-07</span></p>
-        </div>
-        <div className="hm-tag cal" style={at(1.27, 0)}>090</div>
-        <div className="hm-tag cal" style={at(-1.27, 0)}>270</div>
+        {TRACKS.map((track, i) => (
+          <div
+            key={track.id}
+            className="hm-tag hm-orb"
+            style={{
+              /* Each orb gets its own orbit radius tier and speed offset */
+              '--orb-color': track.accentColor,
+              '--orb-idx': i,
+            } as React.CSSProperties}
+            aria-label={track.name}
+          />
+        ))}
       </div>
 
       {/* ── Left-aligned text block ── */}
       <div className="hm-text">
+        {/* Eyebrow */}
         <p className="hm-label fade pre">
-          <i />{EVENT.hostedBy} presents
+          <i />{HERO_COPY.eyebrow}
         </p>
+        {/* Kicker: HACK-A-SOL 5.0 */}
         <p className="hm-name fade pre">
-          Hack-A-Sol <b>{EVENT.edition}</b>
+          {HERO_COPY.kickerBase} <b>{HERO_COPY.kickerEdition}</b>
         </p>
-        <h1 aria-label="Enter the Multiverse">
-          <span className="ln"><span>Enter the</span></span>
-          <span className="ln big"><span>Multiverse</span></span>
+        {/* H1 headline */}
+        <h1 aria-label={`${HERO_COPY.headlineLine1} ${HERO_COPY.headlineLine2}`}>
+          <span className="ln"><span>{HERO_COPY.headlineLine1}</span></span>
+          <span className="ln big"><span>{HERO_COPY.headlineLine2}</span></span>
         </h1>
+        {/* Tagline */}
         <p className="hm-support fade post">
-          Teams from every reality. One mission. Build what comes next.
+          {HERO_COPY.tagline}
         </p>
+        {/* CTA row */}
         <div className="hm-cta fade post">
           <a
             id="hero-register-btn"
@@ -194,20 +192,46 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
             href={EVENT.registrationLink}
             data-magnetic
           >
-            <span>{EVENT.registrationStatus}</span><em>→</em>
+            <span>{HERO_COPY.ctaPrimary}</span>
           </a>
-          <a id="hero-tracks-link"  className="hm-link" href="#tracks">View tracks</a>
-          <a id="hero-sponsor-btn"  className="hm-link" href="#why-sponsor">Become a sponsor</a>
+          <a
+            id="hero-tracks-link"
+            className="hm-link"
+            href={HERO_COPY.ctaSecondaryHref}
+          >
+            {HERO_COPY.ctaSecondary}
+          </a>
+          {HERO_SHOW_SPONSOR_LINK && (
+            <a id="hero-sponsor-btn" className="hm-link" href="#why-sponsor">
+              BECOME A SPONSOR
+            </a>
+          )}
         </div>
       </div>
 
       {/* ── Bottom status bar HUD ── */}
       <div className="hm-hud" aria-hidden="true">
-        <span>MISSION // 005 &nbsp;·&nbsp; {EVENT.date}</span>
-        <span className="hm-hud-mid">LAT 21.2514 &nbsp; LNG 81.6296</span>
-        <span>
+        {/* Left: event date */}
+        <span className="hm-hud-left">
           <i className="hm-dot" />
-          SIGNAL STABLE &nbsp;·&nbsp; <span ref={xyRef}>X 00.00 Y 00.00</span>
+          {EVENT.date}
+        </span>
+        {/* Right: crossfades EARTH-616 → ENTERING THE MULTIVERSE */}
+        <span className="hm-hud-right">
+          <span
+            className="hm-hud-label"
+            style={{ opacity: hudRightEntering ? 0 : 1 }}
+            aria-hidden={hudRightEntering}
+          >
+            EARTH-616
+          </span>
+          <span
+            className="hm-hud-label hm-hud-label-entering"
+            style={{ opacity: hudRightEntering ? 1 : 0 }}
+            aria-hidden={!hudRightEntering}
+          >
+            ENTERING THE MULTIVERSE
+          </span>
         </span>
       </div>
     </section>

@@ -4,10 +4,13 @@
  * All styles scoped under .hm-hero (hero-multiverse root class).
  * Ported from src/styles/hero.css @ d44a2a4, namespace changed to .hm-hero
  * to avoid any clash with the crowd-wall hero (.hero-section) classes.
+ *
+ * FIX: overflow-x: clip on .hm-hero prevents any child (rings, glow, text)
+ * from widening document.documentElement.scrollWidth.
  */
 
 .hm-hero {
-  --red: #e62429;
+  --red: #e23636;
   --bg: #04050a;
   --text: #f1f1f3;
   --muted: rgba(241, 241, 243, 0.52);
@@ -15,20 +18,28 @@
   --font-head: 'Barlow Condensed', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --pad: clamp(1.25rem, 4vw, 4rem);
+  --pad: clamp(1.5rem, 4vw, 4rem);
+  /* Orbit positioning: set by JS via .parentElement.style (--cx, --cy, --r) */
 
   position: relative;
+  /* FIX 5a: clip horizontal overflow — rings/glows cannot widen the page */
+  overflow: hidden;
+  overflow-x: clip;
   height: 100svh;
   min-height: 560px;
-  overflow: hidden;
   color: var(--text);
   font-family: var(--font-body);
 }
 .hm-hero a { color: inherit; text-decoration: none; }
 
 /* ── Canvas layer (fills the section behind everything) ── */
-.hm-hero .hm-canvas { position: absolute; inset: 0; }
-.hm-hero .hm-canvas canvas { display: block; }
+.hm-hero .hm-canvas {
+  position: absolute;
+  inset: 0;
+  /* Canvas itself must not create horizontal overflow either */
+  overflow: hidden;
+}
+.hm-hero .hm-canvas canvas { display: block; width: 100% !important; }
 
 /* ── Bottom fade: seamlessly blends into the page background ── */
 .hm-hero::after {
@@ -38,6 +49,7 @@
   height: 20vh;
   background: linear-gradient(to bottom, transparent, var(--bg));
   pointer-events: none;
+  z-index: 1;
 }
 
 /* ── Left-aligned title treatment ── */
@@ -46,11 +58,12 @@
   z-index: 2;
   left: var(--pad);
   bottom: 13vh;
-  max-width: min(46rem, 90vw);
+  /* FIX 5a: never overflow the viewport horizontally */
+  max-width: min(46rem, calc(100vw - 2 * var(--pad)));
   pointer-events: none;
 }
 
-/* Label line (e.g. "IIIT NAYA RAIPUR presents") */
+/* Label line (eyebrow — e.g. "IIIT NAYA RAIPUR PRESENTS") */
 .hm-hero .hm-label {
   display: flex;
   align-items: center;
@@ -61,9 +74,9 @@
   text-transform: uppercase;
   color: var(--muted);
 }
-.hm-hero .hm-label i { width: 34px; height: 1px; background: var(--red); }
+.hm-hero .hm-label i { width: 34px; height: 1px; background: var(--red); flex-shrink: 0; }
 
-/* Event name line */
+/* Event name line (HACK-A-SOL 5.0) */
 .hm-hero .hm-name {
   font-family: var(--font-head);
   font-weight: 500;
@@ -72,7 +85,12 @@
   text-transform: uppercase;
   margin: 1.5rem 0 .5rem;
 }
-.hm-hero .hm-name b { color: var(--red); font-weight: 600; }
+/* FIX 5b: 5.0 edition accent — only text glow, no rectangle background */
+.hm-hero .hm-name b {
+  color: var(--red);
+  font-weight: 700;
+  text-shadow: 0 0 18px rgba(226, 54, 54, 0.55);
+}
 
 /* H1 headline (ENTER THE / MULTIVERSE) */
 .hm-hero h1 {
@@ -86,7 +104,7 @@
 .hm-hero .ln { display: block; overflow: hidden; padding: .05em 0 .02em; }
 .hm-hero .ln > span { display: block; will-change: transform; }
 
-/* "Enter the" */
+/* "ENTER THE" */
 .hm-hero .ln:not(.big) {
   font-size: clamp(1.5rem, 3.4vw, 3.4rem);
   font-weight: 500;
@@ -95,16 +113,17 @@
   padding-left: .12em;
 }
 
-/* MULTIVERSE: extra padding gives the glow room; negative margins cancel layout shift */
+/* MULTIVERSE — FIX 5b: remove hard-edged background/outline; keep soft glow only.
+   The old code had padding + negative-margin that could trick the browser into a
+   visible dark rectangle. Keep layout correction but no visual box. */
 .hm-hero .ln.big {
   font-size: clamp(3.3rem, 10.2vw, 11rem);
   letter-spacing: .004em;
-  padding: .1em .25em .12em;
-  margin: -.05em 0 -.07em -.28em;
-  text-shadow: 0 0 30px rgba(230, 30, 40, .35);
+  /* Soft text-shadow only — NO background, NO border, NO box-shadow */
+  text-shadow: 0 0 30px rgba(226, 54, 54, 0.35);
   animation: hm-titleGlow 4s ease-in-out infinite;
 }
-@keyframes hm-titleGlow { 50% { text-shadow: 0 0 60px rgba(230, 30, 40, .65); } }
+@keyframes hm-titleGlow { 50% { text-shadow: 0 0 60px rgba(226, 54, 54, 0.65); } }
 
 /* Glitch class toggled by shader (dispatched on 'variant-glitch' event) */
 .hm-hero h1.glitch { transform: translateX(2px) skewX(-2deg); }
@@ -134,7 +153,7 @@
 /* Conic gradient angle for btn hover animation */
 @property --hm-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 
-/* Primary CTA button */
+/* Primary CTA button — FIX 5b: NO box-shadow rectangle on idle; only pulse ring */
 .hm-hero .hm-btn {
   position: relative;
   display: inline-flex;
@@ -146,14 +165,20 @@
   letter-spacing: .26em;
   text-transform: uppercase;
   color: #fff;
-  background: #e53935;
-  border: 1px solid #e53935;
+  /* Solid fill that reads as a button, but NO hard border/outline shadow */
+  background: rgba(226, 54, 54, 0.92);
+  border: none;
+  outline: none;
+  /* Soft radial glow instead of box-shadow border */
+  filter: drop-shadow(0 0 12px rgba(226, 54, 54, 0.45));
   animation: hm-ctaPulse 2.4s infinite;
-  transition: background .4s, border-color .4s;
+  transition: background .4s, filter .4s;
+  cursor: pointer;
 }
-.hm-hero .hm-btn em { font-style: normal; transition: transform .4s; }
-.hm-hero .hm-btn:hover { background: #ff4a4e; border-color: transparent; }
-.hm-hero .hm-btn:hover em { transform: translateX(5px); }
+.hm-hero .hm-btn:hover {
+  background: rgba(255, 74, 78, 0.95);
+  filter: drop-shadow(0 0 22px rgba(255, 74, 78, 0.7));
+}
 .hm-hero .hm-btn::before {
   content: '';
   position: absolute;
@@ -168,13 +193,14 @@
 }
 .hm-hero .hm-btn:hover::before { opacity: 1; animation: hm-spin 2.6s linear infinite; }
 @keyframes hm-spin { to { --hm-ang: 360deg; } }
+/* Pulse is a soft radial ring, not a solid box */
 @keyframes hm-ctaPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(229, 57, 53, .55); }
-  70%  { box-shadow: 0 0 0 18px rgba(229, 57, 53, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+  0%   { filter: drop-shadow(0 0 12px rgba(226, 54, 54, 0.45)); }
+  50%  { filter: drop-shadow(0 0 22px rgba(226, 54, 54, 0.75)); }
+  100% { filter: drop-shadow(0 0 12px rgba(226, 54, 54, 0.45)); }
 }
 
-/* Secondary links */
+/* Secondary text links */
 .hm-hero .hm-link {
   font-family: var(--font-mono);
   font-size: .68rem;
@@ -188,14 +214,17 @@
 .hm-hero .hm-link:hover { color: var(--text); border-color: var(--text); }
 
 /* ── Bottom HUD status bar ── */
+/* FIX 5d: 24px inside viewport edges using the same --pad or a fixed 24px */
 .hm-hero .hm-hud {
   position: absolute;
   z-index: 2;
-  left: var(--pad);
-  right: var(--pad);
+  /* 24px inside edges, never at edge = never clipped */
+  left: 1.5rem;
+  right: 1.5rem;
   bottom: 0;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 1.1rem 0 1.4rem;
   border-top: 1px solid rgba(255,255,255,.07);
   font-family: var(--font-mono);
@@ -203,7 +232,36 @@
   letter-spacing: .22em;
   color: rgba(241,241,243,.34);
   pointer-events: none;
+  /* FIX 5a: clip anything that might overflow on narrow screens */
+  overflow: hidden;
 }
+.hm-hero .hm-hud-left {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hm-hero .hm-hud-right {
+  position: relative;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  /* Ensure it never pushes past 50vw so left label stays visible */
+  max-width: 60%;
+}
+
+/* Stack two labels on top of each other with CSS transition crossfade */
+.hm-hero .hm-hud-label {
+  display: block;
+  transition: opacity 0.6s ease;
+}
+/* "ENTERING THE MULTIVERSE" sits underneath; positioned at same spot */
+.hm-hero .hm-hud-label-entering {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 .hm-hero .hm-dot {
   display: inline-block;
   width: 5px;
@@ -215,44 +273,90 @@
 }
 @keyframes hm-pulse { 50% { opacity: .25; } }
 
-/* ── HUD orbit tags (positioned around the portal by CSS vars --cx/--cy/--r) ── */
-.hm-hero .hm-tags { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.hm-hero .hm-tag {
+/* ── Track-colored orbital orbs (5 orbs, one per track) ── */
+/* Container fills the section; orbs are positioned relative to the portal via
+   CSS custom properties --cx, --cy, --r injected by HeroSceneMultiverse.js. */
+.hm-hero .hm-tags {
   position: absolute;
+  inset: 0;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: .8rem;
   pointer-events: none;
-  left: calc(var(--cx, 73%) + var(--r, 0px) * var(--tx));
-  top: calc(var(--cy, 40%) + var(--r, 0px) * var(--ty));
-  font-family: var(--font-mono);
-  font-size: .56rem;
-  letter-spacing: .2em;
-  color: var(--muted);
-  line-height: 1.8;
-  opacity: 0;
+  overflow: hidden; /* FIX 5a: orbs must not escape the section bounds */
 }
-.hm-hero .hm-tag i { width: 46px; height: 1px; background: linear-gradient(90deg, var(--red), transparent); }
-.hm-hero .hm-tag span { opacity: .55; display: block; }
-.hm-hero .hm-tag b { font-weight: 400; color: var(--text); }
-.hm-hero .hm-tag.l { flex-direction: row-reverse; text-align: right; transform: translateX(-100%); }
-.hm-hero .hm-tag.l i { background: linear-gradient(270deg, var(--red), transparent); }
-.hm-hero .hm-tag.cal { transform: translate(-50%, -50%); font-size: .5rem; color: rgba(241, 241, 243, .3); }
-.hm-hero .hm-tag.cal i { display: none; }
+
+/*
+ * Each .hm-orb is a track-colored glowing dot.
+ * It orbits around the portal center (--cx, --cy) at a radius derived from
+ * --r (the outer ring radius set by the WebGL resize callback).
+ *
+ * Five tracks → five orbs, each at a different orbit tier via --orb-idx.
+ * They are CSS-animated (not GSAP) so they continue in reduced-motion mode
+ * as static dots without animation.
+ *
+ * Layout: centered on the orbital path using translate(-50%, -50%).
+ * Radius tier: base radius * (0.52 + idx * 0.08)  (inner → outer spread).
+ * Speed tier:  each orb gets its own duration staggered by index.
+ */
+.hm-hero .hm-orb {
+  --orb-r-mul: calc(0.52 + var(--orb-idx, 0) * 0.08);
+  --orb-dur:   calc(14s - var(--orb-idx, 0) * 1.8s);
+  --orb-dir:   calc((var(--orb-idx, 0) % 2) * 2 - 1); /* alternating ±1 */
+
+  position: absolute;
+  width:  10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--orb-color, #fff);
+  box-shadow:
+    0 0 8px  4px color-mix(in srgb, var(--orb-color, #fff) 55%, transparent),
+    0 0 20px 8px color-mix(in srgb, var(--orb-color, #fff) 22%, transparent);
+  opacity: 0; /* revealed by GSAP .hm-tag fade-in */
+  transform-origin: center center;
+
+  /* Centered on its circle position; animation handled via @keyframes below */
+  left: var(--cx, 73%);
+  top:  var(--cy, 40%);
+  translate: -50% -50%;
+
+  /* Orbit animation: rotate around portal center */
+  animation: hm-orbit var(--orb-dur) linear infinite;
+  animation-direction: normal;
+}
+/* Alternate even orbs counter-clockwise */
+.hm-hero .hm-orb:nth-child(even) { animation-direction: reverse; }
+
+@keyframes hm-orbit {
+  from {
+    transform:
+      rotate(0deg)
+      translateX(calc(var(--r, 180px) * var(--orb-r-mul)))
+      rotate(0deg);
+  }
+  to {
+    transform:
+      rotate(360deg)
+      translateX(calc(var(--r, 180px) * var(--orb-r-mul)))
+      rotate(-360deg);
+  }
+}
+
+/* Each orb starts offset so they aren't bunched together at t=0 */
+.hm-hero .hm-orb:nth-child(1) { animation-delay: calc(-14s * 0.0); }
+.hm-hero .hm-orb:nth-child(2) { animation-delay: calc(-12.2s * 0.2); }
+.hm-hero .hm-orb:nth-child(3) { animation-delay: calc(-10.4s * 0.4); }
+.hm-hero .hm-orb:nth-child(4) { animation-delay: calc(-8.6s  * 0.6); }
+.hm-hero .hm-orb:nth-child(5) { animation-delay: calc(-6.8s  * 0.8); }
 
 /* ── Fade-up elements (controlled by GSAP) ── */
 .hm-hero .fade { opacity: 0; }
 
 /* ── Responsive ── */
-@media (max-width: 1280px) {
-  /* Drop the two busiest orbit tags on mid-size screens */
-  .hm-hero .hm-tag:nth-child(4),
-  .hm-hero .hm-tag:nth-child(5) { display: none; }
-}
 @media (max-width: 860px) {
-  .hm-hero .hm-hud-mid { display: none; }
   .hm-hero .hm-text { bottom: 11vh; }
+  /* On mobile, reduce orb size for clarity */
+  .hm-hero .hm-orb { width: 7px; height: 7px; }
+  /* Narrow: hide the right HUD to prevent overflow */
+  .hm-hero .hm-hud-right { display: none; }
 }
 
 /* ── Reduced motion ── */
