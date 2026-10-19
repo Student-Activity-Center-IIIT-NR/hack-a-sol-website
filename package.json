@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/prepare-hero-wall.mjs && node scripts/prepare-characters.mjs",
+    "prebuild": "node scripts/prepare-hero-wall.mjs && node scripts/prepare-characters.mjs && node scripts/prepare-hero-silhouettes.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "prepare:hero": "node scripts/prepare-hero-wall.mjs",
     "prepare:characters": "node scripts/prepare-characters.mjs",
+    "prepare:hero-sil": "node scripts/prepare-hero-silhouettes.mjs",
     "optimize:models": "node scripts/optimize-models.mjs",
     "optimize:images": "node scripts/optimize-images.mjs"
   },

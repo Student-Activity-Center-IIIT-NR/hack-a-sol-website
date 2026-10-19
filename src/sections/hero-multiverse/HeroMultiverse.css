@@ -1,266 +1,375 @@
 /*
  * src/sections/hero-multiverse/HeroMultiverse.css
  * ─────────────────────────────────────────────────────────────────────────────
- * All styles scoped under .hm-hero (hero-multiverse root class).
- * Ported from src/styles/hero.css @ d44a2a4, namespace changed to .hm-hero
- * to avoid any clash with the crowd-wall hero (.hero-section) classes.
+ * Minimal Marvel "Rift" hero — all styles scoped under .hm-rift.
+ *
+ * Design constraints (from spec):
+ *   - ONLY transform and opacity animate — no runtime filter/blur/mask on large layers
+ *   - Width changes via scaleX only
+ *   - No visible glow edges (gradients only, no CSS blur filter)
+ *   - Silhouettes: bottom-anchored, 44vh tall, 5 in a row, z-index above rift
+ *   - Fonts: Barlow Condensed (heading) + Inter (body) + JetBrains Mono (mono)
+ *   - Background: #07070b, one soft radial red glow (16% opacity)
  */
 
-.hm-hero {
-  --red: #e62429;
-  --bg: #04050a;
-  --text: #f1f1f3;
-  --muted: rgba(241, 241, 243, 0.52);
-  --line: rgba(255, 255, 255, 0.12);
-  --font-head: 'Barlow Condensed', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --pad: clamp(1.25rem, 4vw, 4rem);
+/* ── Root ──────────────────────────────────────────────────────────────── */
+.hm-rift {
+  --red:        #e23636;
+  --bg:         #07070b;
+  --text:       #f1f1f3;
+  --muted:      rgba(241, 241, 243, 0.65);
+  --muted-soft: rgba(241, 241, 243, 0.35);
+  --line:       
+  rgba(255, 255, 255, 0.12);
+  --font-head:  'Barlow Condensed', sans-serif;
+  --font-body:  'Inter', sans-serif;
+  --font-mono:  'JetBrains Mono', monospace;
 
   position: relative;
   height: 100svh;
   min-height: 560px;
   overflow: hidden;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
 }
-.hm-hero a { color: inherit; text-decoration: none; }
+.hm-rift a { color: inherit; text-decoration: none; }
 
-/* ── Canvas layer (fills the section behind everything) ── */
-.hm-hero .hm-canvas { position: absolute; inset: 0; }
-.hm-hero .hm-canvas canvas { display: block; }
+/* ── Background: near-black + one soft feathered red radial glow ────────── */
+.hm-rift__bg {
+  position: absolute;
+  inset: 0;
+  /* One soft red glow at ~70vw x 40% — 16% opacity, no visible hard edge */
+  background:
+    radial-gradient(ellipse 55vw 70% at 70% 44%, rgba(226, 54, 54, 0.16) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
 
-/* ── Bottom fade: seamlessly blends into the page background ── */
-.hm-hero::after {
+/* Bottom edge blend to match page bg */
+.hm-rift::after {
   content: '';
   position: absolute;
   inset: auto 0 0 0;
-  height: 20vh;
+  height: 18vh;
   background: linear-gradient(to bottom, transparent, var(--bg));
   pointer-events: none;
+  z-index: 5;
 }
 
-/* ── Left-aligned title treatment ── */
-.hm-hero .hm-text {
+/* ── Rift wrapper: positioned right side, vertically centered ───────────── */
+.hm-rift__rift-wrap {
   position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-3deg);
   z-index: 2;
-  left: var(--pad);
-  bottom: 13vh;
-  max-width: min(46rem, 90vw);
   pointer-events: none;
 }
 
-/* Label line (e.g. "IIIT NAYA RAIPUR presents") */
-.hm-hero .hm-label {
+/* Glow rings: layered radial gradients — NO blur filter on large layers */
+.hm-rift__glow-outer,
+.hm-rift__glow-mid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hm-rift__glow-outer {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(226, 54, 54, 0.10) 0%,
+    rgba(226, 54, 54, 0.04) 40%,
+    transparent 70%
+  );
+  z-index: 1;
+}
+
+.hm-rift__glow-mid {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(226, 54, 54, 0.20) 0%,
+    rgba(226, 54, 54, 0.08) 50%,
+    transparent 75%
+  );
+  z-index: 2;
+}
+
+/* ── Rift SVG ────────────────────────────────────────────────────────────── */
+.hm-rift__svg {
+  position: relative;
+  z-index: 3;
+  overflow: visible;
+  /* Slow flicker: opacity 0.85 → 1 over 5s */
+  animation: hm-rift-flicker 5s ease-in-out infinite;
+}
+
+@keyframes hm-rift-flicker {
+  0%,  100% { opacity: 1;    }
+  48%        { opacity: 0.85; }
+  52%        { opacity: 0.92; }
+}
+
+/* All rift interior paths/groups share transform-origin center for scaleX/scaleY */
+.hm-rift .rift-inner {
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+}
+
+/* ── Silhouette row ───────────────────────────────────────────────────────── */
+.hm-rift__sil-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;   /* in front of rift (z-index 3) */
+  pointer-events: none;
+}
+
+.hm-rift__sil-row .sil-item {
+  position: absolute;
+  bottom: 0;
+  object-fit: contain;
+  object-position: bottom center;
+  opacity: 0.95;
+  will-change: transform, opacity;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Text column: left side, vertically centered ────────────────────────── */
+.hm-rift__text {
+  position: absolute;
+  z-index: 6;
+  left: 6vw;
+  top: 50%;
+  transform: translateY(-50%);
+  /* max-width set inline from cfg.textColumnWidthVw */
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  pointer-events: none;
+}
+
+/* Allow CTA row to be interactive */
+.hm-rift__text .hm-cta-row {
+  pointer-events: auto;
+}
+
+/* ── Eyebrow: 40px red line + text ─────────────────────────────────────── */
+.hm-eyebrow {
   display: flex;
   align-items: center;
-  gap: .9rem;
+  gap: 12px;
+  margin-bottom: 6px; /* 8px scale spacing */
+}
+
+.hm-eyebrow__line {
+  display: inline-block;
+  width: 40px;
+  height: 1px;
+  background: var(--red);
+  flex-shrink: 0;
+}
+
+.hm-eyebrow__text {
   font-family: var(--font-mono);
-  font-size: .66rem;
-  letter-spacing: .3em;
+  font-size: 0.78rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--muted);
+  white-space: nowrap;
 }
-.hm-hero .hm-label i { width: 34px; height: 1px; background: var(--red); }
 
-/* Event name line */
-.hm-hero .hm-name {
-  font-family: var(--font-head);
-  font-weight: 500;
-  font-size: clamp(1.1rem, 1.7vw, 1.5rem);
-  letter-spacing: .34em;
+/* ── Kicker: HACK-A-SOL 5.0 ─────────────────────────────────────────────── */
+.hm-kicker {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
-  margin: 1.5rem 0 .5rem;
+  color: var(--text);
+  margin: 0 0 32px; /* 32px spacing before headline */
 }
-.hm-hero .hm-name b { color: var(--red); font-weight: 600; }
 
-/* H1 headline (ENTER THE / MULTIVERSE) */
-.hm-hero h1 {
+.hm-kicker__accent {
+  color: var(--red);
+}
+
+/* ── H1 Headline ─────────────────────────────────────────────────────────── */
+.hm-rift h1 {
   font-family: var(--font-head);
   font-weight: 700;
   text-transform: uppercase;
-  line-height: .9;
+  line-height: 0.92;
+  margin: 0 0 24px; /* 24px spacing after headline */
 }
 
-/* Line clip wrapper for the entrance animation */
-.hm-hero .ln { display: block; overflow: hidden; padding: .05em 0 .02em; }
-.hm-hero .ln > span { display: block; will-change: transform; }
-
-/* "Enter the" */
-.hm-hero .ln:not(.big) {
-  font-size: clamp(1.5rem, 3.4vw, 3.4rem);
-  font-weight: 500;
-  letter-spacing: .28em;
-  color: #e9e9f0;
-  padding-left: .12em;
+/* Line clip wrapper for entrance animation */
+.hm-h1-clip {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0;
 }
 
-/* MULTIVERSE: extra padding gives the glow room; negative margins cancel layout shift */
-.hm-hero .ln.big {
-  font-size: clamp(3.3rem, 10.2vw, 11rem);
-  letter-spacing: .004em;
-  padding: .1em .25em .12em;
-  margin: -.05em 0 -.07em -.28em;
-  text-shadow: 0 0 30px rgba(230, 30, 40, .35);
-  animation: hm-titleGlow 4s ease-in-out infinite;
-}
-@keyframes hm-titleGlow { 50% { text-shadow: 0 0 60px rgba(230, 30, 40, .65); } }
-
-/* Glitch class toggled by shader (dispatched on 'variant-glitch' event) */
-.hm-hero h1.glitch { transform: translateX(2px) skewX(-2deg); }
-.hm-hero h1.glitch .ln.big { animation: none; text-shadow: 3px 0 #ff2a2a, -3px 0 #22d3ee; }
-.hm-hero h1.glitch .ln:not(.big) { text-shadow: 2px 0 #ff2a2a, -2px 0 #22d3ee; }
-
-/* Support / tagline */
-.hm-hero .hm-support {
+/* "ENTER THE" — lighter weight */
+.hm-line-enter {
+  display: block;
+  font-size: clamp(1.6rem, 3vw, 3rem);
   font-weight: 300;
-  font-size: clamp(.95rem, 1.2vw, 1.12rem);
-  color: var(--muted);
-  margin-top: 1.6rem;
-  max-width: 30rem;
-  line-height: 1.6;
+  letter-spacing: 0.26em;
+  color: rgba(241, 241, 243, 0.9);
+  will-change: transform;
 }
 
-/* CTA row */
-.hm-hero .hm-cta {
+/* "MULTIVERSE" — big, bold, with soft text-shadow glow */
+.hm-line-main {
+  display: block;
+  font-size: clamp(3.2rem, var(--headline-max-vw, 7.2vw), 7.2rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  /* Soft text-shadow glow — permitted (not a filter on a large layer) */
+  text-shadow:
+    0 0 20px rgba(226, 54, 54, 0.25),
+    0 0 60px rgba(226, 54, 54, 0.12);
+  animation: hm-headline-glow 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes hm-headline-glow {
+  50% {
+    text-shadow:
+      0 0 30px rgba(226, 54, 54, 0.45),
+      0 0 80px rgba(226, 54, 54, 0.22);
+  }
+}
+
+/* ── Tagline ─────────────────────────────────────────────────────────────── */
+.hm-tagline {
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: rgba(241, 241, 243, 0.82);
+  line-height: 1.6;
+  margin: 0 0 40px; /* 40px before CTAs */
+}
+
+/* ── CTA Row ─────────────────────────────────────────────────────────────── */
+.hm-cta-row {
   display: flex;
   align-items: center;
   gap: 2rem;
-  margin-top: 2.2rem;
-  pointer-events: auto;
   flex-wrap: wrap;
 }
 
-/* Conic gradient angle for btn hover animation */
-@property --hm-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+/* Primary CTA button: red #e23636, 48px tall, clean */
+@property --hm-rift-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 
-/* Primary CTA button */
-.hm-hero .hm-btn {
+.hm-btn-primary {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 1.1rem;
-  padding: 1.05rem 1.7rem;
+  height: 48px;
+  padding: 0 1.6rem;
   font-family: var(--font-mono);
-  font-size: .7rem;
-  letter-spacing: .26em;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: #fff;
-  background: #e53935;
-  border: 1px solid #e53935;
-  animation: hm-ctaPulse 2.4s infinite;
-  transition: background .4s, border-color .4s;
-}
-.hm-hero .hm-btn em { font-style: normal; transition: transform .4s; }
-.hm-hero .hm-btn:hover { background: #ff4a4e; border-color: transparent; }
-.hm-hero .hm-btn:hover em { transform: translateX(5px); }
-.hm-hero .hm-btn::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  padding: 1px;
-  opacity: 0;
-  transition: opacity .4s;
-  background: conic-gradient(from var(--hm-ang), transparent 0 62%, var(--red) 88%, #fff 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-.hm-hero .hm-btn:hover::before { opacity: 1; animation: hm-spin 2.6s linear infinite; }
-@keyframes hm-spin { to { --hm-ang: 360deg; } }
-@keyframes hm-ctaPulse {
-  0%   { box-shadow: 0 0 0 0 rgba(229, 57, 53, .55); }
-  70%  { box-shadow: 0 0 0 18px rgba(229, 57, 53, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0); }
+  background: var(--red);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+  white-space: nowrap;
+  animation: hm-cta-pulse 2.6s ease-out infinite;
 }
 
-/* Secondary links */
-.hm-hero .hm-link {
+.hm-btn-primary:hover {
+  background: #f04040;
+}
+
+@keyframes hm-cta-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(226, 54, 54, 0.50); }
+  65%  { box-shadow: 0 0 0 14px rgba(226, 54, 54, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(226, 54, 54, 0); }
+}
+
+/* Secondary text link */
+.hm-link-secondary {
   font-family: var(--font-mono);
-  font-size: .68rem;
-  letter-spacing: .24em;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--muted);
   border-bottom: 1px solid var(--line);
-  padding-bottom: .3rem;
-  transition: color .3s, border-color .3s;
+  padding-bottom: 0.2rem;
+  transition: color 0.3s, border-color 0.3s;
 }
-.hm-hero .hm-link:hover { color: var(--text); border-color: var(--text); }
+.hm-link-secondary:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
 
-/* ── Bottom HUD status bar ── */
-.hm-hero .hm-hud {
+/* ── Bottom HUD: one quiet monospace row ─────────────────────────────────── */
+.hm-bottom-hud {
   position: absolute;
-  z-index: 2;
-  left: var(--pad);
-  right: var(--pad);
+  z-index: 6;
+  left: 0;
+  right: 0;
   bottom: 0;
   display: flex;
   justify-content: space-between;
-  padding: 1.1rem 0 1.4rem;
-  border-top: 1px solid rgba(255,255,255,.07);
+  padding: 1rem 24px 1.2rem;
   font-family: var(--font-mono);
-  font-size: .58rem;
-  letter-spacing: .22em;
-  color: rgba(241,241,243,.34);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(241, 241, 243, 0.35);
   pointer-events: none;
-}
-.hm-hero .hm-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--red);
-  margin-right: .7rem;
-  animation: hm-pulse 2.4s ease-in-out infinite;
-}
-@keyframes hm-pulse { 50% { opacity: .25; } }
-
-/* ── HUD orbit tags (positioned around the portal by CSS vars --cx/--cy/--r) ── */
-.hm-hero .hm-tags { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.hm-hero .hm-tag {
-  position: absolute;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: .8rem;
-  pointer-events: none;
-  left: calc(var(--cx, 73%) + var(--r, 0px) * var(--tx));
-  top: calc(var(--cy, 40%) + var(--r, 0px) * var(--ty));
-  font-family: var(--font-mono);
-  font-size: .56rem;
-  letter-spacing: .2em;
-  color: var(--muted);
-  line-height: 1.8;
-  opacity: 0;
-}
-.hm-hero .hm-tag i { width: 46px; height: 1px; background: linear-gradient(90deg, var(--red), transparent); }
-.hm-hero .hm-tag span { opacity: .55; display: block; }
-.hm-hero .hm-tag b { font-weight: 400; color: var(--text); }
-.hm-hero .hm-tag.l { flex-direction: row-reverse; text-align: right; transform: translateX(-100%); }
-.hm-hero .hm-tag.l i { background: linear-gradient(270deg, var(--red), transparent); }
-.hm-hero .hm-tag.cal { transform: translate(-50%, -50%); font-size: .5rem; color: rgba(241, 241, 243, .3); }
-.hm-hero .hm-tag.cal i { display: none; }
-
-/* ── Fade-up elements (controlled by GSAP) ── */
-.hm-hero .fade { opacity: 0; }
-
-/* ── Responsive ── */
-@media (max-width: 1280px) {
-  /* Drop the two busiest orbit tags on mid-size screens */
-  .hm-hero .hm-tag:nth-child(4),
-  .hm-hero .hm-tag:nth-child(5) { display: none; }
-}
-@media (max-width: 860px) {
-  .hm-hero .hm-hud-mid { display: none; }
-  .hm-hero .hm-text { bottom: 11vh; }
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* ── Reduced motion ── */
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .hm-hero *,
-  .hm-hero *::before {
-    animation-duration: .001ms !important;
+  .hm-rift *,
+  .hm-rift *::before,
+  .hm-rift *::after {
+    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: .001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .hm-rift__text {
+    left: 4vw;
+  }
+  .hm-line-main {
+    font-size: clamp(2.8rem, 9vw, 7.2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  /* On mobile, text column takes full width, rift hidden or dimmed */
+  .hm-rift__text {
+    left: 5vw;
+    max-width: 90vw !important;
+    top: auto;
+    bottom: 28vh;
+    transform: none;
+  }
+  .hm-rift__rift-wrap {
+    opacity: 0.35;
+  }
+  .hm-rift__sil-row {
+    display: none;
+  }
+  .hm-line-main {
+    font-size: clamp(3rem, 14vw, 6rem);
+  }
+  .hm-bottom-hud {
+    font-size: 0.58rem;
+    padding: 0.8rem 16px 1rem;
   }
 }
