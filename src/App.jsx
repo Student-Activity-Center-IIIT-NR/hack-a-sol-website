@@ -8,6 +8,7 @@ import ScheduleSection from './components/ScheduleSection';
 import SponsorsSection from './components/SponsorsSection';
 import Footer from './components/Footer';
 import './styles/App.css';
+import './styles/ModularComic.css';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -52,4 +53,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

@@ -1,209 +1,125 @@
-import { motion } from 'framer-motion';
-import { Shield, Blocks, Brain, Scale, Lightbulb, Award } from 'lucide-react';
-import '../styles/TracksSection.css';
+'use client';
+import React from 'react';
+import { Blocks, Shield, Brain, Scale, Lightbulb, Award } from 'lucide-react';
+import '../styles/ModularComic.css';
 
 const TracksSection = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
-  };
-
-  const tracksData = [
+  const tracks = [
     {
+      id: '01',
+      title: 'Web3 & Decentralized',
+      comicTag: 'EARTH-616 // BLOCKCHAIN',
+      desc: 'Build decentralized applications, smart contracts, and Web3 infrastructure to empower user autonomy.',
       icon: Blocks,
-      title: 'Web3',
-      description: 'Build decentralized applications and services using blockchain and Web3 technologies.',
-      color: '#ff0000',
-      gradient: 'linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.05))',
+      color: '#ff0098',
+      bgClass: 'panel-pink',
     },
     {
-      icon: Shield,
+      id: '02',
       title: 'Cyber Security',
-      description: 'Develop solutions to protect and secure digital information and systems.',
-      color: '#cc0000',
-      gradient: 'linear-gradient(135deg, rgba(204, 0, 0, 0.2), rgba(204, 0, 0, 0.05))',
+      comicTag: 'EARTH-199999 // SPIDER-SHIELD',
+      desc: 'Develop impenetrable defenses, cryptography protocols, and security monitors to protect the digital universe.',
+      icon: Shield,
+      color: '#00f0ff',
+      bgClass: 'panel-teal',
     },
     {
+      id: '03',
+      title: 'AI & Machine Learning',
+      comicTag: 'EARTH-50101 // NEURAL SYMBIONT',
+      desc: 'Innovate with artificial neural nets, computer vision, and generative models to automate complex real-world workflows.',
       icon: Brain,
-      title: 'AI/ML',
-      description: 'Innovate with artificial intelligence and machine learning to solve complex problems.',
-      color: '#ff3333',
-      gradient: 'linear-gradient(135deg, rgba(255, 51, 51, 0.2), rgba(255, 51, 51, 0.05))',
+      color: '#ff5e00',
+      bgClass: 'panel-orange',
     },
     {
-      icon: Scale,
+      id: '04',
       title: 'Policy-Thon',
-      description: 'Create technology-driven solutions to address and influence public policies.',
-      color: '#990000',
-      gradient: 'linear-gradient(135deg, rgba(153, 0, 0, 0.2), rgba(153, 0, 0, 0.05))',
+      comicTag: 'EARTH-65 // PUBLIC WEB',
+      desc: 'Create technology-driven solutions and transparent civic tools that influence and improve public policies.',
+      icon: Scale,
+      color: '#637bff',
+      bgClass: 'panel-blue',
     },
     {
-      icon: Lightbulb,
+      id: '05',
       title: 'Open Innovation',
-      description: 'Bring your most creative and original ideas to life in this free-form track.',
-      color: '#ff6666',
-      gradient: 'linear-gradient(135deg, rgba(255, 102, 102, 0.2), rgba(255, 102, 102, 0.05))',
+      comicTag: 'MULTIVERSE // FREE-FORM SPRINT',
+      desc: 'Bring your most daring, unconventional, and ground-breaking software or hardware ideas to life.',
+      icon: Lightbulb,
+      color: '#ffe600',
+      bgClass: 'panel-yellow',
     },
   ];
 
   return (
-    <section id="tracks" className="tracks-section">
-      {/* Racing Stripe Top Border */}
-      <div className="racing-stripe-border"></div>
-
-      {/* Decorative Background */}
-      <div className="tracks-decoration">
-        <div className="checkered-pattern"></div>
-        <div className="speed-lines"></div>
-        <div className="grid-overlay"></div>
-        <div className="racing-number-bg">02</div>
+    <div id="tracks" className="modular-comic-issue-wrapper border-comic-orange">
+      {/* Comic 02 Header Bar */}
+      <div className="comic-issue-topbar">
+        <div className="issue-heading-group">
+          <a href="#tracks" className="comic-issue-pill">comic 02</a>
+          <h2 className="comic-issue-title" style={{ color: '#FF7B5F' }}>
+            DEPENDENCY <br />
+            JENGA
+          </h2>
+        </div>
       </div>
 
-      {/* Main Container */}
-      <div className="tracks-container">
-        {/* Section Header */}
-        <motion.div
-          className="tracks-header"
-          initial={{ opacity: 0, y: -30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="section-label">COMPETE & INNOVATE</div>
-          <h2 className="section-title">
-            <span className="title-word">COMPETITION</span>
-            <span className="title-word accent">TRACKS</span>
-          </h2>
-          <p className="section-subtitle">
-            Choose your track and race towards innovation across 5 exciting domains
-          </p>
-          <div className="title-underline"></div>
-        </motion.div>
-
-        {/* Tracks Grid */}
-        <motion.div
-          className="tracks-grid"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {tracksData.map((track, index) => {
-            const IconComponent = track.icon;
-            return (
-              <motion.div
-                key={index}
-                className="track-card"
-                variants={cardVariants}
-                whileHover={{
-                  y: -10,
-                  transition: { duration: 0.3 },
-                }}
-                style={{ '--track-color': track.color }}
-              >
-                <div className="track-number">
-                  <span>{String(index + 1).padStart(2, '0')}</span>
+      {/* Comic Cards Grid */}
+      <div className="comic-tracks-grid">
+        {tracks.map((t) => {
+          const Icon = t.icon;
+          return (
+            <div key={t.id} className={`comic-track-card ${t.bgClass}`}>
+              <div className="track-card-header">
+                <span className="track-issue-badge">JENGA BLOCK #{t.id}</span>
+                <span className="track-comic-tag">{t.comicTag}</span>
+              </div>
+              <div className="track-card-body">
+                <div className="track-icon-avatar">
+                  <Icon size={36} color="#000000" />
                 </div>
+                <h3 className="track-card-title">{t.title}</h3>
+                <p className="track-card-desc">{t.desc}</p>
+              </div>
+              <div className="track-card-footer">
+                <span className="track-status-pill">STATUS: OPEN FOR CHALLENGES</span>
+              </div>
+            </div>
+          );
+        })}
 
-                <div className="track-icon-wrapper">
-                  <IconComponent className="track-icon" size={40} />
-                  <div className="icon-glow"></div>
-                </div>
-
-                <h3 className="track-title">{track.title}</h3>
-                <p className="track-description">{track.description}</p>
-
-                <div className="track-footer">
-                  <div className="track-accent-line"></div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
-        {/* Special Recognition Banner */}
-        <motion.div
-          className="special-recognition"
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="recognition-icon">
-            <Award size={32} />
+        {/* Special Recognition: Spider-Gwen Card */}
+        <div className="comic-track-card special-gwen-card">
+          <div className="track-card-header">
+            <span className="track-issue-badge bg-white text-black">SPECIAL AWARD</span>
+            <span className="track-comic-tag">EARTH-65 // SPIDER-GWEN SQUAD</span>
           </div>
-          <div className="recognition-content">
-            <h3 className="recognition-title">Special Recognition</h3>
-            <p className="recognition-description">
-              One dedicated track will recognize the <span className="highlight">Best All-Girls Team</span> among participants
+          <div className="track-card-body">
+            <div className="track-icon-avatar gwen-avatar">
+              <Award size={36} color="#000000" />
+            </div>
+            <h3 className="track-card-title">Spider-Gwen All-Girls Award</h3>
+            <p className="track-card-desc">
+              Dedicated recognition, exclusive mentorship, and honors for the highest-performing All-Girls Team!
             </p>
           </div>
-          <div className="recognition-decoration">
-            <div className="pulse-ring"></div>
-            <div className="pulse-ring"></div>
+          <div className="track-card-footer">
+            <span className="track-status-pill gwen-pill">EMPOWERING FUTURE LEADERS</span>
           </div>
-        </motion.div>
-
-        {/* Stats Banner */}
-        <motion.div
-          className="tracks-stats"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-        >
-          <div className="tracks-stat-item">
-            <div className="stat-icon">🎯</div>
-            <div className="stat-content">
-              <div className="stat-value">4</div>
-              <div className="stat-label">Main Tracks</div>
-            </div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="tracks-stat-item">
-            <div className="stat-icon">👥</div>
-            <div className="stat-content">
-              <div className="stat-value">75+</div>
-              <div className="stat-label">Teams</div>
-            </div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="tracks-stat-item">
-            <div className="stat-icon">💰</div>
-            <div className="stat-content">
-              <div className="stat-value">₹80K+</div>
-              <div className="stat-label">Prize Pool</div>
-            </div>
-          </div>
-          <div className="stat-divider"></div>
-          <div className="tracks-stat-item">
-            <div className="stat-icon">⏱️</div>
-            <div className="stat-content">
-              <div className="stat-value">24</div>
-              <div className="stat-label">Hours</div>
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </div>
-    </section>
+
+      {/* Modular Callout Banner Button */}
+      <div className="modular-between-banner">
+        <a href="#schedule" className="modular-banner-btn">
+          <div className="banner-btn-inner">
+            <span className="banner-title">INSPECT MISSION COUNTDOWN & PRIZES</span>
+            <span className="banner-sub">SEE PARTICIPANTS, COLLEGES & PRIZE VAULT BELOW</span>
+          </div>
+        </a>
+      </div>
+    </div>
   );
 };
 

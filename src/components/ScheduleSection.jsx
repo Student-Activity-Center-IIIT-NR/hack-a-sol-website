@@ -1,74 +1,85 @@
-import { motion } from 'framer-motion';
-import '../styles/ScheduleSection.css';
+'use client';
+import React from 'react';
+import '../styles/ModularComic.css';
 
 const ScheduleSection = () => {
-  const participants = [
-    { name: 'NO. OF COLLEGES', position: '250+', },
-    { name: 'TOTAL PARTICIPANTS', position: '2800+', },
-    { name: 'TEAMS', position: '75+', },
-    { name: 'TRACKS', position: '5', },
-    { name: 'HACKERS', position: '300+', },
+  const stats = [
+    { label: 'COLLEGES IN THE WEB', value: '250+', tag: 'PAN-INDIA' },
+    { label: 'MULTIVERSE PARTICIPANTS', value: '2800+', tag: 'APPLICATIONS' },
+    { label: 'HERO SQUADS ASSEMBLED', value: '75+', tag: 'FINALISTS' },
+    { label: 'SPIDER TRACKS', value: '5', tag: 'DOMAINS' },
+    { label: 'WEB-WARRIORS HACKING', value: '300+', tag: 'ON CAMPUS' },
   ];
 
   return (
-    <section id="schedule" className="schedule-section">
-      {/* Main circular design */}
-      <div className="schedule-content">
-        <motion.div 
-          className="japan-circle"
-          initial={{ scale: 0.8, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        >
-          <div className="circle-text">
-            <span className="japan-text">$945+</span>
-            <span className="gp-text text-s text-white" style={{ fontSize: '0.95em' }}>Prize Pool</span>
-          </div>
-        </motion.div>
-
-        {/* Participants list */}
-        <motion.div 
-          className="participants-grid"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-        >
-          <div className="participants-left">
-            {participants.slice(0, 4).map((participant, index) => (
-              <motion.div
-                key={index}
-                className="participant-row"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 * index }}
-              >
-                <span className="participant-position">{participant.position}</span>
-                <span className="participant-name">{participant.name}</span>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="participants-right">
-            {participants.slice(4).map((participant, index) => (
-              <motion.div
-                key={index + 4}
-                className="participant-row"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 * (index + 4) }}
-              >
-                <span className="participant-position">{participant.position}.</span>
-                <span className="participant-name">{participant.name}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+    <div id="schedule" className="modular-comic-issue-wrapper border-comic-green">
+      {/* Comic 03 Header Bar */}
+      <div className="comic-issue-topbar">
+        <div className="issue-heading-group">
+          <a href="#schedule" className="comic-issue-pill">comic 03</a>
+          <h2 className="comic-issue-title" style={{ color: 'var(--Comic-Light-Blue, #637BFF)' }}>
+            IT WORKED YESTERDAY <br />
+            aka DEMO GODS
+          </h2>
+        </div>
       </div>
-    </section>
+
+      {/* Main Comic Centerpiece Layout */}
+      <div className="comic-schedule-layout">
+        {/* Left Stats Column */}
+        <div className="stats-column left-stats">
+          {stats.slice(0, 3).map((s, idx) => (
+            <div key={idx} className="modular-stat-panel">
+              <span className="stat-tag">{s.tag}</span>
+              <span className="stat-number">{s.value}</span>
+              <span className="stat-name">{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Center Spider-Signal / Sunburst Prize Pool Badge */}
+        <div className="comic-sunburst-center">
+          <div className="sunburst-outer">
+            <div className="sunburst-rays"></div>
+            <div className="sunburst-core">
+              <span className="sunburst-badge-tag">SECRET VAULT</span>
+              <span className="sunburst-main-text">COMING SOON</span>
+              <span className="sunburst-sub-text">PRIZE POOL</span>
+              <div className="sunburst-spider">🕷️⚡</div>
+            </div>
+          </div>
+          <div className="sunburst-caption">
+            "PREPARE YOUR CODE — EPIC 36-HOUR REWARDS TO BE UNVEILED!"
+          </div>
+        </div>
+
+        {/* Right Stats Column */}
+        <div className="stats-column right-stats">
+          {stats.slice(3).map((s, idx) => (
+            <div key={idx} className="modular-stat-panel">
+              <span className="stat-tag">{s.tag}</span>
+              <span className="stat-number">{s.value}</span>
+              <span className="stat-name">{s.label}</span>
+            </div>
+          ))}
+          <div className="modular-stat-panel special-callout">
+            <span className="stat-tag">LOCATION</span>
+            <span className="stat-number-text">IIIT NAYA RAIPUR</span>
+            <span className="stat-name">36-HOUR NATIONAL ARENA</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Modular Callout Banner Button */}
+      <div className="modular-between-banner">
+        <a href="#sponsors" className="modular-banner-btn">
+          <div className="banner-btn-inner">
+            <span className="banner-title">MEET OUR ALLIED SPONSORS</span>
+            <span className="banner-sub">TECH TITANS POWERING THE 36-HOUR HACKATHON</span>
+          </div>
+        </a>
+      </div>
+    </div>
   );
 };
 

@@ -255,3 +255,174 @@ a:focus {
     -webkit-text-fill-color: black !important;
   }
 }
+
+
+/* ============================================
+   GLOBAL COMIC BOOK & SPIDER-MAN STYLING
+   ============================================ */
+
+/* Comic Typography Overrides */
+h1, h2, h3, h4, 
+.section-title, 
+.brand-title, 
+.title-word, 
+.track-title, 
+.feature-title,
+.column-title,
+.cta-title {
+  font-family: 'Bangers', 'Orbitron', 'Impact', cursive, sans-serif !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Spider-Man Ben-Day Comic Halftone Background */
+body {
+  background-color: #07090e !important;
+  background-image: 
+    radial-gradient(rgba(230, 36, 41, 0.09) 1.5px, transparent 1.5px),
+    radial-gradient(rgba(0, 85, 255, 0.07) 1.5px, transparent 1.5px) !important;
+  background-size: 24px 24px, 48px 48px !important;
+  background-position: 0 0, 12px 12px !important;
+}
+
+/* Comic Book Panels & Cards */
+.track-card,
+.stat-card,
+.feature-card,
+.special-recognition,
+.contact-item,
+.sponsor-logo-card,
+.participant-row {
+  border: 3px solid #000000 !important;
+  box-shadow: 5px 5px 0px #000000, 8px 8px 0px rgba(230, 36, 41, 0.45) !important;
+  background: rgba(14, 18, 28, 0.95) !important;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.track-card:hover,
+.stat-card:hover,
+.feature-card:hover {
+  transform: translateY(-8px) rotate(-1deg) scale(1.02) !important;
+  box-shadow: 8px 8px 0px #000000, 14px 14px 0px #e62429 !important;
+  border-color: #000000 !important;
+}
+
+/* Comic Section Headers */
+.section-label {
+  display: inline-block !important;
+  background: #e62429 !important;
+  color: #ffffff !important;
+  font-family: 'Bangers', cursive, sans-serif !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.12em !important;
+  padding: 0.3rem 0.9rem !important;
+  border: 2px solid #000000 !important;
+  box-shadow: 3px 3px 0px #000000 !important;
+  transform: rotate(-1.5deg) !important;
+  margin-bottom: 0.75rem !important;
+  border-radius: 4px !important;
+}
+
+.title-word {
+  text-shadow: 
+    3px 3px 0px #000000,
+    5px 5px 0px #e62429 !important;
+}
+
+.title-word.accent {
+  color: #ffe600 !important;
+  text-shadow: 
+    3px 3px 0px #000000,
+    5px 5px 0px #e62429 !important;
+}
+
+/* Comic Speech Bubble CTA */
+.about-cta {
+  border: 3.5px solid #000000 !important;
+  background: #ffe600 !important;
+  color: #000000 !important;
+  box-shadow: 6px 6px 0px #000000, 10px 10px 0px #e62429 !important;
+  transform: rotate(-0.5deg) !important;
+}
+
+.about-cta .cta-title {
+  color: #000000 !important;
+  font-size: 2.2rem !important;
+  text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.6) !important;
+}
+
+.about-cta .cta-subtitle {
+  color: #111111 !important;
+  font-weight: 700 !important;
+}
+
+/* Special Recognition Spider-Gwen Card */
+.special-recognition {
+  border: 3.5px solid #000000 !important;
+  background: linear-gradient(135deg, rgba(230, 36, 41, 0.25), rgba(0, 85, 255, 0.25)), #0d121f !important;
+  box-shadow: 6px 6px 0px #000000, 10px 10px 0px #00d4ff !important;
+}
+
+.recognition-title {
+  font-family: 'Bangers', cursive, sans-serif !important;
+  color: #ffe600 !important;
+  letter-spacing: 0.06em !important;
+  font-size: 1.5rem !important;
+}
+
+/* Japan Circle in Schedule styled as Spider-Signal / Comic Sunburst */
+.japan-circle {
+  border: 4px solid #000000 !important;
+  box-shadow: 0 0 0 8px rgba(230, 36, 41, 0.3), 8px 8px 0px #000000, 12px 12px 0px #ffe600 !important;
+  background: radial-gradient(circle, #e62429 0%, #8a0c10 80%, #000000 100%) !important;
+}
+
+.japan-text {
+  font-family: 'Bangers', cursive, sans-serif !important;
+  letter-spacing: 0.08em !important;
+  color: #ffe600 !important;
+  text-shadow: 3px 3px 0px #000000 !important;
+}
+
+/* Footer Comic Overrides */
+.footer {
+  border-top: 5px solid #000000 !important;
+  background: #06080e !important;
+  position: relative;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    #e62429 0,
+    #e62429 20px,
+    #ffe600 20px,
+    #ffe600 40px,
+    #0055ff 40px,
+    #0055ff 60px,
+    #000000 60px,
+    #000000 80px
+  );
+}
+
+.brand-tagline {
+  font-family: 'Bangers', cursive, sans-serif !important;
+  color: #ffe600 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.made-with {
+  font-family: 'Bangers', cursive, sans-serif !important;
+  font-size: 1.15rem !important;
+  letter-spacing: 0.08em !important;
+  color: #ffffff !important;
+}
+
+.made-with .heart-icon {
+  filter: drop-shadow(0 0 6px #e62429);
+}
