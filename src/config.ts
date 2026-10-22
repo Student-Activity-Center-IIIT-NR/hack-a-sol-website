@@ -125,7 +125,6 @@ export const HERO_WALL_SCROLL = {
 export const EVENT = {
   name: 'Hack-A-Sol 5.0',
   edition: '5.0',
-  theme: 'MARVEL',
   hostedBy: 'IIIT Naya Raipur',
   /** Update when confirmed */
   date: 'November 2026 (TBA)',
@@ -170,13 +169,123 @@ export const TIERS = [
 ] as const
 
 export const TIMELINE = [
-  { label: 'Registration Opens',   date: 'TBA' },
-  { label: 'Registration Closes',  date: 'TBA' },
-  { label: 'Team Announcement',    date: 'TBA' },
-  { label: 'Hackathon Day 1 Setup', date: 'TBA' },
-  { label: 'Hackathon Day 2 + Project Demos', date: 'TBA' },
-  { label: 'Prize Ceremony',       date: 'TBA' },
+  {
+    label: 'Registration Opens',
+    date: 'TBA',
+    icon: '🚀',
+    description: 'Assemble your team of 2–4 and stake your claim in the Multiverse.',
+  },
+  {
+    label: 'Registration Closes',
+    date: 'TBA',
+    icon: '⏳',
+    description: 'Last call — once the portal closes, no new Avengers can enter.',
+  },
+  {
+    label: 'Team Announcement',
+    date: 'TBA',
+    icon: '📢',
+    description: 'Selected teams are revealed. Your mission briefing begins here.',
+  },
+  {
+    label: 'Hackathon Day 1 — Setup & Build',
+    date: 'TBA',
+    icon: '🔧',
+    description: '24 hours of ideation, engineering, and relentless problem-solving.',
+  },
+  {
+    label: 'Hackathon Day 2 — Demo Day',
+    date: 'TBA',
+    icon: '🏆',
+    description: 'Present your solution to an elite panel of industry experts and mentors.',
+  },
+  {
+    label: 'Prize Ceremony & Closing',
+    date: 'TBA',
+    icon: '🎖',
+    description: 'The worthy are crowned. Glory, prizes, and legend status await.',
+  },
 ] as const
+
+/** Past sponsors — replace with real logos/names when confirmed */
+export type PastSponsor = {
+  id: string
+  name: string
+  logo: string
+  /** Set true for dark logos so the tile gets a light background */
+  onLight?: boolean
+}
+
+export const PAST_SPONSORS: readonly PastSponsor[] = [
+  { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg' },
+  { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg' },
+  { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg' },
+  { id: 'ath-india',     name: 'ETH India',       logo: '/sponsors/ethindia.svg' },
+  { id: 'quill-audit',   name: 'Quill Audits',     logo: '/sponsors/quillaudits.svg' },
+  { id: 'incognito',     name: 'Incogni',       logo: '/sponsors/incogni.svg' },
+]
+
+/** Last year stats — update when Hack-A-Sol 4.0 numbers are confirmed */
+export const LAST_YEAR = {
+  edition: '4.0',
+  participants: '400+',
+  teams: '100+',
+  tracks: '4',
+  prizePool: '₹1,00,000+',
+  colleges: '50+',
+  mentors: '20+',
+  theme: 'DC UNIVERSE',
+} as const
+
+/** Organizers — update with real names and numbers */
+export const ORGANIZERS = [
+  {
+    id: 'org-1',
+    name: 'Sumit Sahoo',
+    role: 'Lead Organizer',
+    mobile: '8260984497',
+    avatar: '⚡',
+    accentColor: '#E23636',
+  },
+  {
+    id: 'org-2',
+    name: 'Bhavika Jawrani',
+    role: 'Lead Organizer',
+    mobile: '9039027103',
+    avatar: '🛡',
+    accentColor: '#60A5FA',
+  },
+] as const
+
+/** College / venue location details */
+export const COLLEGE_LOCATION = {
+  name: 'IIIT Naya Raipur',
+  fullName: 'International Institute of Information Technology, Naya Raipur',
+  address: 'Atal Nagar, Naya Raipur, Chhattisgarh — 493661',
+  mapLink: 'https://www.google.com/maps/place/International+Institute+of+Information+Technology,+Naya+Raipur/@21.1284694,81.7635905,17z/data=!3m1!4b1!4m6!3m5!1s0x3a28c434ac2ae871:0x4e3568497a7e1d7e!8m2!3d21.1284644!4d81.7661654!16s%2Fg%2F11dxm6nvnl?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D',
+  airport: {
+    name: 'Swami Vivekananda Airport, Raipur',
+    distance: '~15 km',
+    time: '~40 min by cab',
+  },
+  railway: {
+    name: 'Raipur Railway Station',
+    distance: '~26 km',
+    time: '~35 min by cab',
+  },
+} as const
+
+/** Social media links — update when handles are confirmed */
+export const SOCIALS = {
+  github:    { label: 'GitHub',    href: 'https://github.com/Student-Activity-Center-IIIT-NR/hack-a-sol-website',       handle: '@hackasol'    },
+  discord:   { label: 'Discord',   href: 'https://discord.gg/hackasol',       handle: 'Join Server'  },
+  linkedin:  { label: 'LinkedIn',  href: 'https://www.linkedin.com/company/hack-a-sol/ahome/', handle: '@hackasol' },
+  twitter:   { label: 'Twitter/X', href: 'https://x.com/home',      handle: '@hackasol'    },
+  instagram: { label: 'Instagram', href: 'https://www.instagram.com/hack_a_sol_iiitnr/',    handle: '@hackasol'    },
+} as const
+
+/** Hackathon official contact email */
+export const HACKASOL_EMAIL = 'hackasol@iiitnr.ac.in'
 
 export const FAQ = [
   {

@@ -37,9 +37,11 @@ import { Hero }             from "./sections/Hero"
 import { HeroMultiverse }   from "./sections/HeroMultiverse"
 import { About }         from "./sections/About"
 import { Tracks }        from "./sections/Tracks"
-import { WhySponsor }    from "./sections/WhySponsor"
-import { SponsorTiers }  from "./sections/SponsorTiers"
+import { Brochure }      from "./sections/Brochure"
+import { PastSponsors }  from "./sections/PastSponsors"
 import { Timeline }      from "./sections/Timeline"
+import { EventDate }     from "./sections/EventDate"
+import { LastYear }      from "./sections/LastYear"
 import { FAQ }           from "./sections/FAQ"
 import { Contact }       from "./sections/Contact"
 import { Footer }        from "./sections/Footer"
@@ -78,7 +80,7 @@ export default function App() {
   , [])
 
   // Dim the 3D canvas behind non-track sections (sponsor / faq / footer)
-  const canvasDimmed = scrollProgress > 0.78
+  const canvasDimmed = scrollProgress > 0.65
 
   // Smooth velocity for environment (decays to 0 when scroll stops)
   const smoothedVelocity = (() => {
@@ -145,9 +147,11 @@ export default function App() {
           debugMode={debugMode}
           trackScrollVh={controls.trackScrollVh}
         />
-        <WhySponsor />
-        <SponsorTiers />
+        <EventDate />
+        <Brochure />
+        <PastSponsors />
         <Timeline />
+        <LastYear />
         <FAQ />
         <Contact />
         <Footer />

@@ -192,3 +192,34 @@ footer#footer {
   40%  { opacity: 0.7; clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
   100% { opacity: 0;   clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
 }
+
+/* ── Infinite marquee — left and right scroll ───────────────────────────── */
+@keyframes marquee-left {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@keyframes marquee-right {
+  0%   { transform: translateX(-33.333%); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Timeline spine pulse ────────────────────────────────────────────────── */
+@keyframes timelinePulse {
+  0%   { transform: translateY(-100%); opacity: 0;   }
+  30%  { opacity: 1; }
+  70%  { opacity: 0.6; }
+  100% { transform: translateY(300%); opacity: 0;   }
+}
+
+/* ── New sections backdrop (same pattern as sponsor sections) ────────────── */
+#brochure,
+#event-date,
+#past-sponsors,
+#last-year,
+#contact,
+#timeline {
+  background: linear-gradient(to bottom, transparent, rgba(5,5,8,0.90) 6%, rgba(5,5,8,0.95) 100%);
+  position: relative;
+  z-index: 10;
+}
