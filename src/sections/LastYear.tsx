@@ -1,134 +1,166 @@
 /**
  * src/sections/LastYear.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * "Hack-A-Sol 4.0 — A Look Back" section.
- * Features:
- *   - Cinematic section header
- *   - Animated stats row (participants, teams, tracks, prize pool, colleges, mentors)
- *   - Photo gallery grid with placeholder images (masonry-style)
- *   - Marvel-themed styling
+ * "Hack-A-Sol 4.0 — A Look Back" — Marvel UI redesign.
+ * - SectionHeader with eyebrow "The Legacy"
+ * - 6 stat cards (6 col ≥1280px, 3 col ≥768px, 2 below) with lucide icons
+ *   and count-up animation (once on scroll-in, via Stat component)
+ * - Asymmetric gallery grid: 1 large 2×2 + 4 small tiles, Panel frames
+ * - Placeholder state: subtle halftone + muted label, no bright icon boxes
  */
 
+import {
+  Users,
+  Handshake,
+  Target,
+  Trophy,
+  Building2,
+  GraduationCap,
+} from 'lucide-react'
 import { LAST_YEAR } from '../config'
+import { SectionHeader, Panel, Stat, Divider } from '../components/ui'
+import '../styles/marvel-ui.css'
 
 const STATS = [
-  { icon: '👥', value: LAST_YEAR.participants, label: 'Participants'  },
-  { icon: '🤝', value: LAST_YEAR.teams,        label: 'Teams'         },
-  { icon: '🎯', value: LAST_YEAR.tracks,       label: 'Tracks'        },
-  { icon: '💰', value: LAST_YEAR.prizePool,    label: 'Prize Pool'    },
-  { icon: '🏫', value: LAST_YEAR.colleges,     label: 'Colleges'      },
-  { icon: '🧑‍🏫', value: LAST_YEAR.mentors,    label: 'Mentors'       },
+  { icon: <Users size={20} strokeWidth={1.5} />,         value: LAST_YEAR.participants, label: 'Participants' },
+  { icon: <Handshake size={20} strokeWidth={1.5} />,     value: LAST_YEAR.teams,        label: 'Teams'        },
+  { icon: <Target size={20} strokeWidth={1.5} />,        value: LAST_YEAR.tracks,       label: 'Tracks'       },
+  { icon: <Trophy size={20} strokeWidth={1.5} />,        value: LAST_YEAR.prizePool,    label: 'Prize Pool'   },
+  { icon: <Building2 size={20} strokeWidth={1.5} />,     value: LAST_YEAR.colleges,     label: 'Colleges'     },
+  { icon: <GraduationCap size={20} strokeWidth={1.5} />, value: LAST_YEAR.mentors,      label: 'Mentors'      },
 ]
 
-/** Placeholder photo slots — each has a unique Marvel-inspired label */
-const GALLERY_PHOTOS = [
-  { id: 'g1', caption: 'Opening Ceremony',     wide: true  },
-  { id: 'g2', caption: 'Team Hacking Session', wide: false },
-  { id: 'g3', caption: 'Mentor Rounds',        wide: false },
-  { id: 'g4', caption: 'Project Showcase',     wide: false },
-  { id: 'g5', caption: 'Prize Distribution',   wide: false },
-  { id: 'g6', caption: 'Closing Highlights',   wide: true  },
+/** Gallery slots: one large (2×2) + four small */
+const GALLERY = [
+  { id: 'g1', caption: 'Opening Ceremony',     large: true  },
+  { id: 'g2', caption: 'Team Hacking Session', large: false },
+  { id: 'g3', caption: 'Mentor Rounds',        large: false },
+  { id: 'g4', caption: 'Project Showcase',     large: false },
+  { id: 'g5', caption: 'Prize Distribution',   large: false },
 ]
 
-function PlaceholderPhoto({ caption, wide }: { caption: string; wide: boolean }) {
+function GallerySlot({ caption, large }: { caption: string; large: boolean }) {
   return (
-    <div
-      className={`relative border border-white/8 rounded-sm overflow-hidden group bg-[#0A0A0F] hover:border-marvel-red/40 transition-all duration-500 ${wide ? 'col-span-2' : 'col-span-1'}`}
-      style={{ minHeight: wide ? '200px' : '170px' }}
+    <Panel
+      className={large ? 'row-span-2 col-span-2' : ''}
+      style={{
+        minHeight: large ? '260px' : '120px',
+        overflow: 'hidden',
+        position: 'relative',
+      } as React.CSSProperties}
     >
-      {/* Comic-panel fill */}
-      <div className="absolute inset-0 halftone opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-br from-marvel-red/5 via-transparent to-blue-500/5" />
-
-      {/* Comic scan lines */}
+      {/* Subtle halftone placeholder — no bright icon boxes */}
       <div
-        className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)',
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+          opacity: 0.08,
+          pointerEvents: 'none',
         }}
+        aria-hidden="true"
       />
-
-      {/* Center icon */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-        <div className="w-12 h-12 border border-white/10 rounded-sm flex items-center justify-center">
-          <svg className="w-6 h-6 text-white/15" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M13.5 12h.008v.008H13.5V12zm3.75 0h.008v.008H13.5V12z" />
-          </svg>
-        </div>
-        <p className="font-body text-[10px] text-white/20 tracking-widest uppercase">Photo</p>
+      {/* Muted label only */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          pointerEvents: 'none',
+        }}
+      >
+        <svg
+          width="16" height="16"
+          fill="none" stroke="currentColor" strokeWidth="1.2"
+          viewBox="0 0 24 24"
+          style={{ color: 'rgba(255,255,255,0.1)' }}
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round"
+            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M13.5 12h.008v.008H13.5V12z"
+          />
+        </svg>
+        <span
+          className="font-body uppercase"
+          style={{ fontSize: '0.58rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.18)' }}
+        >
+          {caption}
+        </span>
       </div>
-
-      {/* Hover overlay */}
-      <div className="absolute inset-0 bg-marvel-red/0 group-hover:bg-marvel-red/5 transition-colors duration-500" />
-
-      {/* Caption */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <p className="font-heading text-sm text-white tracking-wide">{caption}</p>
-      </div>
-
-      {/* Corner accent */}
-      <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-marvel-red/40 group-hover:bg-marvel-red transition-colors duration-300" />
-    </div>
+    </Panel>
   )
 }
 
 export function LastYear() {
   return (
-    <section id="last-year" className="relative px-6 py-32 overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-marvel-red/5 rounded-full blur-[120px]" />
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-blue-500/5 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 halftone opacity-25" />
+    <section
+      id="last-year"
+      className="mu-section"
+      style={{ overflow: 'clip' }}
+    >
+      {/* Ambient */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-full"
+          style={{
+            width: 'min(800px, 80vw)', height: '400px',
+            background: 'rgba(226,54,54,0.04)',
+            filter: 'blur(120px)',
+          }}
+        />
       </div>
 
-      <div className="max-w-6xl mx-auto relative">
-        {/* Section header */}
-        <div className="text-center mb-16">
-          <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase mb-4">
-            The Legacy
-          </p>
-          <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-4">
-            HACK-A-SOL<br />
-            <span className="text-white/25">{LAST_YEAR.edition} — A LOOK BACK</span>
-          </h2>
-        </div>
+      <div className="mu-container" style={{ position: 'relative' }}>
+        <SectionHeader
+          eyebrow="The Legacy"
+          title="HACK-A-SOL 4.0 — A LOOK BACK"
+          accent="4.0 — A LOOK BACK"
+        />
 
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
-          {STATS.map(({ icon, value, label }, i) => (
-            <div
-              key={label}
-              className="group border border-white/8 rounded-sm p-5 bg-white/[0.02] text-center hover:border-marvel-red/40 hover:bg-white/[0.05] transition-all duration-400"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            >
-              <div className="text-3xl mb-3">{icon}</div>
-              <p className="font-heading text-3xl text-white group-hover:text-marvel-red transition-colors duration-300">
-                {value}
-              </p>
-              <p className="font-body text-[10px] text-white/30 tracking-widest uppercase mt-1">
-                {label}
-              </p>
-            </div>
+        {/* Stats grid — responsive via inline style + media via Tailwind */}
+        <div
+          className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-12"
+        >
+          {STATS.map(({ icon, value, label }) => (
+            <Panel key={label}>
+              <Stat icon={icon} value={value} label={label} countUp />
+            </Panel>
           ))}
         </div>
 
-        {/* Divider with label */}
-        <div className="flex items-center gap-6 mb-10">
-          <div className="flex-1 h-px bg-white/8" />
-          <p className="font-body text-xs tracking-[0.5em] text-white/20 uppercase">Gallery</p>
-          <div className="flex-1 h-px bg-white/8" />
-        </div>
+        <Divider />
 
-        {/* Photo gallery — masonry grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-[170px]">
-          {GALLERY_PHOTOS.map(({ id, caption, wide }) => (
-            <PlaceholderPhoto key={id} caption={caption} wide={wide} />
+        {/* Gallery label */}
+        <p
+          className="font-body uppercase mb-6 mt-0"
+          style={{ fontSize: '0.65rem', letterSpacing: '0.4em', color: 'var(--faint)' }}
+        >
+          Gallery
+        </p>
+
+        {/* Asymmetric gallery — 1 large (2×2) + 4 small in a 4-col grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateRows: 'repeat(2, 130px)',
+            gap: '8px',
+          }}
+        >
+          {GALLERY.map(({ id, caption, large }) => (
+            <GallerySlot key={id} caption={caption} large={large} />
           ))}
         </div>
 
-        {/* CTA below gallery */}
-        <p className="text-center font-body text-xs text-white/20 tracking-widest uppercase mt-10">
+        <p
+          className="font-body text-center uppercase mt-8"
+          style={{ fontSize: '0.65rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)' }}
+        >
           Real gallery photos from Hack-A-Sol 4.0 will be added here soon
         </p>
       </div>

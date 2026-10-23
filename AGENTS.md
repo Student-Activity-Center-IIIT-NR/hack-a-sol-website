@@ -47,7 +47,9 @@
 ```
 src/
   components/   — reusable UI (Navbar, Button, etc.)
+  components/ui/ — SHARED MARVEL UI COMPONENTS (SectionHeader, Panel, Chip, Button, Stat, LogoTile, Divider)
   sections/     — page sections (Hero, Tracks, About, etc.)
+  styles/       — marvel-ui.css (design tokens — SINGLE SOURCE OF TRUTH)
   three/        — R3F components (Scene, track models, etc.)
   hooks/        — custom hooks (useScrollProgress, useLenis, etc.)
   data/         — tracks.ts, faq.ts, tiers.ts
@@ -55,4 +57,42 @@ src/
   main.tsx      — entry, Lenis + GSAP ScrollTrigger setup
   App.tsx       — root: Canvas + scrolling HTML
   index.css     — Tailwind base + global tokens
+  utils/uiAudit.ts — UI audit tool (?debug=1&ui=audit)
 ```
+
+## UI Rules
+
+> All content sections below Tracks MUST follow these rules.
+
+### Design Tokens (src/styles/marvel-ui.css)
+Only use these CSS custom properties — never hardcode equivalent values:
+- `--bg` #07070b, `--panel` rgba(255,255,255,0.035), `--panel-hover` rgba(255,255,255,0.055)
+- `--line` rgba(255,255,255,0.09), `--line-strong` rgba(255,255,255,0.16) — **brightest border allowed**
+- `--red` #e23636, `--red-soft` rgba(226,54,54,0.35)
+- `--text` rgba(255,255,255,0.92), `--muted` rgba(255,255,255,0.62), `--faint` rgba(255,255,255,0.38)
+
+### Required Components (`src/components/ui/`)
+Every content section MUST use these shared components:
+| Component | Usage |
+|-----------|-------|
+| `SectionHeader` | Every section's title block — eyebrow, title, accent word, subtitle |
+| `Panel` | All card/box surfaces — default or accent variant |
+| `Chip` | Mono labels, TBA badges, status tags |
+| `Button` | CTAs — primary (red) or ghost (underline) |
+| `Stat` | Stat display with icon + count-up |
+| `LogoTile` | Sponsor logo tiles — always with plate/tone setting |
+| `Divider` | Horizontal rules |
+
+### Absolute Prohibitions
+- **No emoji** anywhere in the UI — use Lucide React icons (20px, stroke 1.5, red)
+- **No border brighter than `var(--line-strong)`** (rgba 255,255,255,0.16)
+- **Red is the ONLY accent outside Tracks** — no gold, blue, orange, green accents
+- **No HUD labels outside the Tracks section** — `FloatingHUD` handles this
+- **No `overflow-x: hidden`** on large elements — use `clip` instead
+- **No backdrop-filter on large layers** — performance rule
+- **No per-frame React state for animations** — use IntersectionObserver + CSS
+
+### UI Audit
+Run `?debug=1&ui=audit` or call `window.__muAudit()` in the console to check for violations.
+Target: zero critical issues at 1920×868 and 390×844.
+

@@ -1,38 +1,50 @@
 /**
  * src/sections/WhySponsor.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Sponsor pitch section — the key value propositions for partners.
- * Designed to impress potential sponsors browsing the site.
+ * Sponsor pitch section — redesigned with Marvel UI system.
+ * SectionHeader, Panel reason cards (lucide icons), primary Button CTA.
+ * No emoji. Red-only accent.
  */
+
+import {
+  Crosshair,
+  Landmark,
+  Megaphone,
+  Users,
+  Globe,
+  Trophy,
+} from 'lucide-react'
+import { SectionHeader, Panel, Button } from '../components/ui'
+import '../styles/marvel-ui.css'
 
 const REASONS = [
   {
-    icon: '🎯',
+    Icon: Crosshair,
     title: 'Prime Audience',
-    body: 'Direct access to 500+ of India\'s top engineering students — your next interns, employees, and brand advocates.',
+    body: "Direct access to 500+ of India's top engineering students — your next interns, employees, and brand advocates.",
   },
   {
-    icon: '🏫',
+    Icon: Landmark,
     title: 'IIIT Naya Raipur',
     body: 'Backed by a premier government institute — credibility, reach, and media coverage across the region.',
   },
   {
-    icon: '📣',
+    Icon: Megaphone,
     title: 'Multi-Channel Visibility',
     body: 'Logo placement across social media, website, event banners, merchandise, and all official communications.',
   },
   {
-    icon: '🤝',
+    Icon: Users,
     title: 'Talent Pipeline',
-    body: 'Host a challenge, run a workshop, or conduct on-site interviews. Meet candidates you won\'t find anywhere else.',
+    body: "Host a challenge, run a workshop, or conduct on-site interviews. Meet candidates you won't find anywhere else.",
   },
   {
-    icon: '🌐',
+    Icon: Globe,
     title: 'Digital Reach',
     body: 'Our previous editions generated thousands of impressions across LinkedIn, Instagram, and Twitter/X.',
   },
   {
-    icon: '🏆',
+    Icon: Trophy,
     title: 'Innovation First',
     body: 'Align your brand with cutting-edge talent across AI, Web3, cybersecurity and public policy — the future, today.',
   },
@@ -40,53 +52,67 @@ const REASONS = [
 
 export function WhySponsor() {
   return (
-    <section id="why-sponsor" className="relative min-h-screen flex items-center px-6 py-32">
+    <section
+      id="why-sponsor"
+      className="mu-section"
+      style={{ overflow: 'clip' }}
+    >
       {/* Background accent */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-marvel-red/5 blur-[120px]" />
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            width: 'min(600px, 60vw)',
+            height: '600px',
+            background: 'rgba(226,54,54,0.04)',
+            filter: 'blur(120px)',
+          }}
+        />
       </div>
 
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase mb-4">
-            Back The Multiverse // Partnership
-          </p>
-          <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-6">
-            BACK THE MULTIVERSE<br />
-            <span className="text-white/30">PARTNER WITH HACK-A-SOL 5.0</span>
-          </h2>
-          <p className="font-body text-white/50 text-lg max-w-2xl mx-auto">
-            Hack-A-Sol 5.0 is the premier technological convergence at IIIT Naya Raipur. Partnering with us puts
-            your brand at the nexus of India's brightest engineers, disruptive projects, and the next generation of builders.
-          </p>
-        </div>
+      <div className="mu-container" style={{ position: 'relative' }}>
+        <SectionHeader
+          eyebrow="Back The Multiverse // Partnership"
+          title="BACK THE MULTIVERSE"
+          sub="Hack-A-Sol 5.0 is the premier technological convergence at IIIT Naya Raipur. Partnering with us puts your brand at the nexus of India's brightest engineers, disruptive projects, and the next generation of builders."
+          align="center"
+        />
 
         {/* Reasons grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {REASONS.map(({ icon, title, body }) => (
-            <div
-              key={title}
-              className="group border border-white/10 rounded-sm p-6 bg-white/[0.02] hover:border-marvel-red/40 hover:bg-white/[0.04] transition-all duration-300 cursor-default"
-            >
-              <span className="text-3xl mb-4 block">{icon}</span>
-              <h3 className="font-heading text-2xl text-white mb-2 group-hover:text-marvel-red transition-colors">
+        <div
+          className="grid gap-4 mb-12"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))' }}
+        >
+          {REASONS.map(({ Icon, title, body }) => (
+            <Panel key={title} className="p-6">
+              {/* Icon — red, 20px, stroke 1.5 */}
+              <span style={{ color: 'var(--red)', display: 'block', marginBottom: '1rem' }}>
+                <Icon size={20} strokeWidth={1.5} />
+              </span>
+              <h3
+                className="font-heading tracking-wide mb-2"
+                style={{ fontSize: '1.3rem', color: 'var(--text)' }}
+              >
                 {title}
               </h3>
-              <p className="font-body text-white/50 text-sm leading-relaxed">{body}</p>
-            </div>
+              <p
+                className="font-body leading-relaxed"
+                style={{ fontSize: '0.875rem', color: 'var(--muted)' }}
+              >
+                {body}
+              </p>
+            </Panel>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="mt-16 text-center">
-          <a
-            id="whysponsor-cta"
-            href="#sponsor-tiers"
-            className="inline-flex items-center gap-3 px-10 py-4 font-heading tracking-widest text-sm bg-marvel-red text-white rounded-sm hover:bg-red-700 transition-all hover:shadow-[0_0_40px_rgba(226,54,54,0.5)] hover:scale-105 active:scale-95"
-          >
-            VIEW SPONSOR PACKAGES
-            <span>→</span>
-          </a>
+        <div className="flex justify-center">
+          <Button id="whysponsor-cta" href="#sponsor-tiers">
+            View Sponsor Packages
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Button>
         </div>
       </div>
     </section>

@@ -3,12 +3,13 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Cinematic Marvel Multiverse HUD overlay.
  *
- * Streamlined:
- * - Top-left: Single small dim corner label ("MULTIVERSE SECTOR 05 // REALITY DETECTED").
- * - Hero section has strictly ONE corner label (top-left).
- * - Bottom-left "VOL. 5" and bottom-right telemetry fade out during Hero section
- *   so they never cover the Hero CTA buttons or clutter the view.
- * - Responsive margins prevent right-side text clipping.
+ * UI RULES (per spec):
+ * - ALL floating HUD text labels ("MULTIVERSE SECTOR 05 // REALITY DETECTED",
+ *   "VOL. 5 // NO. 2026", "TARGET", "PROGRESS") must show ONLY inside the
+ *   Tracks section (inTracksSection = true).
+ * - The four viewport corner brackets remain always visible but at z-index
+ *   below panels (z-30 wrapper, brackets are purely decorative).
+ * - Border color: rgba(255,255,255,0.16) max (--line-strong).
  */
 
 import { useEffect, useState } from 'react'
@@ -24,11 +25,8 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
   const activeTrack = TRACKS[activeTrackIndex]
 
-  // In-tracks: sectionProgress > 0 means ST is active (pinned)
+  // In-tracks: sectionProgress > 0 means Tracks pinned section is active
   const inTracksSection = sectionProgress > 0 && sectionProgress < 1
-
-  // Hero section flag: keep strictly ONE small dim corner label in Hero; hide bottom telemetries
-  const inHeroSection = scrollProgress < 0.08
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -49,26 +47,27 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
         transition: 'transform 0.15s ease-out',
       }}
     >
-      {/* ── Screen Corner Brackets (HUD) — FIX 5d: 24px inside viewport ── */}
-      <div className="absolute top-20 left-6 w-4 h-4 border-t border-l border-white/20" />
-      <div className="absolute top-20 right-6 w-4 h-4 border-t border-r border-white/20" />
-      <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/20" />
-      <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/20" />
+      {/* ── Screen Corner Brackets — always visible, 24px from edges, behind panels ── */}
+      {/* border-white/[0.14] keeps them at ≤ var(--line-strong) */}
+      <div className="absolute top-20 left-6 w-4 h-4 border-t border-l border-white/[0.14]" />
+      <div className="absolute top-20 right-6 w-4 h-4 border-t border-r border-white/[0.14]" />
+      <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/[0.14]" />
+      <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/[0.14]" />
 
-      {/* ── Top-Left: One Small Dim Corner Label (Zero Stacking) ── */}
-      {/* FIX 5c: hidden while hero is active AND while tracks are active */}
+      {/* ── HUD labels — only inside Tracks section ── */}
+
+      {/* Top-Left: MULTIVERSE SECTOR 05 */}
       <div
-        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 transition-opacity duration-500 ${(inHeroSection || inTracksSection) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-marvel-red/80 animate-pulse" />
         <span className="text-white/60 font-semibold">MULTIVERSE SECTOR 05</span>
-        <span className="text-white/30 hidden sm:inline">// REALITY DETECTED</span>
+        <span className="text-white/30 hidden md:inline">// REALITY DETECTED</span>
       </div>
 
-      {/* ── Bottom-Left: Comic Meta Data (VOL. 5) ── */}
-      {/* Hidden during Hero so it NEVER covers any CTA button */}
+      {/* Bottom-Left: VOL. 5 // NO. 2026 */}
       <div
-        className={`absolute bottom-16 left-12 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${(inHeroSection || scrollProgress > 0.92) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`absolute bottom-16 left-12 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div className="text-white/70 font-heading tracking-widest text-xs mb-0.5">
           VOL. 5 // NO. 2026
@@ -78,14 +77,13 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
         </div>
       </div>
 
-      {/* ── Bottom-Right: Active Track Telemetry ── */}
-      {/* Hidden during Hero to keep strictly ONE corner label in Hero; right margin safeguarded */}
+      {/* Bottom-Right: TARGET / PROGRESS */}
       <div
-        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 ${(inHeroSection || scrollProgress > 0.92 || !inTracksSection) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div className="flex items-center justify-end gap-2 mb-0.5">
           <span
-            className="w-1.5 h-1.5 rounded-l"
+            className="w-1.5 h-1.5 rounded-sm flex-shrink-0"
             style={{ backgroundColor: activeTrack ? activeTrack.accentColor : '#E23636' }}
           />
           <span className="text-white/70 uppercase truncate">

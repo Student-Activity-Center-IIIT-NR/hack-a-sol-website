@@ -125,6 +125,7 @@ export const HERO_WALL_SCROLL = {
 export const EVENT = {
   name: 'Hack-A-Sol 5.0',
   edition: '5.0',
+  theme: 'MARVEL',
   hostedBy: 'IIIT Naya Raipur',
   /** Update when confirmed */
   date: 'November 2026 (TBA)',
@@ -214,15 +215,25 @@ export type PastSponsor = {
   logo: string
   /** Set true for dark logos so the tile gets a light background */
   onLight?: boolean
+  /**
+   * How the logo plate is rendered:
+   *   "plate"    — light plate (#f3f3f6 94%) so dark logos are visible (default)
+   *   "original" — transparent dark bg, logo as-is
+   *   "invert"   — dark bg with CSS filter:invert so white logos become dark
+   */
+  tone?: 'plate' | 'original' | 'invert'
 }
 
 export const PAST_SPONSORS: readonly PastSponsor[] = [
-  { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg' },
-  { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg' },
-  { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg' },
-  { id: 'ath-india',     name: 'ETH India',       logo: '/sponsors/ethindia.svg' },
-  { id: 'quill-audit',   name: 'Quill Audits',     logo: '/sponsors/quillaudits.svg' },
-  { id: 'incognito',     name: 'Incogni',       logo: '/sponsors/incogni.svg' },
+  // GitHub logo is black on white — plate mode keeps it visible;
+  // onLight kept for legacy compat, tone controls the new LogoTile
+  { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg',        tone: 'plate'    },
+  { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg', tone: 'plate'    },
+  { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg',  tone: 'plate'    },
+  { id: 'ath-india',     name: 'ETH India',        logo: '/sponsors/ethindia.svg',     tone: 'original' },
+  { id: 'quill-audit',   name: 'Quill Audits',     logo: '/sponsors/quillaudits.svg',  tone: 'plate'    },
+  // Incogni logo is typically white/dark — plate mode makes it visible
+  { id: 'incognito',     name: 'Incogni',          logo: '/sponsors/incogni.svg',      tone: 'plate'    },
 ]
 
 /** Last year stats — update when Hack-A-Sol 4.0 numbers are confirmed */

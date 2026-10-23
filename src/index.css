@@ -3,6 +3,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Note: marvel-ui.css tokens are imported directly in each UI component */
 
 /* ── Design Tokens ───────────────────────────────────────────────────────── */
 :root {
@@ -24,6 +25,8 @@
 html {
   scroll-behavior: auto; /* Lenis handles smooth scroll */
   font-size: 16px;
+  /* Prevent horizontal overflow at page level */
+  overflow-x: clip;
 }
 
 body {
@@ -32,7 +35,8 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* Clip instead of hidden so fixed children still work */
+  overflow-x: clip;
   /* Custom cursor — hide default on non-touch devices */
   cursor: none;
 }
@@ -66,6 +70,8 @@ body {
 #scroll-content {
   position: relative;
   z-index: 10;
+  /* Prevent any child from scrolling beyond the page */
+  overflow-x: clip;
 }
 
 /* Sponsor, FAQ, Contact, Footer sections get a backdrop so 3D doesn't bleed through */
@@ -222,4 +228,21 @@ footer#footer {
   background: linear-gradient(to bottom, transparent, rgba(5,5,8,0.90) 6%, rgba(5,5,8,0.95) 100%);
   position: relative;
   z-index: 10;
-}
+}
+
+/* ── Last-year stat grid responsive columns ──────────────────────────────── */
+.last-year-stats {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  #last-year .last-year-stats-wrapper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  #last-year .last-year-stats-wrapper {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}

@@ -2,59 +2,83 @@
  * src/sections/FAQ.tsx
  * ─────────────────────────────────────────────────────────────────────────────
  * Frequently asked questions — accordion-style.
- * Data from config.ts FAQ array.
+ * Redesigned with Marvel UI: SectionHeader, Panel accordion items.
  */
 
 import { useState } from 'react'
 import { FAQ as FAQ_DATA } from '../config'
+import { SectionHeader, Panel } from '../components/ui'
+import '../styles/marvel-ui.css'
 
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <section id="faq" className="relative min-h-screen flex items-center px-6 py-32">
-      <div className="max-w-3xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase mb-4">
-            Questions
-          </p>
-          <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide">
-            FAQ
-          </h2>
-        </div>
+    <section
+      id="faq"
+      className="mu-section"
+      style={{ overflow: 'clip' }}
+    >
+      <div className="mu-container" style={{ maxWidth: '800px' }}>
+        <SectionHeader
+          eyebrow="Questions"
+          title="FAQ"
+          align="center"
+        />
 
         <div className="space-y-2">
           {FAQ_DATA.map(({ q, a }, i) => (
-            <div
+            <Panel
               key={i}
-              className={`border rounded-sm overflow-hidden transition-all duration-300 ${
-                openIndex === i ? 'border-marvel-red/40 bg-white/[0.04]' : 'border-white/10 bg-white/[0.02]'
-              }`}
+              static={openIndex !== i}
+              className="overflow-hidden"
+              style={openIndex === i ? { borderColor: 'var(--red-soft)' } : undefined}
             >
               <button
                 id={`faq-${i}`}
-                className="w-full flex items-center justify-between px-6 py-5 text-left group"
+                className="w-full flex items-center justify-between px-6 py-5 text-left"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                }}
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                aria-expanded={openIndex === i}
               >
-                <span className="font-body font-medium text-white/80 group-hover:text-white transition-colors pr-4">
+                <span
+                  className="font-body pr-4"
+                  style={{ fontSize: '0.95rem', color: 'var(--muted)', fontWeight: 500 }}
+                >
                   {q}
                 </span>
                 <span
-                  className={`text-marvel-red text-xl flex-shrink-0 transition-transform duration-300 ${
-                    openIndex === i ? 'rotate-45' : ''
-                  }`}
+                  className="font-heading flex-shrink-0"
+                  style={{
+                    fontSize: '1.2rem',
+                    color: 'var(--red)',
+                    transform: openIndex === i ? 'rotate(45deg)' : 'rotate(0)',
+                    transition: 'transform 0.3s ease',
+                    display: 'inline-block',
+                  }}
+                  aria-hidden="true"
                 >
                   +
                 </span>
               </button>
+
               {openIndex === i && (
                 <div className="px-6 pb-5">
-                  <p className="font-body text-white/50 text-sm leading-relaxed border-t border-white/5 pt-4">
+                  <div style={{ height: '1px', background: 'var(--line)', marginBottom: '1rem' }} />
+                  <p
+                    className="font-body leading-relaxed"
+                    style={{ fontSize: '0.875rem', color: 'var(--faint)' }}
+                  >
                     {a}
                   </p>
                 </div>
               )}
-            </div>
+            </Panel>
           ))}
         </div>
       </div>

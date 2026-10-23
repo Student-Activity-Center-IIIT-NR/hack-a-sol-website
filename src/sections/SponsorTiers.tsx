@@ -1,110 +1,125 @@
 /**
  * src/sections/SponsorTiers.tsx
  * ─────────────────────────────────────────────────────────────────────────────
- * Three sponsor tiers: Title / Gold / Silver.
- * All pricing is TBA (from config.ts). Designed for visual impact.
+ * Sponsor tier cards — redesigned with Marvel UI system.
+ * No emoji badges (replaced with Chip + tier name).
+ * Tier accent is red-based (dimmer for gold/silver). Red-only accent outside Tracks rule.
+ * SectionHeader, Panel (accent for title tier), Chip, Button.
  */
 
 import { TIERS, SPONSOR } from '../config'
 import { sound } from '../utils/audio'
+import { SectionHeader, Panel, Chip, Button } from '../components/ui'
+import '../styles/marvel-ui.css'
 
-const TIER_STYLES: Record<string, { accent: string; glow: string; badge: string }> = {
-  title:  { accent: '#F5A623', glow: 'rgba(245,166,35,0.25)', badge: '👑' },
-  gold:   { accent: '#FFD700', glow: 'rgba(255,215,0,0.15)',  badge: '🥇' },
-  silver: { accent: '#C0C0C0', glow: 'rgba(192,192,192,0.12)',badge: '🥈' },
+/** Tier display metadata — red spectrum only */
+const TIER_META: Record<string, { label: string; priority: boolean }> = {
+  title:  { label: 'TITLE',  priority: true  },
+  gold:   { label: 'GOLD',   priority: false },
+  silver: { label: 'SILVER', priority: false },
 }
 
 export function SponsorTiers() {
   return (
-    <section id="sponsor-tiers" className="relative min-h-screen flex items-center px-6 py-32">
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <p className="font-body text-xs tracking-[0.5em] text-marvel-red uppercase mb-4">
-            Partnership Packages
-          </p>
-          <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-4">
-            SPONSOR TIERS
-          </h2>
-          <p className="font-body text-white/40 text-base">
-            Pricing details coming soon. Contact us to reserve your slot early.
-          </p>
-        </div>
+    <section
+      id="sponsor-tiers"
+      className="mu-section"
+      style={{ overflow: 'clip' }}
+    >
+      <div className="mu-container">
+        <SectionHeader
+          eyebrow="Partnership Packages"
+          title="SPONSOR TIERS"
+          sub="Pricing details coming soon. Contact us to reserve your slot early."
+          align="center"
+        />
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div
+          className="grid gap-6 mb-8"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' }}
+        >
           {TIERS.map((tier) => {
-            const style = TIER_STYLES[tier.id] ?? TIER_STYLES.silver
+            const meta = TIER_META[tier.id] ?? TIER_META.silver
             return (
-              <div
+              <Panel
                 key={tier.id}
-                className={`relative border rounded-sm p-8 bg-white/[0.02] transition-all duration-500 hover:scale-[1.02] group flex flex-col ${
-                  tier.id === 'title' ? 'md:-translate-y-4 border-2' : 'border'
-                }`}
-                style={{
-                  borderColor: style.accent + (tier.id === 'title' ? 'AA' : '40'),
-                  boxShadow: tier.id === 'title' ? `0 0 40px ${style.glow}` : 'none',
-                }}
+                variant={meta.priority ? 'accent' : 'default'}
+                className={`p-8 flex flex-col ${meta.priority ? 'md:-translate-y-4' : ''}`}
+                style={
+                  meta.priority
+                    ? { boxShadow: '0 0 40px rgba(226,54,54,0.12)' }
+                    : undefined
+                }
               >
-                {/* Badge */}
-                <div className="text-4xl mb-4">{style.badge}</div>
+                {/* Tier chip badge */}
+                <Chip dot={meta.priority} className="self-start mb-6">
+                  {meta.label} SPONSOR
+                </Chip>
 
                 {/* Tier name */}
-                <h3 className="font-heading text-3xl mb-1" style={{ color: style.accent }}>
+                <h3
+                  className="font-heading mb-1"
+                  style={{ fontSize: '1.8rem', color: 'var(--text)' }}
+                >
                   {tier.name}
                 </h3>
 
                 {/* Slots */}
-                <p className="font-body text-xs text-white/30 mb-4 tracking-widest uppercase">
+                <p
+                  className="font-body uppercase mb-4"
+                  style={{ fontSize: '0.65rem', letterSpacing: '0.32em', color: 'var(--faint)' }}
+                >
                   {tier.slots} slot{tier.slots > 1 ? 's' : ''} available
                 </p>
 
                 {/* Price */}
                 <div
-                  className="font-heading text-5xl mb-8 transition-all duration-300"
-                  style={{ color: style.accent }}
+                  className="font-heading mb-8"
+                  style={{ fontSize: '3rem', color: 'var(--red)', lineHeight: 1 }}
                 >
                   {tier.price}
                 </div>
 
                 {/* Divider */}
-                <div className="h-px bg-white/10 mb-6" />
+                <div style={{ height: '1px', background: 'var(--line)', marginBottom: '1.5rem' }} />
 
                 {/* Perks */}
-                <ul className="space-y-3">
+                <ul className="space-y-2 flex-1 mb-6">
                   {tier.perks.map((perk) => (
-                    <li key={perk} className="flex items-start gap-2 font-body text-sm text-white/60">
-                      <span style={{ color: style.accent }} className="mt-0.5 flex-shrink-0">✓</span>
+                    <li
+                      key={perk}
+                      className="flex items-start gap-2 font-body"
+                      style={{ fontSize: '0.875rem', color: 'var(--muted)' }}
+                    >
+                      <span style={{ color: 'var(--red)', marginTop: '2px', flexShrink: 0 }}>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
                       {perk}
                     </li>
                   ))}
                 </ul>
 
                 {/* CTA */}
-                <a
+                <Button
                   id={`tier-${tier.id}-cta`}
                   href={`mailto:${SPONSOR.email}?subject=Sponsorship Enquiry – ${tier.name}`}
                   data-magnetic
-                  onMouseEnter={(e) => {
-                    sound.playHover()
-                    ;(e.currentTarget as HTMLElement).style.backgroundColor = style.accent + '15'
-                  }}
+                  onMouseEnter={() => sound.playHover()}
                   onClick={() => sound.playClick()}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-                  }}
-                  className="mt-auto w-full block text-center py-3 font-heading tracking-widest text-sm border transition-all duration-300 rounded-sm hover:scale-105"
-                  style={{
-                    borderColor: style.accent + '60',
-                    color: style.accent,
-                  }}
                 >
-                  ENQUIRE NOW
-                </a>
-              </div>
+                  Enquire Now
+                </Button>
+              </Panel>
             )
           })}
         </div>
 
-        <p className="text-center font-body text-xs text-white/20 tracking-widest mt-10 uppercase">
+        <p
+          className="font-body text-center uppercase"
+          style={{ fontSize: '0.65rem', letterSpacing: '0.32em', color: 'rgba(255,255,255,0.2)' }}
+        >
           Custom packages available — contact {SPONSOR.email}
         </p>
       </div>

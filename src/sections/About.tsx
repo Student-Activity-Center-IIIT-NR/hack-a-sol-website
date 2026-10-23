@@ -2,10 +2,13 @@
  * src/sections/About.tsx
  * ─────────────────────────────────────────────────────────────────────────────
  * About Hack-A-Sol 5.0 — event overview stats and narrative.
+ * Redesigned with Marvel UI system: SectionHeader, Panel, Chip, Divider.
  */
 
 import { EVENT } from '../config'
 import { TRACKS } from '../data/tracks'
+import { SectionHeader, Panel, Chip, Divider } from '../components/ui'
+import '../styles/marvel-ui.css'
 
 export function About() {
   const stats = [
@@ -18,73 +21,88 @@ export function About() {
   return (
     <section
       id="about"
-      className="relative min-h-screen flex items-center px-6 py-32"
+      className="mu-section"
+      style={{ overflow: 'clip' }}
     >
-      {/* Left red vertical bar — comic panel style */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-marvel-red/40" />
+      {/* Left red accent bar — very subtle */}
+      <div
+        className="absolute left-0 top-0 bottom-0"
+        style={{ width: '2px', background: 'rgba(226,54,54,0.25)' }}
+        aria-hidden="true"
+      />
 
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-        {/* Left: Text */}
-        <div>
-          <p className="font-body text-xs tracking-[0.4em] text-marvel-red uppercase mb-4">
-            About the Event
-          </p>
-          <h2 className="font-heading text-5xl sm:text-7xl text-white leading-none tracking-wide mb-6">
-            WHERE HEROES<br />
-            <span className="text-white/30">ARE FORGED</span>
-          </h2>
-          <p className="font-body text-white/60 text-lg leading-relaxed mb-4">
-            Hack-A-Sol is the flagship annual hackathon hosted by students of IIIT Naya Raipur.
-            Now in its fifth edition and themed <span className="text-marvel-red font-medium">MARVEL</span>,
-            it brings together the brightest minds across India to solve real-world challenges
-            across {TRACKS.length} specialised tracks.
-          </p>
-          <p className="font-body text-white/40 text-base leading-relaxed mb-6">
-            From neural architectures and cyber-fortresses to green Web3 protocols —
-            if you can imagine it, you can build it here.
-          </p>
+      <div className="mu-container">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Left: Text */}
+          <div>
+            <SectionHeader
+              eyebrow="About the Event"
+              title="WHERE HEROES ARE FORGED"
+              accent="ARE FORGED"
+            />
 
-          {/* Dynamic Track Badges */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {TRACKS.map((t) => (
-              <a
-                key={t.id}
-                href="#tracks"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm border border-white/10 bg-white/[0.02] hover:border-white/30 hover:bg-white/5 transition-all text-xs font-mono"
-              >
-                <span>{t.icon}</span>
-                <span style={{ color: t.accentColor }} className="font-medium">
-                  {t.name}
-                </span>
-                <span className="text-white/30 text-[10px] hidden sm:inline">
-                  [{t.character}]
-                </span>
-              </a>
+            <p
+              className="font-body leading-relaxed mb-4"
+              style={{ fontSize: '1rem', color: 'var(--muted)' }}
+            >
+              Hack-A-Sol is the flagship annual hackathon hosted by students of IIIT Naya Raipur.
+              Now in its fifth edition and themed{' '}
+              <span style={{ color: 'var(--red)', fontWeight: 600 }}>MARVEL</span>,
+              it brings together the brightest minds across India to solve real-world challenges
+              across {TRACKS.length} specialised tracks.
+            </p>
+            <p
+              className="font-body leading-relaxed mb-6"
+              style={{ fontSize: '0.9rem', color: 'var(--faint)' }}
+            >
+              From neural architectures and cyber-fortresses to green Web3 protocols —
+              if you can imagine it, you can build it here.
+            </p>
+
+            {/* Track badges */}
+            <div className="flex flex-wrap gap-2 mb-8">
+              {TRACKS.map((t) => (
+                <a
+                  key={t.id}
+                  href="#tracks"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Chip className="cursor-pointer hover:border-[var(--line-strong)]">
+                    {t.name}
+                  </Chip>
+                </a>
+              ))}
+            </div>
+
+            <Divider />
+
+            <p
+              className="font-body uppercase text-center"
+              style={{ fontSize: '0.65rem', letterSpacing: '0.32em', color: 'rgba(255,255,255,0.25)' }}
+            >
+              {EVENT.hostedBy}
+            </p>
+          </div>
+
+          {/* Right: Stat grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {stats.map(({ label, value }) => (
+              <Panel key={label} className="p-6 text-center">
+                <p
+                  className="font-heading"
+                  style={{ fontSize: '2.2rem', color: 'var(--text)', lineHeight: 1 }}
+                >
+                  {value}
+                </p>
+                <p
+                  className="font-body uppercase mt-2"
+                  style={{ fontSize: '0.65rem', letterSpacing: '0.32em', color: 'var(--faint)' }}
+                >
+                  {label}
+                </p>
+              </Panel>
             ))}
           </div>
-
-          <div className="mt-8 flex items-center gap-3">
-            <span className="h-px flex-1 bg-white/10" />
-            <span className="font-body text-xs text-white/20 tracking-widest uppercase">{EVENT.hostedBy}</span>
-            <span className="h-px flex-1 bg-white/10" />
-          </div>
-        </div>
-
-        {/* Right: Stat grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {stats.map(({ label, value }) => (
-            <div
-              key={label}
-              className="border border-white/10 rounded-sm p-6 bg-white/[0.02] hover:border-marvel-red/40 hover:bg-white/[0.04] transition-all duration-300 group"
-            >
-              <p className="font-heading text-4xl text-white group-hover:text-marvel-red transition-colors">
-                {value}
-              </p>
-              <p className="font-body text-xs text-white/40 tracking-widest uppercase mt-1">
-                {label}
-              </p>
-            </div>
-          ))}
         </div>
       </div>
     </section>
