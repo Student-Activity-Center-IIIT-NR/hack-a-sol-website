@@ -181,6 +181,11 @@ export const CharacterArt = React.memo(function CharacterArt({
   const [imgError, setImgError] = useState(false)
   const [tuneOverrides, setTuneOverrides] = useState(() => artTuneStore.get(track.id))
   const [showOverlay, setShowOverlay] = useState(artTuneStore.showAimlOverlay)
+  const isAlphaDebug = useMemo(() => {
+    if (typeof window === 'undefined') return false
+    const p = new URLSearchParams(window.location.search)
+    return p.get('debug') === '1' && p.get('art') === 'alpha'
+  }, [])
   const tiltRef = useRef({ rx: 0, ry: 0 })
 
   // Listen to ArtTuneStore for live ?art=tune changes
@@ -332,6 +337,31 @@ export const CharacterArt = React.memo(function CharacterArt({
             bottom: `${bottomOffsetVh}vh`,
           }}
         >
+          {/* Debug view (?debug=1&art=alpha): checkerboard + bounding-box outline */}
+          {isAlphaDebug && active && (
+            <div
+              data-testid="alpha-debug-checkerboard"
+              className="absolute pointer-events-none z-0 border-2 border-dashed border-cyan-400"
+              style={{
+                height: `${heightVh}vh`,
+                maxWidth: `${maxWidthVw}vw`,
+                width: '100%',
+                backgroundImage:
+                  'linear-gradient(45deg, #2a2a3c 25%, transparent 25%), ' +
+                  'linear-gradient(-45deg, #2a2a3c 25%, transparent 25%), ' +
+                  'linear-gradient(45deg, transparent 75%, #2a2a3c 75%), ' +
+                  'linear-gradient(-45deg, transparent 75%, #2a2a3c 75%)',
+                backgroundSize: '24px 24px',
+                backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0px',
+                backgroundColor: '#12121a',
+                boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 0 24px rgba(0,0,0,0.85)',
+              }}
+            >
+              <div className="absolute top-2 left-2 bg-black/90 px-2 py-0.5 rounded font-mono text-[10px] text-cyan-300 border border-cyan-400/50">
+                ALPHA DEBUG // {track.character.toUpperCase()} ({track.id})
+              </div>
+            </div>
+          )}
           <img
             ref={imgRef}
             data-character-img="true"
@@ -350,6 +380,8 @@ export const CharacterArt = React.memo(function CharacterArt({
               opacity: 0,
               willChange: 'transform, opacity',
               transformOrigin: '50% 100%',
+              zIndex: 1,
+              outline: isAlphaDebug && active ? '2px dashed rgba(239, 68, 68, 0.9)' : undefined,
             }}
           />
         </div>
