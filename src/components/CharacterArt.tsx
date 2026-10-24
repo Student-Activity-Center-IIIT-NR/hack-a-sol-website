@@ -220,10 +220,17 @@ export const CharacterArt = React.memo(function CharacterArt({
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     []
   )
-  const isMobile = useMemo(
-    () => typeof window !== 'undefined' && window.innerWidth < 768,
-    []
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 900
   )
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 900)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Mouse-tilt tracking (desktop hold phase only)
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -249,10 +256,15 @@ export const CharacterArt = React.memo(function CharacterArt({
       const inHold = active && liveC >= 0.22 && liveC <= 0.78
 
       if (sigRef.current) {
-        sigRef.current.style.opacity = inHold ? '1' : '0'
+        sigRef.current.style.opacity = inHold ? (isMobile ? '0.3' : '1') : '0'
       }
 
-      const op = active ? phaseOp(liveC) : 0
+      // Between chapter progress 0.22 and 0.78 its opacity is at least 0.95
+      let op = active ? phaseOp(liveC) : 0
+      if (inHold) {
+        op = Math.max(0.95, op)
+      }
+
       const sc = phaseSc(liveC)
       const tx = phaseTransX(liveC, artOnRight)
       const floatY = inHold ? Math.sin(performance.now() / 1900) * 8 : 0
@@ -267,7 +279,12 @@ export const CharacterArt = React.memo(function CharacterArt({
       const targetEl = imgRef.current ?? fallbackRef.current
       if (targetEl) {
         targetEl.style.opacity = op.toFixed(4)
-        if (reducedMotion || isMobile) {
+        targetEl.style.visibility = 'visible'
+        targetEl.style.display = 'block'
+        if (isMobile) {
+          // On mobile, ignore desktop overrides and center cleanly using CSS variables
+          targetEl.style.transform = `translateX(var(--art-x, 0px)) translateY(var(--art-y, 0px))`
+        } else if (reducedMotion) {
           targetEl.style.transform = `translateX(${artX}px) translateY(${artY}px)`
         } else {
           targetEl.style.transform = `translateX(${tx}vw) translateX(${(drift + artX).toFixed(2)}px) translateY(${(floatY + artY).toFixed(2)}px) scale(${sc.toFixed(4)}) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`
@@ -298,23 +315,42 @@ export const CharacterArt = React.memo(function CharacterArt({
   const heightVh = track.artHeightVh ?? tuneOverrides.artHeightVh ?? TRACK_LAYOUT.artHeightVh
   const bottomOffsetVh = TRACK_LAYOUT.artBottomOffsetVh
   const maxWidthVw = TRACK_LAYOUT.maxArtWidthVw
+  const artX = (track.artX ?? 0) + (tuneOverrides.artX ?? 0)
+  const artY = (track.artY ?? 0) + (tuneOverrides.artY ?? 0)
 
   return (
     <div
       ref={wrapRef}
-      className="absolute inset-0 pointer-events-none"
+      className="character-art-container absolute inset-0 pointer-events-none"
       aria-hidden="true"
-      style={{ perspective: '900px' }}
+      style={{
+        perspective: '900px',
+        // @ts-expect-error CSS custom properties for desktop default overrides
+        '--art-x': `${artX}px`,
+        '--art-y': `${artY}px`,
+        '--art-height': `${heightVh}vh`,
+        '--art-bottom': `${bottomOffsetVh}vh`,
+        '--art-max-w': `${maxWidthVw}vw`,
+        '--desktop-art-x': `${artX}px`,
+        '--desktop-art-y': `${artY}px`,
+        '--desktop-art-height': `${heightVh}vh`,
+        '--desktop-art-bottom': `${bottomOffsetVh}vh`,
+        '--desktop-art-max-w': `${maxWidthVw}vw`,
+      }}
     >
-      {/* Subtle signature decor behind figure */}
-      <div ref={sigRef} className="absolute inset-0" style={{ zIndex: 2, opacity: 0, transition: 'opacity 0.4s' }}>
+      {/* Subtle signature decor behind figure (z-index 1, <= 30% opacity on mobile) */}
+      <div
+        ref={sigRef}
+        className="character-art-decor absolute inset-0 pointer-events-none"
+        style={{ zIndex: 1, opacity: 0, transition: 'opacity 0.4s' }}
+      >
         <SigDecor />
       </div>
 
       {/* Aiml comparison reference outline overlay (?art=tune) */}
       {showOverlay && (
         <div
-          className="absolute inset-x-0 mx-auto pointer-events-none border-2 border-dashed border-cyan-400/70 z-20 flex items-start justify-center"
+          className="absolute inset-x-0 mx-auto pointer-events-none border-2 border-dashed border-cyan-400/70 z-20 flex items-start justify-center hidden min-[900px]:flex"
           style={{
             height: `${TRACK_LAYOUT.artHeightVh}vh`,
             maxWidth: `${TRACK_LAYOUT.maxArtWidthVw}vw`,
@@ -331,10 +367,10 @@ export const CharacterArt = React.memo(function CharacterArt({
       {/* Bottom-anchored character art with unified bleed */}
       {!imgError ? (
         <div
-          className="absolute inset-x-0 flex items-end justify-center pointer-events-none"
+          className="character-art-img-wrap absolute inset-x-0 flex items-end justify-center pointer-events-none"
           style={{
-            zIndex: 3,
-            bottom: `${bottomOffsetVh}vh`,
+            zIndex: 2,
+            bottom: 'var(--art-bottom, -6vh)',
           }}
         >
           {/* Debug view (?debug=1&art=alpha): checkerboard + bounding-box outline */}
@@ -365,6 +401,7 @@ export const CharacterArt = React.memo(function CharacterArt({
           <img
             ref={imgRef}
             data-character-img="true"
+            className="character-art-img"
             src={src}
             alt={`${track.character} character art`}
             decoding="async"
@@ -372,15 +409,17 @@ export const CharacterArt = React.memo(function CharacterArt({
             onLoad={() => setLoaded(true)}
             onError={handleImgError}
             style={{
-              height: `${heightVh}vh`,
-              maxWidth: `${maxWidthVw}vw`,
+              height: 'var(--art-height, 92vh)',
+              maxWidth: 'var(--art-max-w, 46vw)',
               width: 'auto',
               objectFit: 'contain',
               objectPosition: 'bottom center',
               opacity: 0,
+              visibility: 'visible',
+              display: 'block',
               willChange: 'transform, opacity',
               transformOrigin: '50% 100%',
-              zIndex: 1,
+              zIndex: 2,
               outline: isAlphaDebug && active ? '2px dashed rgba(239, 68, 68, 0.9)' : undefined,
             }}
           />
@@ -390,8 +429,8 @@ export const CharacterArt = React.memo(function CharacterArt({
         <div
           ref={fallbackRef}
           data-character-img="true"
-          className="absolute inset-0 flex flex-col items-center justify-center"
-          style={{ zIndex: 3, opacity: 0, willChange: 'transform, opacity' }}
+          className="character-art-img character-art-img-wrap absolute inset-0 flex flex-col items-center justify-center"
+          style={{ zIndex: 2, opacity: 0, visibility: 'visible', display: 'flex', willChange: 'transform, opacity' }}
         >
           <FallbackEmblem trackId={track.id} color={ac} />
         </div>

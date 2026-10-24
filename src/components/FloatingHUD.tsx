@@ -54,11 +54,12 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
       <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-white/[0.14]" />
       <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-white/[0.14]" />
 
-      {/* ── HUD labels — only inside Tracks section ── */}
+      {/* ── HUD labels — only inside Tracks section (hidden on mobile < 900px) ── */}
 
       {/* Top-Left: MULTIVERSE SECTOR 05 */}
       <div
-        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 flex items-center gap-2 transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        data-floating-hud-label="true"
+        className={`absolute top-20 left-12 font-mono text-[9px] tracking-widest text-white/40 hidden min-[900px]:flex items-center gap-2 transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <span className="w-1.5 h-1.5 rounded-full bg-marvel-red/80 animate-pulse" />
         <span className="text-white/60 font-semibold">MULTIVERSE SECTOR 05</span>
@@ -67,7 +68,8 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
 
       {/* Bottom-Left: VOL. 5 // NO. 2026 */}
       <div
-        className={`absolute bottom-16 left-12 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        data-floating-hud-label="true"
+        className={`absolute bottom-16 left-12 font-mono text-[10px] tracking-wider text-white/40 transition-opacity duration-500 hidden min-[900px]:block ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div className="text-white/70 font-heading tracking-widest text-xs mb-0.5">
           VOL. 5 // NO. 2026
@@ -79,7 +81,8 @@ export function FloatingHUD({ scrollProgress, activeTrackIndex, sectionProgress 
 
       {/* Bottom-Right: TARGET / PROGRESS */}
       <div
-        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        data-floating-hud-label="true"
+        className={`absolute bottom-16 right-12 font-mono text-[10px] tracking-wider text-right text-white/40 max-w-[40vw] transition-opacity duration-500 hidden min-[900px]:block ${inTracksSection ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       >
         <div className="flex items-center justify-end gap-2 mb-0.5">
           <span

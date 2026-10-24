@@ -28,6 +28,7 @@ import { TRACK_SCROLL_VH, TRACK_LAYOUT } from "../config"
 import { scrollStore } from "../utils/scrollStore"
 import { perfStore } from "../utils/perfStore"
 import { ArtTuner } from "../components/ArtTuner"
+import "./tracks.css"
 
 function ss(t: number): number {
   const c = Math.max(0, Math.min(1, t))
@@ -77,7 +78,7 @@ const ChapterSlide = React.memo(function ChapterSlide({
     <div
       data-track-index={index}
       data-active={isActive ? "true" : "false"}
-      className="absolute inset-0 pointer-events-none transition-opacity duration-300 ease-out"
+      className="track-chapter-slide pointer-events-none transition-opacity duration-300 ease-out"
       style={{
         opacity: isActive ? 1 : 0,
         pointerEvents: isActive ? "auto" : "none",
@@ -85,21 +86,19 @@ const ChapterSlide = React.memo(function ChapterSlide({
         transform: "translate3d(0, 0, 0)",
       }}
     >
-      {/* ── ART HALF (width 55%) ── */}
+      {/* ── ART BLOCK (FIRST in column order on mobile, side column on desktop) ── */}
       <div
         className={
-          "absolute inset-y-0 hidden md:flex flex-col items-center justify-center pointer-events-none " +
-          (artOnRight ? "right-0" : "left-0")
+          "track-art-block " +
+          (artOnRight ? "track-art-right" : "track-art-left")
         }
-        style={{ width: TRACK_LAYOUT.artHalfWidth, zIndex: 5 }}
+        style={{ width: undefined, zIndex: 5 }}
       >
         {/* Glow disk */}
         <div
           data-glow-disk="true"
-          className="absolute rounded-full pointer-events-none"
+          className="track-glow-disk absolute rounded-full pointer-events-none"
           style={{
-            width: `${TRACK_LAYOUT.glowDiskSizeVw}vw`,
-            height: `${TRACK_LAYOUT.glowDiskSizeVw}vw`,
             background: `radial-gradient(circle, ${ac}35 0%, ${ac}15 45%, transparent 72%)`,
             transform: "scale(var(--glow-scale, 1))",
             transition: "background 0.5s ease",
@@ -109,10 +108,8 @@ const ChapterSlide = React.memo(function ChapterSlide({
         {/* The single signature ring */}
         <div
           data-pulse-ring="true"
-          className="absolute rounded-full pointer-events-none"
+          className="track-pulse-ring absolute rounded-full pointer-events-none"
           style={{
-            width: `${TRACK_LAYOUT.signatureRingSizeVw}vw`,
-            height: `${TRACK_LAYOUT.signatureRingSizeVw}vw`,
             border: `${TRACK_LAYOUT.signatureRingBorderWidth} solid ${ac}`,
             opacity: "var(--pulse-op, 0)",
             transform: "scale(var(--pulse-scale, 1))",
@@ -122,9 +119,8 @@ const ChapterSlide = React.memo(function ChapterSlide({
         {/* Big watermark character name */}
         <p
           aria-hidden="true"
-          className="absolute font-heading select-none text-center leading-none pointer-events-none"
+          className="track-watermark-name absolute font-heading select-none text-center leading-none pointer-events-none"
           style={{
-            fontSize: TRACK_LAYOUT.watermarkFontSize,
             color: "transparent",
             WebkitTextStroke: `1px ${ac}${TRACK_LAYOUT.watermarkStrokeOpacity}`,
             letterSpacing: TRACK_LAYOUT.watermarkLetterSpacing,
@@ -147,9 +143,9 @@ const ChapterSlide = React.memo(function ChapterSlide({
           />
         )}
 
-        {/* Bottom chapter badge */}
+        {/* Bottom chapter badge (desktop only) */}
         <div
-          className="absolute bottom-20 flex items-center gap-2 px-4 py-1.5 rounded-sm border transition-all duration-700 pointer-events-auto"
+          className="track-chapter-badge absolute bottom-20 hidden min-[900px]:flex items-center gap-2 px-4 py-1.5 rounded-sm border transition-all duration-700 pointer-events-auto"
           style={{
             borderColor: ac + "50",
             background: "rgba(5,5,8,0.92)",
@@ -166,54 +162,28 @@ const ChapterSlide = React.memo(function ChapterSlide({
         </div>
       </div>
 
-      {/* ── MOBILE ART BADGE ── */}
-      <div className="md:hidden h-[45vh] flex items-end justify-center pb-4 pointer-events-none">
-        <div
-          className="flex items-center gap-2 px-4 py-1.5 rounded-sm border pointer-events-auto"
-          style={{
-            borderColor: ac + "50",
-            background: "rgba(5,5,8,0.92)",
-          }}
-        >
-          <span className="text-sm">{track.icon}</span>
-          <span className="font-mono text-xs tracking-widest uppercase" style={{ color: ac }}>
-            {track.character.toUpperCase()}
-          </span>
-        </div>
-      </div>
-
-      {/* ── TEXT COLUMN ── */}
+      {/* ── TEXT COLUMN (BELOW art block on mobile, side column on desktop) ── */}
       <div
         className={
-          "absolute inset-y-0 flex items-center " +
-          (textOnLeft
-            ? "left-0 md:w-[48%] md:pl-20 md:pr-8"
-            : "right-0 md:w-[48%] md:pr-20 md:pl-8") +
-          " w-full"
+          "track-text-column " +
+          (textOnLeft ? "track-text-left" : "track-text-right")
         }
         style={{ zIndex: 15 }}
       >
-        {/* Scrim gradient */}
+        {/* Scrim gradient (desktop only) */}
         <div
-          className="absolute inset-0 hidden md:block pointer-events-none"
+          className="absolute inset-0 hidden min-[900px]:block pointer-events-none"
           style={{
             background: textOnLeft
               ? "linear-gradient(to right, rgba(5,5,8,0.92) 0%, rgba(5,5,8,0.75) 75%, transparent 100%)"
               : "linear-gradient(to left, rgba(5,5,8,0.92) 0%, rgba(5,5,8,0.75) 75%, transparent 100%)",
           }}
         />
-        <div
-          className="absolute inset-0 block md:hidden pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent 0%, rgba(5,5,8,0.92) 20%, rgba(5,5,8,0.98) 100%)",
-          }}
-        />
 
         {/* Text block */}
         <div
           data-text-block="true"
-          className="relative z-10 w-full px-6 md:px-0 mt-[45vh] md:mt-0"
+          className="track-text-block relative z-10 w-full"
         >
           <p
             className={TRACK_LAYOUT.labelChipClass}
@@ -524,8 +494,8 @@ export const Tracks = React.memo(function Tracks({
           style={{ backgroundColor: (active?.accentColor ?? "#E23636") + "60", zIndex: 20 }}
         />
 
-        {/* Left Rail Dots (Derived from all tracks) */}
-        <div className={TRACK_LAYOUT.leftRailPosition}>
+        {/* Left Rail Dots (Derived from all tracks — hidden on mobile) */}
+        <div data-track-left-rail="true" className={TRACK_LAYOUT.leftRailPosition + " track-left-rail hidden min-[900px]:flex"}>
           {TRACKS.map((track, i) => (
             <button
               key={track.id}
@@ -559,8 +529,8 @@ export const Tracks = React.memo(function Tracks({
           ))}
         </div>
 
-        {/* Top-Right Chapter Counter */}
-        <div className="absolute top-8 right-8 text-right z-20 hidden md:block">
+        {/* Top-Right Chapter Counter (hidden on mobile) */}
+        <div data-chapter-counter="true" className="track-chapter-counter absolute top-8 right-8 text-right z-20 hidden min-[900px]:block">
           <p className="font-heading text-8xl text-white/5 leading-none select-none">
             0{activeIndex + 1}
           </p>
