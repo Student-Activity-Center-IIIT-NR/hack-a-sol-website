@@ -95,6 +95,7 @@ export function BlackPantherWorld({ chapterProgress: _c, active, velocity: _v }:
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!active) return
 
     timeRef.current += delta

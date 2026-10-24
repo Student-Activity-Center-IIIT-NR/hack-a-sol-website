@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { warnZeroSize, isPhoneDevice, clampBufferSize } from '../../utils/webglGuard';
 
 /* ================= THE MULTIVERSE PORTAL (Fullscreen Rift Shader) ================= */
 const VERT = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
@@ -213,8 +214,9 @@ const STONES = [
 
 export function initHero(container) {
   const hero = container.parentElement;
+  const isPhone = isPhoneDevice();
   const mobile = window.innerWidth < 768;
-  let maxPR = mobile ? 1.25 : 1.5;
+  let maxPR = isPhone ? 1 : (mobile ? 1.25 : 1.5);
   let aspect = 1;
 
   const U = {
@@ -240,7 +242,7 @@ export function initHero(container) {
   scene.add(bg);
 
   // Sparks / embers rising from the breach
-  const COUNT = mobile ? 220 : 600;
+  const COUNT = (isPhone || mobile) ? 220 : 600;
   const seed = new Float32Array(COUNT * 4);
   for (let i = 0; i < seed.length; i++) seed[i] = Math.random();
   const pg = new THREE.BufferGeometry();
@@ -326,20 +328,62 @@ export function initHero(container) {
     };
   });
 
-  // Postprocessing composer with UnrealBloomPass
-  const composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.45, 0.65);
-  composer.addPass(bloom);
-  const final = new ShaderPass(FinalShader);
-  composer.addPass(final);
+  // Postprocessing composer with UnrealBloomPass (disabled on phones)
+  let composer = null;
+  let bloom = null;
+  let final = null;
+
+  function initComposer() {
+    if (isPhoneDevice()) return;
+    try {
+      composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const initW = clampBufferSize(container.clientWidth || 1);
+      const initH = clampBufferSize(container.clientHeight || 1);
+      bloom = new UnrealBloomPass(new THREE.Vector2(initW, initH), 0.55, 0.45, 0.65);
+      composer.addPass(bloom);
+      final = new ShaderPass(FinalShader);
+      composer.addPass(final);
+    } catch {
+      composer = null;
+    }
+  }
+
+  if (!isPhone) {
+    initComposer();
+  }
 
   function resize() {
-    const w = container.clientWidth, h = container.clientHeight;
-    const pr = Math.min(window.devicePixelRatio, maxPR);
+    const rawW = container.clientWidth;
+    const rawH = container.clientHeight;
+    if (rawW <= 0 || rawH <= 0) return;
+
+    const isPhoneNow = isPhoneDevice();
+    const w = clampBufferSize(rawW);
+    const h = clampBufferSize(rawH);
+    const pr = isPhoneNow ? 1 : Math.min(window.devicePixelRatio || 1, maxPR);
     aspect = w / h;
-    renderer.setPixelRatio(pr); renderer.setSize(w, h);
-    composer.setPixelRatio(pr); composer.setSize(w, h);
+    renderer.setPixelRatio(pr);
+    renderer.setSize(w, h, false);
+
+    if (isPhoneNow) {
+      if (composer) {
+        if (bloom && bloom.dispose) bloom.dispose();
+        composer.dispose();
+        composer = null;
+        bloom = null;
+        final = null;
+      }
+    } else {
+      if (!composer) {
+        initComposer();
+      }
+      if (composer) {
+        composer.setPixelRatio(pr);
+        composer.setSize(w, h);
+      }
+    }
+
     camera.left = -aspect / 2; camera.right = aspect / 2; camera.top = 0.5; camera.bottom = -0.5;
     camera.updateProjectionMatrix();
 
@@ -357,6 +401,8 @@ export function initHero(container) {
   }
   const ro = new ResizeObserver(resize);
   ro.observe(container);
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
   resize();
 
   // Pointer tracking
@@ -381,13 +427,21 @@ export function initHero(container) {
   function tick() {
     raf = requestAnimationFrame(tick);
     if (!visible) return;
+    if (container.clientWidth <= 0 || container.clientHeight <= 0) {
+      warnZeroSize('HeroScene');
+      return;
+    }
     const now = performance.now() / 1000, t = now - t0, dt = now - last;
     last = now;
 
-    // Auto-downgrade on weak GPUs
-    if (frames < 120) {
+    // Auto-downgrade on weak GPUs (desktop only)
+    if (frames < 120 && !isPhoneDevice()) {
       if (frames > 20) acc += dt;
-      if (++frames === 120 && acc / 99 > 0.034) { maxPR = 1; bloom.enabled = false; resize(); }
+      if (++frames === 120 && acc / 99 > 0.034) {
+        maxPR = 1;
+        if (bloom) bloom.enabled = false;
+        resize();
+      }
     }
 
     const idle = now - lastMove > 3;
@@ -406,8 +460,10 @@ export function initHero(container) {
       setTimeout(() => (U.uGlitch.value = 0), 110);
     }
     U.uTime.value = ts;
-    final.uniforms.uTime.value = ts;
-    final.uniforms.uGlitch.value = U.uGlitch.value;
+    if (final && final.uniforms) {
+      final.uniforms.uTime.value = ts;
+      final.uniforms.uGlitch.value = U.uGlitch.value;
+    }
 
     // ---- ANIMATE ORBITING INFINITY STONES ----
     const scrollVal = U.uScroll.value; // 0 to 1
@@ -453,7 +509,11 @@ export function initHero(container) {
       pLight.intensity = 0.9 * activeOpacity;
     });
 
-    composer.render();
+    if (isPhoneDevice() || !composer) {
+      renderer.render(scene, camera);
+    } else {
+      composer.render();
+    }
   }
   tick();
 
@@ -487,6 +547,8 @@ export function initHero(container) {
     destroy() {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('orientationchange', resize);
       ro.disconnect(); io.disconnect();
       bg.geometry.dispose(); bg.material.dispose(); pg.dispose(); sparks.material.dispose();
       gemItems.forEach((item) => {
@@ -495,7 +557,9 @@ export function initHero(container) {
         item.coreGeom.dispose();
         item.coreMat.dispose();
       });
-      composer.dispose(); renderer.dispose(); renderer.domElement.remove();
+      if (bloom && bloom.dispose) bloom.dispose();
+      if (composer) composer.dispose();
+      renderer.dispose(); renderer.domElement.remove();
     },
   };
 }

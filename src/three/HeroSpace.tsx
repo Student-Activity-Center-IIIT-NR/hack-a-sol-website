@@ -93,6 +93,8 @@ export function HeroSpace({ scrollProgress: _sp, velocity: _v }: HeroSpaceProps)
 
   // ── Frame Animation Loop ──
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
+
     const t = state.clock.getElapsedTime()
     const liveScroll = scrollStore.getScrollProgress()
     const liveVel = scrollStore.getVelocity()

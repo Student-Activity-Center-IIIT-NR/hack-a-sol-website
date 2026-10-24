@@ -37,7 +37,8 @@ const PrimitiveGeometry = ({ type }: { type: TrackPrimitiveType }) => {
 export function TrackModel({ primitive, color, active }: TrackModelProps) {
   const meshRef = useRef<Mesh>(null)
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!meshRef.current) return
     // Slow idle rotation; faster when active
     const speed = active ? 0.6 : 0.15

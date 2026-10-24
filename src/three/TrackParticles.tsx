@@ -257,6 +257,8 @@ export function TrackParticles({
 
   // Animation frame loop
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
+
     const t = state.clock.getElapsedTime()
 
     // Smooth color lerp (~400ms transition)

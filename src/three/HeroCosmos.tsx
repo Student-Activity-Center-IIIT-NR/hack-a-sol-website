@@ -176,6 +176,8 @@ export function HeroCosmos({ scrollProgress, velocity = 0 }: HeroCosmosProps) {
   }, [])
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
+
     // Hero scroll progress: normalized h from 0 to 1 across the Hero range (0.00 -> 0.15)
     const HERO_END_PROGRESS = 0.15
     const h = Math.min(1.0, Math.max(0.0, scrollProgress / HERO_END_PROGRESS))

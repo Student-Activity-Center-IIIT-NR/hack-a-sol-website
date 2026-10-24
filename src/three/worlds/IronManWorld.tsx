@@ -140,6 +140,7 @@ export function IronManWorld({ chapterProgress: _c, active, velocity: _v }: Iron
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!active) return
 
     const liveC = scrollStore.getChapterProgress()

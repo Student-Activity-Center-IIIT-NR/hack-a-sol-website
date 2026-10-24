@@ -13,6 +13,7 @@ import * as THREE from "three"
 import { TRACKS } from "../data/tracks"
 import { useScrollCamera } from "../hooks/useScrollCamera"
 import { scrollStore } from "../utils/scrollStore"
+import { warnZeroSize, isPhoneDevice } from "../utils/webglGuard"
 import { TrackWorlds } from "./TrackWorlds"
 import { TrackParticles } from "./TrackParticles"
 import { HeroSpace } from "./HeroSpace"
@@ -37,7 +38,7 @@ const ACCENT_COLORS = TRACKS.map(t => new THREE.Color(t.accentColor).multiplySca
 const NEUTRAL       = new THREE.Color("#0A0A0F")
 
 export function Scene({ activeTrackIndex = 0 }: SceneProps) {
-  const { camera, scene, gl, set } = useThree()
+  const { camera, scene, gl, set, size } = useThree()
   const { getCameraTransform } = useScrollCamera()
   const mouseRef = useRef({ x: 0, y: 0 })
 
@@ -62,22 +63,29 @@ export function Scene({ activeTrackIndex = 0 }: SceneProps) {
     return scrollStore.subscribeZone(setZone)
   }, [])
 
-  // Pause rendering when tab is hidden or when neither Hero nor Tracks is in view
+  // Pause rendering when tab is hidden, when size is 0, or when neither Hero nor Tracks is in view
   useEffect(() => {
     const updateFrameloop = () => {
       const isHidden = typeof document !== "undefined" && document.hidden
       const inView = scrollStore.isInHeroOrTracks()
-      set({ frameloop: !isHidden && inView ? "always" : "never" })
+      const hasSize = size.width > 0 && size.height > 0
+      set({ frameloop: !isHidden && inView && hasSize ? "always" : "never" })
     }
 
     const unsub = scrollStore.subscribeInView(updateFrameloop)
     document.addEventListener("visibilitychange", updateFrameloop)
+    window.addEventListener("resize", updateFrameloop)
+    window.addEventListener("orientationchange", updateFrameloop)
+
+    updateFrameloop()
 
     return () => {
       unsub()
       document.removeEventListener("visibilitychange", updateFrameloop)
+      window.removeEventListener("resize", updateFrameloop)
+      window.removeEventListener("orientationchange", updateFrameloop)
     }
-  }, [set])
+  }, [set, size.width, size.height])
 
   useEffect(() => {
     scene.fog = new THREE.FogExp2("#0A0A0F", 0.0012)
@@ -95,7 +103,12 @@ export function Scene({ activeTrackIndex = 0 }: SceneProps) {
     }
   }, [scene])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) {
+      warnZeroSize('Scene')
+      return
+    }
+
     const scrollP = scrollStore.getScrollProgress()
     const { position, lookAt } = getCameraTransform(scrollP)
     _targetPos.copy(position)
@@ -119,10 +132,12 @@ export function Scene({ activeTrackIndex = 0 }: SceneProps) {
 
   return (
     <>
-      {/* Dynamic DPR optimization: drops DPR automatically when FPS < 50 */}
-      <PerformanceMonitor bounds={() => [50, 60]}>
-        <AdaptiveDpr />
-      </PerformanceMonitor>
+      {/* Dynamic DPR optimization: on phones, DPR is strictly 1 */}
+      {!isPhoneDevice() && (
+        <PerformanceMonitor bounds={() => [50, 60]}>
+          <AdaptiveDpr />
+        </PerformanceMonitor>
+      )}
 
       {/* Renderer metrics & FPS debug monitor (mounted strictly with ?debug=1) */}
       {debugMode && <PerfMonitor />}

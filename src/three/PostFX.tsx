@@ -14,12 +14,13 @@
  */
 
 import { useRef, useMemo, useState, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from '@react-three/postprocessing'
 import { BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { scrollStore } from '../utils/scrollStore'
 import { perfStore } from '../utils/perfStore'
+import { warnZeroSize, isPhoneDevice } from '../utils/webglGuard'
 
 interface PostFXProps {
   scrollProgress?: number
@@ -31,6 +32,7 @@ const VELOCITY_THRESHOLD = 0.35
 const ABERRATION_MAX = 0.005
 
 export function PostFX(_props: PostFXProps) {
+  const { size } = useThree()
   const aberrationOffset = useRef(new THREE.Vector2(0, 0))
   const [isFastScroll, setIsFastScroll] = useState(false)
   const [disabledByLowFps, setDisabledByLowFps] = useState(false)
@@ -46,16 +48,20 @@ export function PostFX(_props: PostFXProps) {
     })
   }, [])
 
-  // Mobile / accessibility check
+  // Phones (window width < 900, coarse pointer, or hardwareConcurrency < 4) / accessibility check
+  const isPhone = useMemo(() => isPhoneDevice(), [])
   const isMobileOrReduced = useMemo(() => {
     if (typeof window === 'undefined') return true
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const isMobile = window.innerWidth < 768
-    return reducedMotion || isMobile
+    return reducedMotion || isPhoneDevice()
   }, [])
 
-  useFrame((_, delta) => {
-    if (isMobileOrReduced || !postProcessingEnabled || disabledByLowFps) return
+  useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) {
+      warnZeroSize('PostFX')
+      return
+    }
+    if (isPhone || isMobileOrReduced || !postProcessingEnabled || disabledByLowFps) return
 
     // 1. Check FPS guard (disable if stays below 45 fps for 2 continuous seconds)
     const instantFps = 1 / Math.max(delta, 0.001)
@@ -83,8 +89,18 @@ export function PostFX(_props: PostFXProps) {
     }
   })
 
-  // Full guard checks: skip entirely on mobile, low FPS, or toggle off
-  if (isMobileOrReduced || !postProcessingEnabled || disabledByLowFps) {
+  // Full guard checks: skip entirely on phones, zero size, mobile, low FPS, or toggle off
+  if (
+    size.width <= 0 ||
+    size.height <= 0 ||
+    isPhone ||
+    isMobileOrReduced ||
+    !postProcessingEnabled ||
+    disabledByLowFps
+  ) {
+    if (size.width <= 0 || size.height <= 0) {
+      warnZeroSize('PostFX')
+    }
     return null
   }
 

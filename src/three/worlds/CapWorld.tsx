@@ -90,6 +90,7 @@ export function CapWorld({ chapterProgress: _c, active, velocity: _v }: CapWorld
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!active) return
 
     timeRef.current += delta

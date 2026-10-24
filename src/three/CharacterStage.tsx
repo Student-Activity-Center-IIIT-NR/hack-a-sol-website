@@ -195,6 +195,7 @@ function GLBStage({ track, trackIndex, chapterProgress, active }: StageProps) {
   }
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!groupRef.current) return
     const g = groupRef.current
 
@@ -269,6 +270,7 @@ function ImagePlane({ track, trackIndex, chapterProgress, active }: StageProps) 
   const halfSign = trackIndex % 2 === 0 ? 1 : -1
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!groupRef.current) return
     const g      = groupRef.current
     const tiltX  = active ? -state.pointer.y * 0.1  : 0

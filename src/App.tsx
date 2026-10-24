@@ -14,10 +14,11 @@
  *   Leva controls expose TRACK_SCROLL_VH, wheelMultiplier and snap on/off.
  */
 
-import { useState, Suspense, useMemo, useRef } from "react"
+import { useState, Suspense, useMemo, useRef, useEffect } from "react"
 import { Canvas } from "@react-three/fiber"
 import { Leva, useControls } from "leva"
 import * as THREE from "three"
+import { isPhoneDevice } from "./utils/webglGuard"
 
 import { useLenis }           from "./hooks/useLenis"
 import { useScrollProgress }  from "./hooks/useScrollProgress"
@@ -48,6 +49,33 @@ import { Footer }        from "./sections/Footer"
 
 export default function App() {
   const [loading, setLoading] = useState(true)
+  const [canvasHasSize, setCanvasHasSize] = useState(false)
+  const canvasWrapperRef = useRef<HTMLDivElement>(null)
+  const isPhone = useMemo(() => isPhoneDevice(), [])
+
+  useEffect(() => {
+    const el = canvasWrapperRef.current
+    if (!el) return
+
+    const updateSize = () => {
+      const w = el.clientWidth
+      const h = el.clientHeight
+      setCanvasHasSize(w > 0 && h > 0)
+    }
+
+    updateSize()
+
+    const ro = new ResizeObserver(updateSize)
+    ro.observe(el)
+    window.addEventListener("resize", updateSize)
+    window.addEventListener("orientationchange", updateSize)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener("resize", updateSize)
+      window.removeEventListener("orientationchange", updateSize)
+    }
+  }, [])
 
   // Leva debug controls (visible with ?debug=1)
   const controls = useControls(
@@ -116,9 +144,15 @@ export default function App() {
       />
 
       {/* -- Fixed 3D Canvas - ONE persistent canvas for the entire site -- */}
-      <div id="canvas-wrapper" aria-hidden="true" className={canvasDimmed ? "canvas-dimmed" : ""}>
+      <div
+        id="canvas-wrapper"
+        ref={canvasWrapperRef}
+        aria-hidden="true"
+        className={canvasDimmed ? "canvas-dimmed" : ""}
+      >
         <Canvas
-          dpr={[1, 1.25]}
+          frameloop={canvasHasSize ? "always" : "never"}
+          dpr={isPhone ? 1 : [1, 1.25]}
           camera={{ position: [0, 0, 8], fov: 60, near: 0.1, far: 300 }}
           gl={{
             antialias: true,

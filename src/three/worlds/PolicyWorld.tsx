@@ -146,6 +146,7 @@ export function PolicyWorld({ chapterProgress: _c, active, velocity: _v }: Polic
   const a = globalA(c)
 
   useFrame((state, delta) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
     if (!active) return
 
     timeRef.current += delta

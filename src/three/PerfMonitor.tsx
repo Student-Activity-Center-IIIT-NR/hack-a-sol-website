@@ -39,7 +39,9 @@ export function PerfMonitor() {
     gl.info.autoReset = true
   }, [gl])
 
-  useFrame(() => {
+  useFrame((state) => {
+    if (state.size.width <= 0 || state.size.height <= 0) return
+
     const now = performance.now()
     const deltaMs = Math.max(0.1, now - lastTimeRef.current)
     lastTimeRef.current = now
