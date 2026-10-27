@@ -1,0 +1,183 @@
+/* src/sections/hero.css — Marvel Hero Wall & Title */
+
+/* ── Hero Container with rich Marvel red radial backdrop ── */
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100svh;
+  background: radial-gradient(ellipse 95% 65% at 50% 28%, #78080a 0%, #3a0304 48%, #050508 100%);
+  overflow: hidden;
+}
+
+/* ── Background Layer Container ── */
+.hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Wallpaper Image (positioned lower so silhouettes sit in lower third) ── */
+.hero-wallpaper-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  pointer-events: none;
+  user-select: none;
+  transform-origin: center bottom;
+  backface-visibility: hidden;
+  will-change: transform;
+  transform: translateY(15%);
+  opacity: var(--hero-bg-opacity, 0.38);
+  transition: opacity 0.4s ease;
+}
+
+/* ── Atmospheric Blends & Vignettes ── */
+/* 1. Top shade for crisp navbar readability */
+.hero-blend-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22vh;
+  background: linear-gradient(180deg, rgba(5, 5, 8, 0.88) 0%, rgba(5, 5, 8, 0.3) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 2. Center radial scrim behind title to pop typography and ensure readability */
+.hero-blend-center {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 45% at 50% 28%, rgba(5, 5, 8, 0.42) 0%, transparent 75%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 3. Bottom blend into page background (#050508) */
+.hero-blend-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24vh;
+  background: linear-gradient(0deg, #050508 0%, rgba(5, 5, 8, 0.95) 25%, rgba(5, 5, 8, 0.3) 60%, transparent 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── Giant HACK-A-SOL headline on ONE line ── */
+.hero-hackasol-title {
+  white-space: nowrap;
+  font-size: clamp(2.6rem, 6.6vw, 5.2rem);
+  line-height: 0.92;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  font-family: var(--font-heading, "Bebas Neue", "Anton", sans-serif);
+  text-shadow: 0 0 45px rgba(226, 54, 54, 0.45), 0 4px 14px rgba(0, 0, 0, 0.95);
+}
+
+/* ── Comic-style MARVEL title treatment (skewed red slab) ── */
+.hero-marvel-slab {
+  display: inline-block;
+  position: relative;
+  transform: skewX(-12deg);
+  background: rgba(226, 54, 54, 0.95);
+  padding: 0.22rem 1.4rem 0.2rem 1.5rem;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.95), 0 0 25px rgba(226, 54, 54, 0.45);
+  outline: 1px solid rgba(255, 255, 255, 0.85);
+  outline-offset: -2px;
+  overflow: hidden;
+}
+
+/* Subtle comic halftone dot texture */
+.hero-marvel-slab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.22) 1px, transparent 1px);
+  background-size: 4px 4px;
+  pointer-events: none;
+}
+
+/* Un-skewed inner text in heading font */
+.hero-marvel-text {
+  display: inline-block;
+  transform: skewX(12deg);
+  font-family: var(--font-heading, "Bebas Neue", "Anton", sans-serif);
+  color: #ffffff;
+  letter-spacing: 0.24em;
+  font-weight: 700;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.2rem, 2.5vw, 2.1rem);
+  line-height: 1.1;
+}
+
+/* ── Ambient Floating Embers ── */
+.hero-embers-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.hero-ember {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff5555 0%, rgba(226, 54, 54, 0) 70%);
+  opacity: 0;
+  animation: ember-float linear infinite;
+}
+
+@keyframes ember-float {
+  0% {
+    transform: translateY(105vh) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-5vh) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* ── Mobile Tweaks ── */
+@media (max-width: 767px) {
+  .hero-wallpaper-img {
+    transform: translateY(6%);
+    object-position: center 80%;
+  }
+  .hero-hackasol-title {
+    font-size: clamp(2.4rem, 11vw, 3.8rem);
+  }
+  .hero-blend-bottom {
+    height: 30vh;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-ember {
+    display: none;
+  }
+  .hero-wallpaper-img {
+    will-change: auto !important;
+    transform: translateY(15%) !important;
+  }
+}

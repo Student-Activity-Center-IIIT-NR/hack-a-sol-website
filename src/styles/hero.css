@@ -1,0 +1,43 @@
+/* src/styles/hero.css — Centered Marvel Multiverse Hero */
+
+.text-shadow-marvel {
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.25), 0 0 70px rgba(229, 57, 53, 0.35);
+}
+
+@keyframes heroFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.4deg);
+  }
+  100% {
+    transform: translateY(6px) rotate(-0.4deg);
+  }
+}
+
+.hero-char-float {
+  animation: heroFloat 8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes heroMandalaRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hero-mandala-spin {
+  animation: heroMandalaRotate 90s linear infinite;
+  transform-origin: center center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-char-float,
+  .hero-mandala-spin {
+    animation: none !important;
+  }
+}

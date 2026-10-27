@@ -1,60 +1,248 @@
-@import "tailwindcss";
-@import "tailwindcss/preflight" layer(base);
-@import "tailwindcss/utilities" layer(utilities);
+/* src/index.css ─────────────────────────────────────────────────────────── */
+/* Tailwind base layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Note: marvel-ui.css tokens are imported directly in each UI component */
 
+/* ── Design Tokens ───────────────────────────────────────────────────────── */
 :root {
-  /* 🌈 Existing global styles */
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: dark;
-  color: #ffffff;
-  background-color: #000000;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --color-dark:    #0A0A0F;
+  --color-darker:  #050508;
+  --color-red:     #E23636;
+  --color-gold:    #F5A623;
+  --font-heading:  'Bebas Neue', 'Anton', sans-serif;
+  --font-body:     'Inter', sans-serif;
+}
 
-  /* 🎨 Tailwind + shadcn color variables (light defaults) */
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 10%;
-  --card-foreground: 0 0% 100%;
-  --border: 240 5.9% 20%;
-  --muted-foreground: 240 5.9% 70%;
-  --primary: 0 0% 98%;
-  --secondary: 240 4.8% 30%;
-  --accent: 0 0% 85%;
-  --destructive: 0 84.2% 60.2%;
+/* ── Global reset ────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  /* Optional sidebar colors (for future) */
-  --sidebar-background: 240 4.8% 10%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-primary: 240 5.9% 90%;
-  --sidebar-primary-foreground: 240 10% 3.9%;
-  --sidebar-accent: 0 0% 40%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 240 3.8% 30%;
-  --sidebar-ring: 240 5% 64.9%;
-
-  --radius: 0.5rem;
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  font-size: 16px;
+  /* Prevent horizontal overflow at page level */
+  overflow-x: clip;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background: #000000;
-  color: #ffffff;
-  overflow-x: hidden;
+  background-color: var(--color-darker);
+  color: #fff;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Clip instead of hidden so fixed children still work */
+  overflow-x: clip;
+  /* Custom cursor — hide default on non-touch devices */
+  cursor: none;
 }
 
-* {
-  box-sizing: border-box;
+/* Restore cursor on touch devices */
+@media (pointer: coarse) {
+  body { cursor: auto; }
 }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
+/* Magnetic button hover */
+[data-magnetic] {
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+
+/* ── Fixed Canvas wrapper ────────────────────────────────────────────────── */
+#canvas-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+/* Dim 3D canvas when behind non-track content sections */
+#canvas-wrapper.canvas-dimmed {
+  opacity: 0.25;
+}
+
+/* ── Scrollable content layer ────────────────────────────────────────────── */
+#scroll-content {
+  position: relative;
+  z-index: 10;
+  /* Prevent any child from scrolling beyond the page */
+  overflow-x: clip;
+}
+
+/* Sponsor, FAQ, Contact, Footer sections get a backdrop so 3D doesn't bleed through */
+#why-sponsor,
+#sponsor-tiers,
+#faq,
+#contact,
+footer#footer {
+  background: linear-gradient(to bottom, transparent, rgba(5,5,8,0.92) 8%, rgba(5,5,8,0.96) 100%);
+  backdrop-filter: none; /* let the canvas dim handle depth */
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Halftone comic texture utility ─────────────────────────────────────── */
+.halftone {
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* ── Glitch animation for loading logo ──────────────────────────────────── */
+@keyframes glitch {
+  0%, 100% { text-shadow: none; transform: none; }
+  20%       { text-shadow: -2px 0 #E23636; transform: translateX(2px); }
+  40%       { text-shadow:  2px 0 #60A5FA; transform: translateX(-2px); }
+  60%       { text-shadow: none; transform: none; }
+  80%       { text-shadow: -1px 0 #E23636; transform: translateX(1px); }
+}
+
+.loading-glitch {
+  animation: glitch 3s infinite;
+}
+
+/* ── Glow text utility ───────────────────────────────────────────────────── */
+.text-glow-red {
+  text-shadow: 0 0 20px rgba(226,54,54,0.8), 0 0 40px rgba(226,54,54,0.4);
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; }
+::-webkit-scrollbar-track  { background: var(--color-darker); }
+::-webkit-scrollbar-thumb  { background: var(--color-red); border-radius: 2px; }
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(226,54,54,0.3);
+  color: #fff;
+}
+
+/* ── Reduced motion fallback ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* CharacterArt.tsx — signature effect keyframes                              */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes char-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes char-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+/* cybersec: expanding shockwave rings */
+@keyframes char-shockwave {
+  0%   { opacity: 1;   transform: scale(0.7); }
+  60%  { opacity: 0.4; }
+  100% { opacity: 0;   transform: scale(1.6); }
+}
+
+/* web3: crystal shard rise */
+@keyframes char-shard {
+  0%   { opacity: 0;   transform-origin: bottom center; transform: scaleY(0) rotate(var(--rot, 0deg)); }
+  30%  { opacity: 1; }
+  70%  { opacity: 0.6; }
+  100% { opacity: 0;   transform: scaleY(1.4) translateY(-20px) rotate(var(--rot, 0deg)); }
+}
+
+/* spark float-up */
+@keyframes char-spark {
+  0%   { opacity: 0;   transform: translateY(0) scale(1); }
+  20%  { opacity: 1; }
+  100% { opacity: 0;   transform: translateY(-40px) scale(0.4); }
+}
+
+/* ── Scroll velocity: heading skew + rim-glow flicker ───────────────────── */
+@keyframes char-skew {
+  0%,100% { skew: 0deg; }
+  50%     { skew: 4deg; }
+}
+
+@keyframes char-rimflicker {
+  0%, 100% { opacity: 1; }
+  10%      { opacity: 0.4; }
+  20%      { opacity: 0.9; }
+  30%      { opacity: 0.5; }
+  40%      { opacity: 1; }
+}
+
+/* ── Fade-in utility for modals ─────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease; }
+
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/* MarvelOverlay.tsx — crack glitch flash keyframe                             */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+@keyframes marvel-crack {
+  0%   { opacity: 0;   clip-path: polygon(0 40%,100% 35%,100% 65%,0 70%); }
+  15%  { opacity: 1;   clip-path: polygon(0 38%,100% 30%,100% 72%,0 76%); }
+  40%  { opacity: 0.7; clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
+  100% { opacity: 0;   clip-path: polygon(0 0%,100% 0%,100% 100%,0 100%); }
+}
+
+/* ── Infinite marquee — left and right scroll ───────────────────────────── */
+@keyframes marquee-left {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@keyframes marquee-right {
+  0%   { transform: translateX(-33.333%); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Timeline spine pulse ────────────────────────────────────────────────── */
+@keyframes timelinePulse {
+  0%   { transform: translateY(-100%); opacity: 0;   }
+  30%  { opacity: 1; }
+  70%  { opacity: 0.6; }
+  100% { transform: translateY(300%); opacity: 0;   }
+}
+
+/* ── New sections backdrop (same pattern as sponsor sections) ────────────── */
+#brochure,
+#event-date,
+#past-sponsors,
+#last-year,
+#contact,
+#timeline {
+  background: linear-gradient(to bottom, transparent, rgba(5,5,8,0.90) 6%, rgba(5,5,8,0.95) 100%);
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Last-year stat grid responsive columns ──────────────────────────────── */
+.last-year-stats {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 768px) {
+  #last-year .last-year-stats-wrapper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  #last-year .last-year-stats-wrapper {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }

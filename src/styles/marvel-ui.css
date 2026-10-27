@@ -1,0 +1,357 @@
+/* src/styles/marvel-ui.css
+ * ─────────────────────────────────────────────────────────────────────────────
+ * MARVEL UI — shared design-system tokens and component styles.
+ * All content sections below Tracks MUST use only these tokens.
+ * No border may exceed var(--line-strong). Red is the ONLY accent outside Tracks.
+ */
+
+/* ── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg:              #07070b;
+  --panel:           rgba(255,255,255,0.035);
+  --panel-hover:     rgba(255,255,255,0.055);
+
+  /* Border / line scale (brightest allowed: --line-strong) */
+  --line:            rgba(255,255,255,0.09);
+  --line-strong:     rgba(255,255,255,0.16);
+
+  /* Accent — red only outside Tracks */
+  --red:             #e23636;
+  --red-soft:        rgba(226,54,54,0.35);
+  --red-glow:        rgba(226,54,54,0.18);
+
+  /* Typography */
+  --text:            rgba(255,255,255,0.92);
+  --muted:           rgba(255,255,255,0.62);
+  --faint:           rgba(255,255,255,0.38);
+
+  /* Spacing (8-px scale reference) */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-6: 48px;
+  --sp-8: 64px;
+
+  /* Section rhythm */
+  --section-py: clamp(72px, 12vh, 140px);
+  --container-max: 1200px;
+  --container-px: clamp(1rem, 6vw, 5rem);
+}
+
+/* ── Section shell ─────────────────────────────────────────────────────────── */
+.mu-section {
+  padding-block: var(--section-py);
+  overflow-x: clip;
+  position: relative;
+}
+
+.mu-container {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-px);
+}
+
+/* ── SectionHeader ─────────────────────────────────────────────────────────── */
+.mu-eyebrow {
+  display: block;
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 0.75rem;
+}
+
+.mu-title {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin: 0;
+  word-break: break-word;
+}
+
+.mu-title .mu-title-accent {
+  /* outlined / muted accent word */
+  -webkit-text-stroke: 1px rgba(255,255,255,0.22);
+  color: transparent;
+}
+
+.mu-subtitle {
+  font-family: var(--font-body), sans-serif;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 1rem;
+  max-width: 52ch;
+}
+
+.mu-header-center .mu-subtitle { margin-inline: auto; }
+.mu-header-center              { text-align: center; }
+.mu-header-center .mu-title    { max-width: none; }
+
+/* ── Divider ───────────────────────────────────────────────────────────────── */
+.mu-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--line);
+  position: relative;
+  margin-block: var(--sp-4);
+}
+
+.mu-divider::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 40px; height: 1px;
+  background: var(--red);
+}
+
+/* ── Panel ─────────────────────────────────────────────────────────────────── */
+.mu-panel {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Static halftone dot texture at 4% opacity */
+.mu-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* Red corner ticks — top-left and bottom-right by default */
+.mu-panel::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 10px; height: 10px;
+  border-top: 1px solid var(--red);
+  border-left: 1px solid var(--red);
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.mu-panel-tick-br {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 10px; height: 10px;
+  border-bottom: 1px solid var(--red);
+  border-right: 1px solid var(--red);
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* All-four corner ticks on hover */
+.mu-panel:hover {
+  border-color: var(--red-soft);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(226,54,54,0.08);
+}
+
+/* Reveal extra ticks on hover via .mu-panel-tick-tl / tr / bl */
+.mu-panel-tick-tl,
+.mu-panel-tick-tr,
+.mu-panel-tick-bl {
+  position: absolute;
+  width: 10px; height: 10px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.mu-panel-tick-tl { top: 0;    left: 0;  border-top: 1px solid var(--red); border-left: 1px solid var(--red); }
+.mu-panel-tick-tr { top: 0;    right: 0; border-top: 1px solid var(--red); border-right: 1px solid var(--red); }
+.mu-panel-tick-bl { bottom: 0; left: 0;  border-bottom: 1px solid var(--red); border-left: 1px solid var(--red); }
+
+.mu-panel:hover .mu-panel-tick-tl,
+.mu-panel:hover .mu-panel-tick-tr,
+.mu-panel:hover .mu-panel-tick-bl { opacity: 1; }
+
+/* Accent variant — 2px red left border */
+.mu-panel-accent {
+  border-left: 2px solid var(--red);
+}
+
+/* No hover lift when flagged static */
+.mu-panel-static:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Chip ──────────────────────────────────────────────────────────────────── */
+.mu-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-family: var(--font-body), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+  background: transparent;
+  white-space: nowrap;
+}
+
+.mu-chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  animation: mu-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mu-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Button primary ────────────────────────────────────────────────────────── */
+.mu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  padding-inline: 28px;
+  background: var(--red);
+  border: none;
+  border-radius: 2px;
+  color: #fff;
+  font-family: var(--font-body), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 44px; /* touch target */
+}
+
+.mu-btn:hover {
+  background: #c42e2e;
+  box-shadow: 0 0 24px rgba(226,54,54,0.45), 0 0 8px rgba(226,54,54,0.2);
+}
+
+.mu-btn:active { transform: scale(0.97); }
+
+/* Ghost button */
+.mu-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding-inline: 20px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: var(--font-body), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  white-space: nowrap;
+  min-width: 44px;
+}
+
+.mu-btn-ghost:hover { color: var(--text); }
+
+/* ── Stat card ─────────────────────────────────────────────────────────────── */
+.mu-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: var(--sp-3);
+}
+
+.mu-stat-icon {
+  width: 20px; height: 20px;
+  color: var(--red);
+  flex-shrink: 0;
+  stroke-width: 1.5;
+}
+
+.mu-stat-value {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  color: var(--text);
+  line-height: 1;
+}
+
+.mu-stat-label {
+  font-family: var(--font-body), monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ── LogoTile ──────────────────────────────────────────────────────────────── */
+.mu-logo-tile {
+  aspect-ratio: 3 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  /* inner plate — light background so dark logos are visible */
+  background: rgba(243,243,246,0.94);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mu-logo-tile img {
+  max-height: 44px;
+  width: auto;
+  max-width: 80%;
+  object-fit: contain;
+}
+
+/* Invert variant — for logos that look best inverted */
+.mu-logo-tile-invert img { filter: invert(1); }
+
+/* Original variant — no plate, transparent bg */
+.mu-logo-tile-original {
+  background: var(--panel);
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────────────────── */
+.mu-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.mu-reveal.mu-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Count-up lock (no re-run once done) ───────────────────────────────────── */
+.mu-counted { /* marker class, no style needed */ }
+
+/* ── Timeline gem node ─────────────────────────────────────────────────────── */
+.mu-gem-node {
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px currentColor);
+}

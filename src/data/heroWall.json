@@ -1,0 +1,10 @@
+{
+  "aspect": 1.9326,
+  "source": {
+    "width": 3612,
+    "height": 1869,
+    "file": "2193203.png"
+  },
+  "main": "/hero/hero-wall-main.webp",
+  "mobile": "/hero/hero-wall-mobile.webp"
+}
