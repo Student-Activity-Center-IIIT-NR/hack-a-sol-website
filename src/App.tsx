@@ -40,6 +40,7 @@ import { About }         from "./sections/About"
 import { Tracks }        from "./sections/Tracks"
 import { Brochure }      from "./sections/Brochure"
 import { PastSponsors }  from "./sections/PastSponsors"
+import { PlatformSponsor } from "./sections/PlatformSponsor"
 import { Timeline }      from "./sections/Timeline"
 import { EventDate }     from "./sections/EventDate"
 import { LastYear }      from "./sections/LastYear"
@@ -183,6 +184,7 @@ export default function App() {
         />
         <EventDate />
         <Brochure />
+        <PlatformSponsor />
         <PastSponsors />
         <Timeline />
         <LastYear />

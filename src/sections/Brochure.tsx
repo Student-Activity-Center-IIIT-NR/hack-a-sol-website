@@ -17,7 +17,7 @@ import '../styles/marvel-ui.css'
 const HUD_STATS = [
   { label: 'TRACKS',       value: `${TRACKS.length}`,         unit: 'UNIVERSES'  },
   { label: 'TEAM SIZE',    value: '2–4',                      unit: 'MEMBERS'    },
-  { label: 'FORMAT',       value: '24H',                      unit: 'NON-STOP'   },
+  { label: 'FORMAT',       value: EVENT.duration,             unit: 'NON-STOP'   },
   { label: 'PARTICIPANTS', value: EVENT.expectedParticipants, unit: 'EXPECTED'   },
   { label: 'PRIZE POOL',   value: EVENT.prizePool,            unit: 'IN REWARDS' },
   { label: 'EDITION',      value: EVENT.edition,              unit: 'SERIES'     },
@@ -32,7 +32,7 @@ const META_ROWS = [
 
 const BOTTOM_STATS = [
   { value: EVENT.expectedParticipants, label: 'Expected Participants' },
-  { value: '24H',                      label: 'Non-Stop Build'        },
+  { value: EVENT.duration,           label: 'Non-Stop Build'        },
   { value: `${TRACKS.length}`,         label: 'Tracks'                },
 ]
 
@@ -91,7 +91,7 @@ export function Brochure() {
             </span>
 
             {/* Badge */}
-            <Chip dot className="mb-8 self-start">Official Sponsor Kit</Chip>
+            <Chip dot className="mb-8 self-start">Sponsor Kit — Live</Chip>
 
             {/* Metadata definition list */}
             <dl className="space-y-4 flex-1">

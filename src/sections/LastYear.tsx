@@ -30,16 +30,16 @@ const STATS = [
   { icon: <GraduationCap size={20} strokeWidth={1.5} />, value: LAST_YEAR.mentors,      label: 'Mentors'      },
 ]
 
-/** Gallery slots: one large (2×2) + four small */
+/** Gallery slots: one large (2×2) + four small, each with a real photo */
 const GALLERY = [
-  { id: 'g1', caption: 'Opening Ceremony',     large: true  },
-  { id: 'g2', caption: 'Team Hacking Session', large: false },
-  { id: 'g3', caption: 'Mentor Rounds',        large: false },
-  { id: 'g4', caption: 'Project Showcase',     large: false },
-  { id: 'g5', caption: 'Prize Distribution',   large: false },
+  { id: 'g1',     src: '/gallery/audi-session.JPG',  large: true  },
+  { id: 'g2',  src: '/gallery/grp-1.JPG',  large: false },
+  { id: 'g3',        src: '/gallery/speaker.JPG',  large: false },
+  { id: 'g4', src: '/gallery/lab.JPG', large: false },
+  { id: 'g5', src: '/gallery/audience.JPG',   large: false },
 ]
 
-function GallerySlot({ caption, large }: { caption: string; large: boolean }) {
+function GallerySlot({ src, large }: { src: string; large: boolean }) {
   return (
     <Panel
       className={large ? 'row-span-2 col-span-2' : ''}
@@ -47,51 +47,51 @@ function GallerySlot({ caption, large }: { caption: string; large: boolean }) {
         minHeight: large ? '260px' : '120px',
         overflow: 'hidden',
         position: 'relative',
+        padding: 0,
       } as React.CSSProperties}
     >
-      {/* Subtle halftone placeholder — no bright icon boxes */}
-      <div
+      {/* Actual event photograph */}
+      <img
+        src={src}
+        loading="lazy"
+        decoding="async"
         style={{
           position: 'absolute',
           inset: 0,
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-          opacity: 0.08,
-          pointerEvents: 'none',
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center',
+          display: 'block',
+          transition: 'transform 0.5s ease',
+        }}
+        className="gallery-img"
+      />
+      {/* Red corner accent */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '24px',
+          height: '2px',
+          background: 'var(--red)',
+          opacity: 0.7,
         }}
         aria-hidden="true"
       />
-      {/* Muted label only */}
       <div
         style={{
           position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          pointerEvents: 'none',
+          top: 0,
+          left: 0,
+          width: '2px',
+          height: '24px',
+          background: 'var(--red)',
+          opacity: 0.7,
         }}
-      >
-        <svg
-          width="16" height="16"
-          fill="none" stroke="currentColor" strokeWidth="1.2"
-          viewBox="0 0 24 24"
-          style={{ color: 'rgba(255,255,255,0.1)' }}
-          aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M13.5 12h.008v.008H13.5V12z"
-          />
-        </svg>
-        <span
-          className="font-body uppercase"
-          style={{ fontSize: '0.58rem', letterSpacing: '0.3em', color: 'rgba(255,255,255,0.18)' }}
-        >
-          {caption}
-        </span>
-      </div>
+        aria-hidden="true"
+      />
     </Panel>
   )
 }
@@ -152,17 +152,12 @@ export function LastYear() {
             gap: '8px',
           }}
         >
-          {GALLERY.map(({ id, caption, large }) => (
-            <GallerySlot key={id} caption={caption} large={large} />
+          {GALLERY.map(({ id, src, large }) => (
+            <GallerySlot key={id} src={src} large={large} />
           ))}
         </div>
 
-        <p
-          className="font-body text-center uppercase mt-8"
-          style={{ fontSize: '0.65rem', letterSpacing: '0.35em', color: 'rgba(255,255,255,0.2)' }}
-        >
-          Real gallery photos from Hack-A-Sol 4.0 will be added here soon
-        </p>
+        
       </div>
     </section>
   )

@@ -48,7 +48,7 @@ export const HERO_COPY = {
   /** Single-line supporting tagline */
   tagline: 'Assemble your team. Choose your universe. Build what comes next.',
   /** Primary CTA button label */
-  ctaPrimary: 'COMING SOON  →',
+  ctaPrimary: '22 – 24 NOV  →',
   /** Secondary text-link label */
   ctaSecondary: 'MEET THE CHAMPIONS',
   /** anchor href for secondary link */
@@ -127,21 +127,22 @@ export const EVENT = {
   edition: '5.0',
   theme: 'MARVEL',
   hostedBy: 'IIIT Naya Raipur',
-  /** Update when confirmed */
-  date: 'November 2026 (TBA)',
-  dateShort: 'Nov 2026',
+  /** Confirmed dates */
+  date: '22 – 24 November 2026',
+  dateShort: '22–24 Nov 2026',
   venue: 'IIIT Naya Raipur Campus (TBA)',
   registrationLink: '#coming-soon',
-  registrationStatus: 'Coming Soon',
-  prizePool: 'TBA',
+  registrationStatus: 'Live',
+  prizePool: '₹1,00,000+',
+  duration: '36 Hours',
   teamSize: '2 – 4 members (TBA)',
-  expectedParticipants: '500+ (TBA)',
+  expectedParticipants: '500+',
   website: 'https://hackasol.iiitnr.ac.in',
 } as const
 
 export const SPONSOR = {
-  email: 'sponsorship@hackasol.iiitnr.ac.in',
-  brochureLink: '#coming-soon',
+  email: 'hackasol@iiitnr.edu.in',
+  brochureLink: 'https://drive.google.com/drive/folders/1cNfXzWb5v7kpERVBYAmJf9I1bkxNl2RO',
   contactName: 'Sponsorship Team, Hack-A-Sol 5.0',
 } as const
 
@@ -190,21 +191,21 @@ export const TIMELINE = [
   },
   {
     label: 'Hackathon Day 1 — Setup & Build',
-    date: 'TBA',
+    date: '22 Nov 2026',
     icon: '🔧',
-    description: '24 hours of ideation, engineering, and relentless problem-solving.',
+    description: '36 hours of ideation, engineering, and relentless problem-solving begins.',
   },
   {
-    label: 'Hackathon Day 2 — Demo Day',
-    date: 'TBA',
+    label: 'Hackathon Day 2 — Build & Hack',
+    date: '23 Nov 2026',
+    icon: '💻',
+    description: 'Keep pushing — 36 hours on the clock, fuelled by caffeine and ambition.',
+  },
+  {
+    label: 'Demo Day & Prize Ceremony',
+    date: '24 Nov 2026',
     icon: '🏆',
-    description: 'Present your solution to an elite panel of industry experts and mentors.',
-  },
-  {
-    label: 'Prize Ceremony & Closing',
-    date: 'TBA',
-    icon: '🎖',
-    description: 'The worthy are crowned. Glory, prizes, and legend status await.',
+    description: 'Present your solution to an elite panel. The worthy are crowned.',
   },
 ] as const
 
@@ -230,10 +231,29 @@ export const PAST_SPONSORS: readonly PastSponsor[] = [
   { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg',        tone: 'plate'    },
   { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg', tone: 'plate'    },
   { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg',  tone: 'plate'    },
-  { id: 'ath-india',     name: 'ETH India',        logo: '/sponsors/ethindia.svg',     tone: 'original' },
+  { id: 'ath-india',     name: 'ETH India',        logo: '/sponsors/ethindia.svg',     tone: 'plate'    },
   { id: 'quill-audit',   name: 'Quill Audits',     logo: '/sponsors/quillaudits.svg',  tone: 'plate'    },
   // Incogni logo is typically white/dark — plate mode makes it visible
   { id: 'incognito',     name: 'Incogni',          logo: '/sponsors/incogni.svg',      tone: 'plate'    },
+]
+
+/**
+ * Platform / presenting sponsors for Hack-A-Sol 5.0.
+ * `featured: true` → displayed in the larger "Presenting Partners" row.
+ * Leave this array empty to show the Coming Soon state.
+ */
+export type PlatformSponsorEntry = {
+  id: string
+  name: string
+  logo: string
+  tone?: 'plate' | 'original' | 'invert'
+  /** If true, displayed in the larger featured row with a PRESENTING badge */
+  featured?: boolean
+}
+
+export const PLATFORM_SPONSORS: readonly PlatformSponsorEntry[] = [
+  // Add platform sponsors here when confirmed, e.g.:
+  { id: 'devfolio', name: 'Devfolio', logo: '/sponsors/devfolio-logo.svg', tone: 'plate', featured: true },
 ]
 
 /** Last year stats — update when Hack-A-Sol 4.0 numbers are confirmed */
@@ -305,7 +325,7 @@ export const FAQ = [
   },
   {
     q: 'Is there a registration fee?',
-    a: 'Registration details are coming soon. Follow our socials for updates.',
+    a: 'No — Hack-A-Sol 5.0 is completely free to participate in. There is no registration fee.',
   },
   {
     q: 'What tracks are available?',
