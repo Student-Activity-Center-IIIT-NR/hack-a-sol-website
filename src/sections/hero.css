@@ -181,3 +181,226 @@
     transform: translateY(15%) !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE HERO — complete redesign for portrait screens < 640px
+   Structure:
+     - Background: deep crimson radial + wallpaper art filling top 55%
+     - Scan-line texture overlay (CRT / comic effect)
+     - Content column: centered, top-to-bottom
+       1. Hosted-by chip
+       2. HACK-A-SOL mega title
+       3. Edition divider
+       4. MARVEL slab
+       5. Date + duration badge row
+       6. Tagline
+       7. CTAs (stacked)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 639px) {
+
+  /* ── Container ── */
+  .hero-section {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    min-height: 100svh !important;
+    background: radial-gradient(
+      ellipse 120% 70% at 50% 0%,
+      #6b0608 0%,
+      #2e0203 45%,
+      #07070b 100%
+    ) !important;
+    overflow: hidden !important;
+  }
+
+  /* ── Wallpaper: fills top portion, fades away at ~55% ── */
+  .hero-bg-layer {
+    position: absolute !important;
+    inset: 0 !important;
+    height: 62% !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+
+  .hero-wallpaper-img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center 20% !important;
+    transform: none !important;
+    opacity: 0.55 !important;
+    mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 55%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      black 0%,
+      black 55%,
+      transparent 100%
+    );
+  }
+
+  /* ── Scan-line CRT overlay (subtle, adds comic texture) ── */
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.06) 2px,
+      rgba(0, 0, 0, 0.06) 4px
+    );
+  }
+
+  /* ── Top shade — hide on mobile (no navbar overlap needed) ── */
+  .hero-blend-top {
+    height: 14vh !important;
+    background: linear-gradient(
+      180deg,
+      rgba(5, 5, 8, 0.7) 0%,
+      transparent 100%
+    ) !important;
+    z-index: 3 !important;
+  }
+
+  /* ── Center scrim ── */
+  .hero-blend-center {
+    background: radial-gradient(
+      ellipse 100% 60% at 50% 50%,
+      rgba(5, 5, 8, 0.3) 0%,
+      transparent 80%
+    ) !important;
+  }
+
+  /* ── Bottom blend — stronger on mobile ── */
+  .hero-blend-bottom {
+    height: 38vh !important;
+    background: linear-gradient(
+      0deg,
+      #07070b 0%,
+      rgba(7, 7, 11, 0.98) 20%,
+      rgba(7, 7, 11, 0.5) 60%,
+      transparent 100%
+    ) !important;
+    z-index: 3 !important;
+  }
+
+  /* ── Embers: fewer, slower on mobile ── */
+  .hero-embers-container {
+    z-index: 4 !important;
+  }
+
+  /* ── Content wrapper: full-height column, content in lower 55% ── */
+  .hero-section > div[class*='relative z-10'] {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0 20px 36px !important;
+    text-align: center !important;
+    z-index: 10 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* ── Hosted-by line ── */
+  .hero-section p:first-of-type {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.4em !important;
+    margin-bottom: 6px !important;
+    opacity: 0.85;
+  }
+
+  /* ── HACK-A-SOL mega title ── */
+  .hero-hackasol-title {
+    font-size: clamp(3.2rem, 17vw, 4.8rem) !important;
+    line-height: 0.88 !important;
+    letter-spacing: 0.04em !important;
+    text-shadow:
+      0 0 30px rgba(226, 54, 54, 0.7),
+      0 0 80px rgba(226, 54, 54, 0.3),
+      0 4px 20px rgba(0, 0, 0, 0.99) !important;
+    margin-bottom: 10px !important;
+    margin-top: 0 !important;
+  }
+
+  /* ── Edition divider row ── */
+  .hero-section > div[class*='relative z-10'] > div:first-of-type {
+    margin: 8px 0 !important;
+  }
+
+  /* ── MARVEL slab — compact ── */
+  .hero-marvel-slab {
+    padding: 0.18rem 1.1rem 0.16rem 1.2rem !important;
+  }
+
+  .hero-marvel-text {
+    font-size: 1.25rem !important;
+    letter-spacing: 0.28em !important;
+  }
+
+  /* ── Description text ── */
+  .hero-section p.font-body {
+    font-size: 0.78rem !important;
+    line-height: 1.55 !important;
+    max-width: 100% !important;
+    color: rgba(255,255,255,0.82) !important;
+    margin-bottom: 16px !important;
+    padding: 0 !important;
+  }
+
+  /* ── CTA buttons — full width stacked ── */
+  .hero-section a[id='hero-register-btn'],
+  .hero-section a[id='hero-sponsor-btn'] {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 14px 24px !important;
+    font-size: 0.7rem !important;
+    letter-spacing: 0.25em !important;
+  }
+
+  /* Button container: column on mobile */
+  .hero-section div[class*='flex flex-wrap'] {
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  /* ── Red pulse indicator line at the very bottom ── */
+  .hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(226, 54, 54, 0.8) 30%,
+      #e23636 50%,
+      rgba(226, 54, 54, 0.8) 70%,
+      transparent 100%
+    );
+    z-index: 20;
+    animation: hero-scan-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes hero-scan-pulse {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 1; }
+  }
+}

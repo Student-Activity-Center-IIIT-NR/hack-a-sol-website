@@ -87,59 +87,71 @@
   }
 }
 
-/* ── Mobile Layout (< 900px) ────────────────────────────────────────────── */
+/* ── Mobile Layout (< 900px) ──────────────────────────────────────────────── */
 @media (max-width: 899px) {
   /* Hide desktop-only decor on mobile */
   .track-left-rail,
   [data-track-left-rail="true"],
   .track-chapter-counter,
   [data-chapter-counter="true"],
-  [data-floating-hud-label="true"] {
+  [data-floating-hud-label="true"],
+  .track-chapter-badge {
     display: none !important;
   }
 
-  /* Each chapter is a column with the art block first and the text below */
+  /* ── Chapter slide: 58% art top / 42% text bottom ── */
   .track-chapter-slide {
     position: absolute !important;
     inset: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: flex-start !important;
-    align-items: center !important;
-    overflow-y: auto !important;
-    overflow-x: clip !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding-top: max(8px, 1.5svh) !important;
-    padding-bottom: 24px !important;
+    display: grid !important;
+    grid-template-rows: 58svh 42svh !important;
+    grid-template-columns: 1fr !important;
+    overflow: hidden !important;
   }
 
-  /* Art block: position relative, width 100%, height clamp(220px, 40svh, 46svh), display flex, justify-content center, align-items flex-end */
+  /* ── TOP ROW: character art ── */
   .track-art-block {
+    grid-row: 1 !important;
+    grid-column: 1 !important;
     position: relative !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
     inset: auto !important;
     width: 100% !important;
-    height: clamp(220px, 40svh, 46svh) !important;
+    height: 100% !important;
     display: flex !important;
     justify-content: center !important;
     align-items: flex-end !important;
-    flex-shrink: 0 !important;
-    z-index: 5 !important;
     overflow: visible !important;
-    visibility: visible !important;
+    z-index: 5 !important;
   }
 
-  /* Reset desktop overrides through CSS variables */
+  /* Both art-right and art-left collapse to center on mobile */
+  .track-art-right,
+  .track-art-left {
+    left: auto !important;
+    right: auto !important;
+  }
+
+  /* Gradient fade at bottom of art — blends into text panel */
+  .track-art-block::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, transparent 0%, rgba(7,7,11,0.75) 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Reset art CSS variables */
   .track-art-block,
   .character-art-container {
     --art-x: 0px !important;
     --art-y: 0px !important;
     --art-height: 100% !important;
-    --art-bottom: -2svh !important;
-    --art-max-w: 92vw !important;
+    --art-bottom: 0px !important;
+    --art-max-w: 100vw !important;
   }
 
   .character-art-container {
@@ -150,8 +162,7 @@
     display: flex !important;
     justify-content: center !important;
     align-items: flex-end !important;
-    z-index: 2 !important;
-    visibility: visible !important;
+    z-index: 8 !important;
   }
 
   .character-art-img-wrap {
@@ -162,110 +173,308 @@
     display: flex !important;
     justify-content: center !important;
     align-items: flex-end !important;
-    bottom: -2svh !important;
     margin-bottom: 0 !important;
-    z-index: 2 !important;
-    visibility: visible !important;
+    z-index: 8 !important;
   }
 
-  /* The <img>: height 100%, width auto, max-width 92vw, object-fit contain, bottom bleed -2svh */
+  /* Character image fills top half */
   .track-art-block img[data-character-img],
   .character-art-img {
     position: relative !important;
     height: 100% !important;
     width: auto !important;
-    max-width: 92vw !important;
+    max-width: 100vw !important;
+    max-height: 58svh !important;
     object-fit: contain !important;
     object-position: bottom center !important;
     display: block !important;
-    visibility: visible !important;
-    bottom: -2svh !important;
     transform-origin: 50% 100% !important;
   }
 
-  /* Accent glow disk sits behind the art, smaller */
+  /* ── Per-character size correction ──
+     Daredevil (track index 3) and Spider-Man (track index 4) source images
+     are proportionally taller than the other three characters, making them
+     appear larger on mobile. Cap their size to match the rest. */
+  .track-chapter-slide[data-track-index="3"] .character-art-img,
+  .track-chapter-slide[data-track-index="3"] img[data-character-img] {
+    max-height: 46svh !important;
+    max-width: 72vw !important;
+  }
+  .track-chapter-slide[data-track-index="4"] .character-art-img,
+  .track-chapter-slide[data-track-index="4"] img[data-character-img] {
+    max-height: 46svh !important;
+    max-width: 72vw !important;
+  }
+
+  /* Glow disk */
   .track-glow-disk {
     position: absolute !important;
-    width: min(220px, 55vw) !important;
-    height: min(220px, 55vw) !important;
+    width: min(300px, 75vw) !important;
+    height: min(300px, 75vw) !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) scale(var(--glow-scale, 1)) !important;
     z-index: 1 !important;
-    opacity: 0.3 !important;
+    opacity: 0.4 !important;
     pointer-events: none !important;
   }
 
-  /* Pulse ring behind art, smaller */
+  /* Pulse ring */
   .track-pulse-ring {
     position: absolute !important;
-    width: min(220px, 55vw) !important;
-    height: min(220px, 55vw) !important;
+    width: min(300px, 75vw) !important;
+    height: min(300px, 75vw) !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) scale(var(--pulse-scale, 1)) !important;
     z-index: 1 !important;
-    opacity: min(0.3, var(--pulse-op, 0)) !important;
+    opacity: min(0.25, var(--pulse-op, 0)) !important;
     pointer-events: none !important;
   }
 
-  /* Outlined character name watermark sits behind art, smaller */
+  /* Watermark — sits centered in top half */
   .track-watermark-name {
     position: absolute !important;
-    top: 50% !important;
+    top: 40% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    font-size: clamp(2rem, 8vw, 3.2rem) !important;
+    font-size: clamp(2.2rem, 10vw, 3.8rem) !important;
     z-index: 1 !important;
-    opacity: 0.25 !important;
+    opacity: 0.12 !important;
     white-space: nowrap !important;
     pointer-events: none !important;
   }
 
-  /* Signature decor at most 30% opacity and never above the art */
+  /* Signature decor */
   .character-art-decor {
     position: absolute !important;
     inset: 0 !important;
     z-index: 1 !important;
-    opacity: 0.3 !important;
+    opacity: 0.2 !important;
     max-height: 100% !important;
     pointer-events: none !important;
   }
 
-  /* Text column on mobile */
+  /* ── BOTTOM ROW: text info panel ── */
   .track-text-column {
+    grid-row: 2 !important;
+    grid-column: 1 !important;
     position: relative !important;
     inset: auto !important;
-    left: auto !important;
-    right: auto !important;
-    top: auto !important;
-    bottom: auto !important;
     width: 100% !important;
+    height: 100% !important;
     display: flex !important;
     flex-direction: column !important;
-    align-items: center !important;
-    padding: 0 !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    overflow: hidden !important;
     z-index: 10 !important;
-    flex-shrink: 0 !important;
+    padding: 0 !important;
+    /* Subtle dark background so text is always legible */
+    background: rgba(7,7,11,0.6) !important;
   }
 
-  /* Text block: padding 0 20px */
+  /* Remove desktop scrim gradient on mobile — not needed */
+  .track-text-column > div:first-child {
+    display: none !important;
+  }
+
+  /* Text block — left-aligned by default */
   .track-text-block {
-    padding: 0 20px !important;
     width: 100% !important;
-    max-width: 540px !important;
+    max-width: 100% !important;
+    padding: 0 20px !important;
     margin-top: 0 !important;
     text-align: left !important;
   }
 
-  /* Mobile typography tuning */
+  /* Even tracks (0,2,4): left-aligned — default, no extra rule needed */
+
+  /* Odd tracks (1,3): right-aligned */
+  .track-chapter-slide[data-track-index="1"] .track-text-column,
+  .track-chapter-slide[data-track-index="3"] .track-text-column {
+    align-items: flex-end !important;
+  }
+  .track-chapter-slide[data-track-index="1"] .track-text-block,
+  .track-chapter-slide[data-track-index="3"] .track-text-block {
+    text-align: right !important;
+  }
+
+  /* Mobile typography */
   .track-text-block h2 {
-    font-size: clamp(2rem, 7vw, 2.75rem) !important;
+    font-size: clamp(1.6rem, 6vw, 2.2rem) !important;
     line-height: 1.05 !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
   }
 
   .track-text-block p {
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Clamp description to 2 lines to avoid overflow */
+  .track-text-block p:last-of-type {
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  /* Compact button strip */
+  .track-text-block [data-buttons-block] {
+    margin-top: 0.5rem !important;
+    gap: 0.5rem !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE CHARACTER RINGS — 4 layered rings using --ac CSS variable
+   (set per-slide in Tracks.tsx as style={{ '--ac': ac }})
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared ring keyframes ── */
+@keyframes mob-spin-cw  {
+  from { transform: translate(-50%,-50%) rotate(0deg);    }
+  to   { transform: translate(-50%,-50%) rotate(360deg);  }
+}
+@keyframes mob-spin-ccw {
+  from { transform: translate(-50%,-50%) rotate(0deg);    }
+  to   { transform: translate(-50%,-50%) rotate(-360deg); }
+}
+@keyframes mob-ring-breathe {
+  0%,100% { opacity: var(--ri-op, 0.55); transform: translate(-50%,-50%) scale(1);    }
+  50%     { opacity: calc(var(--ri-op, 0.55) * 1.4);
+            transform: translate(-50%,-50%) scale(1.04); }
+}
+
+/* ── Hide ring divs on desktop ── */
+.track-mob-ring {
+  display: none;
+}
+
+@media (max-width: 899px) {
+
+  /* ─────────────────────────────────────────────────────────────────
+     Enhanced glow disk — fills most of the top half with colour
+     ───────────────────────────────────────────────────────────────── */
+  .track-glow-disk {
+    width:  min(380px, 95vw) !important;
+    height: min(380px, 95vw) !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(var(--glow-scale, 1)) !important;
+    opacity: 0.7 !important;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--ac, #e23636) 40%, transparent) 0%,
+      color-mix(in srgb, var(--ac, #e23636) 15%, transparent) 40%,
+      transparent 70%
+    ) !important;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     Existing pulse-ring — repurposed as an always-on inner ring
+     ───────────────────────────────────────────────────────────────── */
+  .track-pulse-ring {
+    width:  min(160px, 42vw) !important;
+    height: min(160px, 42vw) !important;
+    top: 50% !important; left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    border: 1.5px solid var(--ac, #e23636) !important;
+    opacity: 0.75 !important;
+    box-shadow:
+      0 0 18px var(--ac, #e23636),
+      inset 0 0 18px color-mix(in srgb, var(--ac, #e23636) 20%, transparent) !important;
+    animation: mob-ring-breathe 2.8s ease-in-out infinite !important;
+    --ri-op: 0.75;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────
+     NEW ring divs — shown only on mobile
+     ───────────────────────────────────────────────────────────────── */
+  .track-mob-ring {
+    display: block !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    border-radius: 50% !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  /* Ring 1 — tight solid, slow CW spin + glow */
+  .track-mob-ring-1 {
+    width:  min(210px, 55vw);
+    height: min(210px, 55vw);
+    border: 1px solid var(--ac, #e23636);
+    opacity: 0.55;
+    box-shadow:
+      0 0 14px var(--ac, #e23636),
+      0 0 40px color-mix(in srgb, var(--ac, #e23636) 30%, transparent),
+      inset 0 0 10px color-mix(in srgb, var(--ac, #e23636) 10%, transparent);
+    animation: mob-spin-cw 18s linear infinite;
+    /* 4 tick marks at 90° intervals via outline technique */
+    outline: none;
+  }
+
+  /* Ring 2 — medium dashed, CCW spin */
+  .track-mob-ring-2 {
+    width:  min(265px, 70vw);
+    height: min(265px, 70vw);
+    border: 1px dashed color-mix(in srgb, var(--ac, #e23636) 70%, white);
+    opacity: 0.45;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--ac, #e23636) 25%, transparent);
+    animation: mob-spin-ccw 28s linear infinite;
+  }
+
+  /* Ring 3 — outer solid thin, CW slow */
+  .track-mob-ring-3 {
+    width:  min(330px, 86vw);
+    height: min(330px, 86vw);
+    border: 1px solid color-mix(in srgb, var(--ac, #e23636) 50%, transparent);
+    opacity: 0.3;
+    box-shadow:
+      0 0 30px color-mix(in srgb, var(--ac, #e23636) 20%, transparent),
+      0 0 60px color-mix(in srgb, var(--ac, #e23636) 10%, transparent);
+    animation: mob-spin-cw 45s linear infinite;
+  }
+
+  /* Ring 4 — far outer, very faint, dashed, CCW */
+  .track-mob-ring-4 {
+    width:  min(395px, 100vw);
+    height: min(395px, 100vw);
+    border: 1px dashed color-mix(in srgb, var(--ac, #e23636) 35%, transparent);
+    opacity: 0.2;
+    animation: mob-spin-ccw 70s linear infinite;
+  }
+
+  /* ── ::before: accent arc lines (45° segments) — behind character ── */
+  .track-art-block::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width:  min(240px, 63vw);
+    height: min(240px, 63vw);
+    border-radius: 50%;
+    border-top:    2px solid var(--ac, #e23636);
+    border-right:  2px solid transparent;
+    border-bottom: 2px solid var(--ac, #e23636);
+    border-left:   2px solid transparent;
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 1;
+    animation: mob-spin-ccw 10s linear infinite;
+    box-shadow: 0 0 14px var(--ac, #e23636);
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .track-mob-ring,
+    .track-art-block::before,
+    .track-pulse-ring {
+      animation: none !important;
+    }
+  }
+}
+

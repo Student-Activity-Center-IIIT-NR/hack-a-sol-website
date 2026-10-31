@@ -30,31 +30,37 @@ const STATS = [
   { icon: <GraduationCap size={20} strokeWidth={1.5} />, value: LAST_YEAR.mentors,      label: 'Mentors'      },
 ]
 
-/** Gallery slots: one large (2×2) + four small, each with a real photo */
-const GALLERY = [
-  { id: 'g1',     src: '/gallery/audi-session.JPG',  large: true  },
-  { id: 'g2',  src: '/gallery/grp-1.JPG',  large: false },
-  { id: 'g3',        src: '/gallery/speaker.JPG',  large: false },
-  { id: 'g4', src: '/gallery/lab.JPG', large: false },
-  { id: 'g5', src: '/gallery/audience.JPG',   large: false },
+/** Gallery images — duplicated for seamless infinite loop */
+const GALLERY_IMGS = [
+  { id: 'g1', src: '/gallery/audi-session.JPG',  alt: 'Opening Ceremony'     },
+  { id: 'g2', src: '/gallery/grp-1.JPG',          alt: 'Group Photo'          },
+  { id: 'g3', src: '/gallery/speaker.JPG',         alt: 'Speaker Session'      },
+  { id: 'g4', src: '/gallery/lab.JPG',             alt: 'Hacking Lab'          },
+  { id: 'g5', src: '/gallery/audience.JPG',        alt: 'Audience'             },
+  { id: 'g6', src: '/gallery/grp-2.JPG',  alt: 'Group Photo' },
+  { id: 'g7', src: '/gallery/audience-2.JPG',        alt: 'Audience'             }
 ]
 
-function GallerySlot({ src, large }: { src: string; large: boolean }) {
+/** Single marquee photo tile */
+function MarqueePhoto({ src, alt }: { src: string; alt: string }) {
   return (
-    <Panel
-      className={large ? 'row-span-2 col-span-2' : ''}
+    <div
       style={{
-        minHeight: large ? '260px' : '120px',
-        overflow: 'hidden',
         position: 'relative',
-        padding: 0,
-      } as React.CSSProperties}
+        flexShrink: 0,
+        width: '260px',
+        height: '180px',
+        borderRadius: '2px',
+        overflow: 'hidden',
+        border: '1px solid var(--line)',
+      }}
     >
-      {/* Actual event photograph */}
       <img
         src={src}
+        alt={alt}
         loading="lazy"
         decoding="async"
+        draggable={false}
         style={{
           position: 'absolute',
           inset: 0,
@@ -62,37 +68,13 @@ function GallerySlot({ src, large }: { src: string; large: boolean }) {
           height: '100%',
           objectFit: 'cover',
           objectPosition: 'center',
-          display: 'block',
-          transition: 'transform 0.5s ease',
+          userSelect: 'none',
         }}
-        className="gallery-img"
       />
-      {/* Red corner accent */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '24px',
-          height: '2px',
-          background: 'var(--red)',
-          opacity: 0.7,
-        }}
-        aria-hidden="true"
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '2px',
-          height: '24px',
-          background: 'var(--red)',
-          opacity: 0.7,
-        }}
-        aria-hidden="true"
-      />
-    </Panel>
+      {/* Red corner ticks */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '20px', height: '2px', background: 'var(--red)', opacity: 0.7 }} aria-hidden="true" />
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '2px', height: '20px', background: 'var(--red)', opacity: 0.7 }} aria-hidden="true" />
+    </div>
   )
 }
 
@@ -137,24 +119,47 @@ export function LastYear() {
 
         {/* Gallery label */}
         <p
-          className="font-body uppercase mb-6 mt-0"
+          className="font-body uppercase mb-4 mt-6"
           style={{ fontSize: '0.65rem', letterSpacing: '0.4em', color: 'var(--faint)' }}
         >
           Gallery
         </p>
 
-        {/* Asymmetric gallery — 1 large (2×2) + 4 small in a 4-col grid */}
+        {/* —— Infinite marquee gallery —— */}
+        <style>{`
+          @keyframes gallery-scroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .gallery-marquee-track { animation-play-state: paused !important; }
+          }
+        `}</style>
+
+        {/* Outer mask — clip overflow, fade edges */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gridTemplateRows: 'repeat(2, 130px)',
-            gap: '8px',
+            overflow: 'hidden',
+            /* soft fade on left + right edges */
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
+            maskImage:       'linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%)',
           }}
         >
-          {GALLERY.map(({ id, src, large }) => (
-            <GallerySlot key={id} src={src} large={large} />
-          ))}
+          {/* Inner track — double the items so the loop is seamless */}
+          <div
+            className="gallery-marquee-track"
+            style={{
+              display: 'flex',
+              gap: '10px',
+              width: 'max-content',
+              animation: 'gallery-scroll 22s linear infinite',
+            }}
+          >
+            {/* Render twice for seamless loop */}
+            {[...GALLERY_IMGS, ...GALLERY_IMGS].map((img, i) => (
+              <MarqueePhoto key={`${img.id}-${i}`} src={img.src} alt={img.alt} />
+            ))}
+          </div>
         </div>
 
         

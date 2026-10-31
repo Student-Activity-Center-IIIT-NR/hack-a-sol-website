@@ -351,18 +351,124 @@
 .hm-hero .fade { opacity: 0; }
 
 /* ── Responsive ── */
+@keyframes hm-ring-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 @media (max-width: 860px) {
-  .hm-hero .hm-text { bottom: 11vh; }
-  /* On mobile, reduce orb size for clarity */
-  .hm-hero .hm-orb { width: 7px; height: 7px; }
-  /* Narrow: hide the right HUD to prevent overflow */
+  /* ── Root: let the section grow to its content, no fixed height ── */
+  .hm-hero {
+    --sil-ratio: 1.9;
+    --band-top: 9svh;
+    --band-h: calc(100vw / var(--sil-ratio));
+    --cy: calc(var(--band-top) + var(--band-h) * .55);
+    background: var(--bg);
+    /*
+     * KEY FIX: Replace fixed 100svh with auto height.
+     * The section grows to fit the silhouette band + the text content.
+     * padding-top creates space for the absolutely-positioned ::before band.
+     * padding-bottom creates space for the absolutely-positioned HUD bar.
+     */
+    height: auto;
+    min-height: 0;
+    padding-top: calc(var(--band-top) + var(--band-h) + 0.5rem);
+    padding-bottom: 5rem;
+  }
+
+  /* Hide WebGL canvas and right HUD label on mobile */
+  .hm-hero .hm-canvas,
   .hm-hero .hm-hud-right { display: none; }
+
+  /* Shrink bottom fade so it doesn't eat into text content */
+  .hm-hero::after { height: 4vh; }
+
+  /* HUD bar stays above everything */
+  .hm-hero .hm-hud { z-index: 3; }
+
+  /*
+   * Switch text from absolute to normal flow.
+   * It now sits directly below the padding-top space (= below the band).
+   * No gap, no black void — the section height is exactly: band + text + padding.
+   */
+  .hm-hero .hm-text {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    padding: 0 var(--pad);
+    max-width: 100%;
+    pointer-events: auto;
+  }
+
+  /* Heroes + glow, in a box exactly the size of the SVG.
+     The glow fades to transparent BEFORE every edge of the box, so the
+     SVG's red sky multiplies to black there: no strip, no haze outside. */
+  .hm-hero::before {
+    content: '';
+    position: absolute;
+    top: var(--band-top);
+    left: 0; right: 0;
+    height: var(--band-h);
+    z-index: 1;
+    pointer-events: none;
+    background-color: var(--bg);
+    background-image:
+      url('../../assets/hero-silhouette.svg'),
+      radial-gradient(ellipse 80% 50% at 50% 50%,
+        rgb(255, 80, 70) 0%, rgb(230, 45, 45) 35%,
+        rgba(150, 20, 25, .75) 65%, transparent 100%);
+    background-size: 100% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-blend-mode: multiply, normal;
+  }
+
+  /* Rings + orbs: same center as the glow, running over the black */
+  .hm-hero .hm-tags {
+    inset: 0 0 auto 0;
+    height: calc(var(--band-top) + var(--band-h) + 8svh);
+    z-index: 1;
+    -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+            mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  }
+  .hm-hero .hm-tags::before,
+  .hm-hero .hm-tags::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: var(--cy);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .hm-hero .hm-tags::before { width: 70vw; border: 1px solid rgba(226,54,54,.4); }
+  .hm-hero .hm-tags::after  { width: 100vw; border: 1px dashed rgba(226,54,54,.25);
+                              animation: hm-ring-spin 90s linear infinite; }
+  .hm-hero .hm-orb {
+    display: block;
+    left: 50% !important;
+    top: var(--cy) !important;
+    --r: 62vw;
+    width: 6px; height: 6px;
+    opacity: .9 !important;
+  }
+
+  /* Type */
+  .hm-hero .hm-name { margin: 1.1rem 0 .4rem; }
+  .hm-hero .ln:not(.big) { font-size: clamp(1.4rem, 6.4vw, 2.2rem); }
+  .hm-hero .ln.big { font-size: clamp(3rem, 15.5vw, 5.5rem); }
+  .hm-hero .hm-support { font-size: .95rem; margin-top: 1.1rem; }
+  .hm-hero .hm-cta { flex-direction: column; align-items: stretch; gap: 1.1rem; margin-top: 1.5rem; }
+  .hm-hero .hm-btn { justify-content: center; }
+  .hm-hero .hm-link { align-self: flex-start; }
 }
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .hm-hero *,
-  .hm-hero *::before {
+  .hm-hero *::before,
+  .hm-hero *::after {
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .001ms !important;
