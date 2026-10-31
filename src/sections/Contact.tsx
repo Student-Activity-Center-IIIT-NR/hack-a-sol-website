@@ -11,8 +11,8 @@
  * - No blue or orange accents anywhere — red only
  */
 
-import { SOCIALS, COLLEGE_LOCATION, ORGANIZERS, HACKASOL_EMAIL, SPONSOR } from '../config'
-import { SectionHeader, Panel, Chip, Button } from '../components/ui'
+import { SOCIALS, COLLEGE_LOCATION, ORGANIZERS, HACKASOL_EMAIL } from '../config'
+import { SectionHeader, Panel } from '../components/ui'
 import '../styles/marvel-ui.css'
 
 /* ── Platform SVG icons ───────────────────────────────────────────────────── */
@@ -316,51 +316,11 @@ export function Contact() {
                       {org.role}
                     </p>
                   </div>
-
-                  {/* Phone Chip */}
-                  {(org.mobile as string) !== 'TBA' ? (
-                    <a
-                      href={`tel:${org.mobile}`}
-                      style={{ textDecoration: 'none', flexShrink: 0 }}
-                    >
-                      <Chip className="cursor-pointer hover:border-[var(--line-strong)]">
-                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {org.mobile}
-                      </Chip>
-                    </a>
-                  ) : (
-                    <Chip>TBA</Chip>
-                  )}
                 </div>
               </Panel>
             ))}
 
-            {/* Sponsorship enquiry */}
-            <Panel className="px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-              <div>
-                <p
-                  className="font-body uppercase mb-1.5"
-                  style={{ fontSize: '0.65rem', letterSpacing: '0.32em', color: 'var(--faint)' }}
-                >
-                  Sponsorship Enquiries
-                </p>
-                <a
-                  href={`mailto:${SPONSOR.email}`}
-                  className="font-heading tracking-wide"
-                  style={{ fontSize: '1rem', color: 'var(--red)', textDecoration: 'none' }}
-                >
-                  {SPONSOR.email}
-                </a>
-              </div>
-              <Button
-                id="contact-sponsor-btn"
-                href={`mailto:${SPONSOR.email}?subject=Sponsorship%20Enquiry%20%E2%80%93%20Hack-A-Sol%205.0`}
-              >
-                Get in Touch
-              </Button>
-            </Panel>
+            
           </div>
         </div>
       </div>

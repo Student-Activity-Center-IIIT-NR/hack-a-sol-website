@@ -84,7 +84,8 @@ const ChapterSlide = React.memo(function ChapterSlide({
         pointerEvents: isActive ? "auto" : "none",
         zIndex: isActive ? 10 : 1,
         transform: "translate3d(0, 0, 0)",
-      }}
+        ['--ac' as string]: ac,
+      } as React.CSSProperties}
     >
       {/* ── ART BLOCK (FIRST in column order on mobile, side column on desktop) ── */}
       <div
@@ -104,6 +105,16 @@ const ChapterSlide = React.memo(function ChapterSlide({
             transition: "background 0.5s ease",
           }}
         />
+
+        {/* ── Mobile-only decorative ring system (hidden on desktop via CSS) ── */}
+        {/* Ring 1: tight inner ring — solid, glowing */}
+        <div className="track-mob-ring track-mob-ring-1 absolute rounded-full pointer-events-none" aria-hidden="true" />
+        {/* Ring 2: mid ring — solid, counter-rotates */}
+        <div className="track-mob-ring track-mob-ring-2 absolute rounded-full pointer-events-none" aria-hidden="true" />
+        {/* Ring 3: outer dashed orbital */}
+        <div className="track-mob-ring track-mob-ring-3 absolute rounded-full pointer-events-none" aria-hidden="true" />
+        {/* Ring 4: far outer very faint ring */}
+        <div className="track-mob-ring track-mob-ring-4 absolute rounded-full pointer-events-none" aria-hidden="true" />
 
         {/* The single signature ring */}
         <div

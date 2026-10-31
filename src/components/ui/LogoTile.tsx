@@ -23,6 +23,8 @@ interface LogoTileProps {
   delay?: number
   show?: boolean
   index?: number
+  /** Scale up the logo inside the tile without changing tile size. 'lg' = taller max-height */
+  logoScale?: 'default' | 'lg'
 }
 
 export function LogoTile({
@@ -31,6 +33,7 @@ export function LogoTile({
   tone = 'plate',
   delay = 0,
   show = true,
+  logoScale = 'default',
 }: LogoTileProps) {
   const [failed, setFailed] = useState(false)
 
@@ -67,9 +70,9 @@ export function LogoTile({
               loading="lazy"
               draggable={false}
               style={{
-                maxHeight: '44px',
+                maxHeight: logoScale === 'lg' ? '64px' : '44px',
                 width: 'auto',
-                maxWidth: '80%',
+                maxWidth: logoScale === 'lg' ? '90%' : '80%',
                 objectFit: 'contain',
                 filter: tone === 'invert' ? 'invert(1)' : 'none',
               }}

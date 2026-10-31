@@ -38,8 +38,8 @@ import { Hero }             from "./sections/Hero"
 import { HeroMultiverse }   from "./sections/HeroMultiverse"
 import { About }         from "./sections/About"
 import { Tracks }        from "./sections/Tracks"
-import { Brochure }      from "./sections/Brochure"
 import { PastSponsors }  from "./sections/PastSponsors"
+import { PlatformSponsor } from "./sections/PlatformSponsor"
 import { Timeline }      from "./sections/Timeline"
 import { EventDate }     from "./sections/EventDate"
 import { LastYear }      from "./sections/LastYear"
@@ -182,7 +182,7 @@ export default function App() {
           trackScrollVh={controls.trackScrollVh}
         />
         <EventDate />
-        <Brochure />
+        <PlatformSponsor />
         <PastSponsors />
         <Timeline />
         <LastYear />

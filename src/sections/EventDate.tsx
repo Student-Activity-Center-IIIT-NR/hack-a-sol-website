@@ -43,22 +43,24 @@ export function EventDate() {
             <span
               className="font-heading leading-none tracking-wide"
               style={{
-                fontSize: 'clamp(3rem, 8vw, 7rem)',
+                fontSize: 'clamp(2.2rem, 6vw, 5.5rem)',
                 color: 'var(--text)',
                 textShadow: '0 0 60px rgba(226,54,54,0.3)',
                 whiteSpace: 'nowrap',
               }}
             >
-              NOVEMBER 2026
+              22 – 24 NOVEMBER 2026
             </span>
-            <Chip dot className="self-center">TBA</Chip>
           </div>
 
           {/* Red divider line */}
           <Divider className="w-48" />
 
-          {/* Edition chip */}
-          <Chip>EDITION 5.0</Chip>
+          {/* Edition + duration chips */}
+          <div className="flex items-center gap-3">
+            <Chip>EDITION 5.0</Chip>
+            <Chip dot>{EVENT.duration}</Chip>
+          </div>
         </div>
 
         {/* Three-column mono info row */}
@@ -73,7 +75,8 @@ export function EventDate() {
           {[
             { label: 'HOST', value: EVENT.hostedBy },
             { label: 'EDITION', value: `Hack-A-Sol ${EVENT.edition}` },
-            { label: 'VENUE', value: EVENT.venue },
+            { label: 'PRIZE POOL', value: EVENT.prizePool },
+            { label: 'DURATION', value: EVENT.duration },
           ].map(({ label, value }) => (
             <div key={label} className="text-center px-4 py-3">
               <p
