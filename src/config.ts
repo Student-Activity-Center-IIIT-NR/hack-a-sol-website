@@ -253,7 +253,7 @@ export type PlatformSponsorEntry = {
 
 export const PLATFORM_SPONSORS: readonly PlatformSponsorEntry[] = [
   // Add platform sponsors here when confirmed, e.g.:
-  { id: 'devfolio', name: 'Devfolio', logo: '/sponsors/devfolio-logo.svg', tone: 'plate', featured: true },
+  { id: 'unstop', name: 'Unstop', logo: '/sponsors/unstop-logo.svg', tone: 'plate', featured: true },
 ]
 
 /** Last year stats — update when Hack-A-Sol 4.0 numbers are confirmed */
