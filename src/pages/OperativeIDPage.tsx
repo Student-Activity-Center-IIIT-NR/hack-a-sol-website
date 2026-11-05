@@ -20,6 +20,7 @@ import { toCanvas } from 'html-to-image'
 import { EVENT } from '../config'
 import { OperativeLanyard } from '../components/OperativeLanyard'
 import './operative-id/OperativeID.css'
+import collegeLogo from '../assets/college-logo.png'
 
 import ironMan from '../assets/avengers/ironman.webp'
 import captainAmerica from '../assets/avengers/captain-america.png'
@@ -38,7 +39,6 @@ import thanos from '../assets/avengers/thanos.jpg'
 /* ── CONFIG (organiser edits these) ──────────────────────────────────────── */
 
 const COLLEGE = 'IIIT Naya Raipur'
-const COLLEGE_LOGO_SRC: string | undefined = undefined
 const SPONSOR_LOGOS: string[] = []
 const EVENT_LOGO_SRC: string | undefined = undefined
 /** Event tagline, printed at the foot of the card back. */
@@ -140,16 +140,7 @@ const exportFilter = (n: Node) => !(n instanceof HTMLElement && n.dataset.noexpo
 
 /* ── Card pieces ── */
 
-function Emblem({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 48 56" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
-      <path d="M24 3 L43 10 V28 C43 40 35 49 24 53 C13 49 5 40 5 28 V10 Z" />
-      <path d="M13 18 L24 25 L35 18" />
-      <path d="M13 25 L24 32 L35 25" />
-      <path d="M24 34 L25.7 39 L31 40.7 L25.7 42.4 L24 47.5 L22.3 42.4 L17 40.7 L22.3 39 Z" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+
 
 function AInsignia({ className }: { className?: string }) {
   return (
@@ -510,7 +501,6 @@ export function OperativeIDPage() {
             <AInsignia className="oid-wm" />
             <div className="oid-body">
               <header className="oid-hd">
-                {COLLEGE_LOGO_SRC && <div className="oid-logo"><img src={COLLEGE_LOGO_SRC} alt="" /></div>}
                 <div className="oid-id-left">
                   {EVENT_LOGO_SRC ? (
                     <img className="oid-logo-img" src={EVENT_LOGO_SRC} alt="" />
@@ -519,7 +509,7 @@ export function OperativeIDPage() {
                   )}
                   <small>SECURITY CREDENTIAL // LVL 7</small>
                 </div>
-                <Emblem className="oid-emblem" />
+                <img className="oid-college" src={collegeLogo} alt="" />
               </header>
 
               <div className="oid-row">

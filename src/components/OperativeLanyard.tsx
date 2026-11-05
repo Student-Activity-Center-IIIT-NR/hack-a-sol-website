@@ -25,7 +25,7 @@ const CH = (CW * 540) / 340 // matches the 340×540 DOM card
 const CLIP_Y = CH / 2 + 0.3 // where the rope attaches, above the card
 const N = 32 // ribbon samples
 const HALF_W = 0.2 // half strap width (world units)
-const REPEAT = 1 // strap texture repeats along its length
+const REPEAT = 0.9 // strap texture repeats along its length
 
 export interface LanyardProps {
   front?: HTMLCanvasElement
@@ -81,7 +81,7 @@ function useStrapTexture(label: string) {
       g.fillRect(0, y0 + 14, W, 8)
       g.fillRect(0, y1 - 22, W, 8)
       // lettering
-      g.font = '700 118px "Barlow Condensed", sans-serif'
+      g.font = '700 100px "Barlow Condensed", sans-serif'
       g.textBaseline = 'middle'
       g.fillStyle = '#f4ece1'
       const unit = `${label.toUpperCase()}   ◆   `
@@ -151,9 +151,9 @@ function Band({ front, back, flipped, onFlip, label, kick }: LanyardProps) {
 
   const seg = { type: 'dynamic' as const, canSleep: true, colliders: false as const, angularDamping: 4, linearDamping: 4 }
 
-  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 1])
-  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 1])
-  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 1])
+  useRopeJoint(fixed, j1, [[0, 0, 0], [0, 0, 0], 0.85])
+  useRopeJoint(j1, j2, [[0, 0, 0], [0, 0, 0], 0.85])
+  useRopeJoint(j2, j3, [[0, 0, 0], [0, 0, 0], 0.85])
   useSphericalJoint(j3, card, [[0, 0, 0], [0, CLIP_Y, 0]])
 
   useEffect(() => {
@@ -178,16 +178,16 @@ function Band({ front, back, flipped, onFlip, label, kick }: LanyardProps) {
     if (!dragged && clock.current > 1.5) {
       const y = c.translation().y
       // follow the card's average height slowly (no need to wait for it to stop swinging)
-      restY.current = restY.current === null ? y : THREE.MathUtils.damp(restY.current, y, 0.8, delta)
+      restY.current = restY.current === null ? y : Math.min(restY.current, y)
     }
     if (restY.current !== null) {
       const cam = state.camera as THREE.PerspectiveCamera
       const tanHalf = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2))
       const aspect = state.size.width / state.size.height
-      const top = restY.current + CLIP_Y + 0.65 // ring + a little strap
-      const bottom = restY.current - CH / 2 - 0.12 // just under the card
+      const top = restY.current + CLIP_Y + 1.15
+      const bottom = restY.current - CH / 2 - 0.6
       const zV = (top - bottom) / (2 * tanHalf)
-      const zH = (CW + 1.4) / aspect / (2 * tanHalf) // keep room to swing sideways
+      const zH = (CW + 0.4) / aspect / (2 * tanHalf) // keep room to swing sideways
       cam.position.y = THREE.MathUtils.damp(cam.position.y, (top + bottom) / 2, 4, delta)
       cam.position.z = THREE.MathUtils.damp(cam.position.z, Math.max(zV, zH), 4, delta)
     }
@@ -250,10 +250,10 @@ function Band({ front, back, flipped, onFlip, label, kick }: LanyardProps) {
     <>
       <group position={[0, 3.65, 0]}>
         <RigidBody ref={fixed} {...seg} type="fixed" />
-        <RigidBody position={[0.5, 0, 0]} ref={j1} {...seg}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[1, 0, 0]} ref={j2} {...seg}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...seg}><BallCollider args={[0.1]} /></RigidBody>
-        <RigidBody position={[2, 0, 0]} ref={card} {...seg} type={dragged ? 'kinematicPosition' : 'dynamic'}>
+        <RigidBody position={[0.425, 0, 0]} ref={j1} {...seg}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[0.85, 0, 0]} ref={j2} {...seg}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1.275, 0, 0]} ref={j3} {...seg}><BallCollider args={[0.1]} /></RigidBody>
+        <RigidBody position={[1.7, 0, 0]} ref={card} {...seg} type={dragged ? 'kinematicPosition' : 'dynamic'}>
           <CuboidCollider args={[CW / 2, CH / 2, 0.01]} />
           <group
             onPointerOver={() => setHovered(true)}
