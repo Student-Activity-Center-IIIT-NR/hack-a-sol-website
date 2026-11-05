@@ -420,4 +420,13 @@ button, input { font: inherit; }
 .oid-bk-name small { font-family: var(--font-mono); font-size: 6.4px; letter-spacing: .3em; color: rgba(244, 236, 225, .7); }
 .oid-bk-name b { font-family: var(--font-head); font-weight: 800; line-height: 1; letter-spacing: .05em; text-transform: uppercase; color: #fff; white-space: nowrap; text-shadow: 0 2px 0 rgba(0, 0, 0, .7); }
 .oid-bk-name span { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: .2em; color: rgba(244, 236, 225, .85); }
+.oid-college { flex-shrink: 0; margin-left: auto; width: 34px; height: 34px; object-fit: contain; display: block; }
 
+@media (min-width: 900px) {
+  .oidp-desk {
+    margin-top: calc(-1 * clamp(2rem, 5vw, 4.5rem));
+    padding-top: 0;
+  }
+  .oidp-canvas { height: clamp(560px, calc(100svh - 9rem), 900px); }
+  .oidp-reg.tl, .oidp-reg.tr { display: none; }
+}
