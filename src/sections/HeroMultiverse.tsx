@@ -31,6 +31,7 @@ import { EVENT, HERO_COPY, HERO_SHOW_SPONSOR_LINK } from '../config'
 import { TRACKS } from '../data/tracks'
 import { initHero } from '../three/hero-multiverse/HeroSceneMultiverse'
 import type { HeroMultiverseHandle } from '../three/hero-multiverse/HeroSceneMultiverse'
+import { OperativeIDButton } from './OperativeIDButton'
 import './hero-multiverse/HeroMultiverse.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -206,6 +207,7 @@ export function HeroMultiverse({ ready }: HeroMultiverseProps) {
               BECOME A SPONSOR
             </a>
           )}
+          <OperativeIDButton />
         </div>
       </div>
 

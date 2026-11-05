@@ -1,0 +1,59 @@
+/*
+ * src/sections/OperativeIDButton.css
+ * Notched red CTA, same mono/uppercase voice as the hero buttons.
+ */
+
+.oidb {
+  --red: #e23636;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .85rem 1.3rem .85rem 1.2rem;
+  color: #fff;
+  text-decoration: none;
+  background: var(--red);
+  /* cut corners (top-right + bottom-left) */
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  transition: background .35s;
+  cursor: pointer;
+  overflow: hidden;
+}
+.oidb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform .7s ease;
+  pointer-events: none;
+}
+.oidb:hover { background: #ff4a4e; }
+.oidb:hover::after { transform: translateX(120%); }
+.oidb:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.oidb-ico { flex-shrink: 0; opacity: .95; }
+.oidb-txt { display: flex; flex-direction: column; gap: .2rem; text-align: left; }
+.oidb-txt small {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .5rem;
+  letter-spacing: .3em;
+  opacity: .78;
+}
+.oidb-txt b {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: .7rem;
+  letter-spacing: .24em;
+}
+.oidb-arrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  margin-left: .4rem;
+  transition: transform .3s;
+}
+.oidb:hover .oidb-arrow { transform: translateX(5px); }
+
+@media (max-width: 520px) {
+  .oidb { width: 100%; justify-content: center; }
+}
