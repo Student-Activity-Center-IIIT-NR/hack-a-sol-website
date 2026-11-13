@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
+  <!-- Canara Bank logo: overlapping triangles emblem + wordmark -->
+  <!-- Blue outer triangle (pointing up-right) -->
+  <polygon points="10,90 70,90 40,20" fill="#1565C0"/>
+  <!-- Orange inner triangle (overlapping, pointing down-left) -->
+  <polygon points="68,22 68,80 24,80" fill="#F57F17"/>
+  <!-- Blue wordmark -->
+  <text x="88" y="58" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="bold" fill="#1565C0" letter-spacing="1">Canara Bank</text>
+</svg>

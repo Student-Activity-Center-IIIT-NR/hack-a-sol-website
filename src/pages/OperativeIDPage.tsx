@@ -39,7 +39,10 @@ import thanos from '../assets/avengers/thanos.jpg'
 /* ── CONFIG (organiser edits these) ──────────────────────────────────────── */
 
 const COLLEGE = 'IIIT Naya Raipur'
-const SPONSOR_LOGOS: string[] = []
+const SPONSOR_LOGOS: string[] = [
+  '/sponsors/canara.jpg',
+  '/sponsors/cg-housing-board.jpeg',
+]
 const EVENT_LOGO_SRC: string | undefined = undefined
 /** Event tagline, printed at the foot of the card back. */
 const TAGLINE = 'ASSEMBLE. INNOVATE. CONQUER.'

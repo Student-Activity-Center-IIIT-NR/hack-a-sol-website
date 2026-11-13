@@ -228,19 +228,17 @@ export type PastSponsor = {
 export const PAST_SPONSORS: readonly PastSponsor[] = [
   // GitHub logo is black on white — plate mode keeps it visible;
   // onLight kept for legacy compat, tone controls the new LogoTile
-  { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg',        tone: 'plate'    },
-  { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg', tone: 'plate'    },
-  { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg',  tone: 'plate'    },
-  { id: 'ath-india',     name: 'ETH India',        logo: '/sponsors/ethindia.svg',     tone: 'plate'    },
-  { id: 'quill-audit',   name: 'Quill Audits',     logo: '/sponsors/quillaudits.svg',  tone: 'plate'    },
+  { id: 'github',        name: 'GitHub',          logo: '/sponsors/github.svg',        tone: 'plate' },
+  { id: 'geeksforgeeks', name: 'Geeks for Geeks', logo: '/sponsors/geeksforgeeks.svg', tone: 'plate' },
+  { id: 'coding-ninjas', name: 'Coding Ninjas',   logo: '/sponsors/codingninjas.svg',  tone: 'plate' },
+  { id: 'ath-india',     name: 'ETH India',       logo: '/sponsors/ethindia.svg',      tone: 'plate' },
+  { id: 'quill-audit',   name: 'Quill Audits',    logo: '/sponsors/quillaudits.svg',   tone: 'plate' },
   // Incogni logo is typically white/dark — plate mode makes it visible
-  { id: 'incognito',     name: 'Incogni',          logo: '/sponsors/incogni.svg',      tone: 'plate'    },
+  { id: 'incognito',     name: 'Incogni',         logo: '/sponsors/incogni.svg',       tone: 'plate' },
 ]
 
 /**
- * Platform / presenting sponsors for Hack-A-Sol 5.0.
- * `featured: true` → displayed in the larger "Presenting Partners" row.
- * Leave this array empty to show the Coming Soon state.
+ * Shared sponsor entry type used by Platform, Title and Elite tiers.
  */
 export type PlatformSponsorEntry = {
   id: string
@@ -251,9 +249,28 @@ export type PlatformSponsorEntry = {
   featured?: boolean
 }
 
+/**
+ * Platform / presenting sponsors for Hack-A-Sol 5.0.
+ * Leave this array empty to show the Coming Soon state.
+ */
 export const PLATFORM_SPONSORS: readonly PlatformSponsorEntry[] = [
-  // Add platform sponsors here when confirmed, e.g.:
   { id: 'unstop', name: 'Unstop', logo: '/sponsors/unstop-logo.svg', tone: 'plate', featured: true },
+]
+
+/**
+ * Title sponsors for Hack-A-Sol 5.0.
+ * Leave this array empty to show the Coming Soon state.
+ */
+export const TITLE_SPONSORS: readonly PlatformSponsorEntry[] = [
+  { id: 'cg-housing-board', name: 'CG Housing Board', logo: '/sponsors/cg-housing-board.jpeg', tone: 'plate' },
+]
+
+/**
+ * Elite sponsors for Hack-A-Sol 5.0.
+ * Leave this array empty to show the Coming Soon state.
+ */
+export const ELITE_SPONSORS: readonly PlatformSponsorEntry[] = [
+  { id: 'canara-bank', name: 'Canara Bank', logo: '/sponsors/canara.jpg', tone: 'plate' },
 ]
 
 /** Last year stats — update when Hack-A-Sol 4.0 numbers are confirmed */
