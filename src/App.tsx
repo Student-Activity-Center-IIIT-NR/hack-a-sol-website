@@ -40,6 +40,8 @@ import { About }         from "./sections/About"
 import { Tracks }        from "./sections/Tracks"
 import { PastSponsors }  from "./sections/PastSponsors"
 import { PlatformSponsor } from "./sections/PlatformSponsor"
+import { TitleSponsor }  from "./sections/TitleSponsor"
+import { EliteSponsor }  from "./sections/EliteSponsor"
 import { Timeline }      from "./sections/Timeline"
 import { EventDate }     from "./sections/EventDate"
 import { LastYear }      from "./sections/LastYear"
@@ -183,6 +185,8 @@ export default function App() {
         />
         <EventDate />
         <PlatformSponsor />
+        <TitleSponsor />
+        <EliteSponsor />
         <PastSponsors />
         <Timeline />
         <LastYear />
